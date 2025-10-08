@@ -1,0 +1,4 @@
+Thông thường các trang sẽ có nội dung khác nhau, 
+nhưng có phẩn header và footer giống nhau, và 
+trang nào cũng dùng chung nó, nó được gọi là layout. 
+Thư mục layouts chứ các layout như vậy.

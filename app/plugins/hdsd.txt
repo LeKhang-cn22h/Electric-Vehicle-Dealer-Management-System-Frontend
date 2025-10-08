@@ -1,0 +1,4 @@
+Thư mục này cho phép bạn đăng ký các plugin Vue trước khi 
+ứng dụng được tạo. Điều này cho phép các plugin được sử dụng 
+trong suốt quá trình tương tác với ứng dụng của bạn trên 
+instance Vue và bạn có thể truy cập bất cứ vào thành phần nào.

@@ -1,0 +1,2 @@
+Middleware là các hàm có thể được thực hiện 
+trước khi hiển thị page hoặc layout.

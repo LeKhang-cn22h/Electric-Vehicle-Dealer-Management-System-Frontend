@@ -1,0 +1,3 @@
+Chứa các file .vue, đây là một phần trong bộ định tuyến. 
+Nuxt sẽ tự động xây dựng router tương ứng với nên file .vue, 
+mỗi file .vue sẽ tương ứng với 1 route. 
