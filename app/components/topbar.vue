@@ -32,6 +32,7 @@ const commonMenu = [
   { label: "Danh mục xe", to: "/catalog" },
   { label: "So sánh xe", to: "/compare" },
   { label: "Khuyến mãi", to: "/promotions" },
+  { label: "Danh sách đơn hàng", to: "user/orders" }, // chỉ để test
 ];
 const topLeftLinks = computed(() => commonMenu);
 
@@ -58,7 +59,6 @@ function go(to) {
     >
       ☰
     </button>
-
     <div id="main-menu" class="menu" :class="{ open: isMenuOpen }">
       <ul class="menu-left">
         <li v-for="item in topLeftLinks" :key="item.to" class="menu-item">
@@ -67,6 +67,7 @@ function go(to) {
           </NuxtLink>
         </li>
       </ul>
+
       <ul class="menu-right">
         <li v-if="cta" class="menu-item">
           <NuxtLink :to="cta.to" class="btn-cta">{{ cta.label }}</NuxtLink>
