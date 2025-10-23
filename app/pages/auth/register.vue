@@ -365,6 +365,7 @@ async function onSubmit() {
 }
 
 .oauth-btn {
+  font-weight: bold;
   width: 100%;
   min-height: 44px;
   padding: 10px 14px;
@@ -374,8 +375,8 @@ async function onSubmit() {
   gap: 10px;
   border-radius: 12px;
   border: 2px solid var(--border);
-  background: #fff;
-  color: #111;
+  background: black;
+  color: white;
   font-weight: 600;
   cursor: pointer;
   transition: border-color 0.15s, box-shadow 0.15s, transform 0.02s,
