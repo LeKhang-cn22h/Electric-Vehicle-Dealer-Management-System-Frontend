@@ -67,7 +67,6 @@ function go(to) {
           </NuxtLink>
         </li>
       </ul>
-
       <ul class="menu-right">
         <li v-if="cta" class="menu-item">
           <NuxtLink :to="cta.to" class="btn-cta">{{ cta.label }}</NuxtLink>
