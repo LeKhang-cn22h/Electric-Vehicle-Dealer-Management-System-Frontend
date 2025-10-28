@@ -28,7 +28,7 @@ onMounted(() => window.addEventListener("keydown", onKeydown));
 onBeforeUnmount(() => window.removeEventListener("keydown", onKeydown));
 
 const commonMenu = [
-  { label: "Trang chủ", to: "/" },
+  { label: "Trang chủ", to: "/user/home" },
   { label: "Danh mục xe", to: "/catalog" },
   { label: "So sánh xe", to: "/compare" },
   { label: "Khuyến mãi", to: "/promotions" },
@@ -45,7 +45,7 @@ function go(to) {
 
 <template>
   <nav class="topbar" role="navigation" aria-label="Main">
-    <NuxtLink to="/" class="logo" aria-label="Trang chủ">
+    <NuxtLink to="/user/home" class="logo" aria-label="Trang chủ">
       <img src="/images/logo.png" alt="Logo" />
       <span class="brand">EV Dealer DMS</span>
     </NuxtLink>
