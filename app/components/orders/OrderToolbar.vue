@@ -32,7 +32,7 @@
                 :disabled="!hasActiveFilters"
                 :class="{ 'opacity-50 cursor-not-allowed': !hasActiveFilters }"
             >
-                <X class="w-4 h-4" />
+                <Trash2 class="w-4 h-4" />
                 Xóa bộ lọc
             </button>
         </div>
@@ -42,7 +42,7 @@
 <script setup>
 import DatePicker from "@/components/shared/DatePicker.vue";
 import SearchInput from "@/components/shared/SearchInput.vue";
-import { X } from "lucide-vue-next"; // Import Lucide icon
+import { Trash2 } from "lucide-vue-next"; // Import Lucide icon
 const props = defineProps({
     searchQuery: {
         type: String,

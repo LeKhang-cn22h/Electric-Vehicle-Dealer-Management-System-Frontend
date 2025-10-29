@@ -1,19 +1,20 @@
 <template>
     <div class="border border-gray-300 rounded-lg overflow-hidden">
         <table class="w-full">
-            <thead class="bg-gray-50">
+            <thead class="bg-black">
                 <tr>
-                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Mã đơn hàng</th>
-                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Khách hàng</th>
-                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Ngày đặt</th>
-                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Sản phẩm</th>
-                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Tổng tiền</th>
-                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Trạng thái</th>
-                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Thao tác</th>
+                    <th class="px-4 py-4 text-left text-base font-semibold text-white" v-for="fieldName in fieldsName">
+                        {{ fieldName }}
+                    </th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-gray-200">
-                <tr v-for="order in orders" :key="order.id" class="hover:bg-gray-50 transition-colors">
+            <tbody class="divide-y divide-gray-200" v-if="orders.length > 0">
+                <tr
+                    v-for="(order, index) in orders"
+                    :key="order.id"
+                    class="transition-colors"
+                    :class="index % 2 === 0 ? 'bg-white' : 'bg-gray-200'"
+                >
                     <td class="px-4 py-3 text-sm font-medium text-gray-900">
                         {{ order.orderCode }}
                     </td>
@@ -55,14 +56,31 @@
                     </td>
                 </tr>
             </tbody>
+
+            <tbody v-else>
+                <tr>
+                    <td colspan="7" class="px-4 py-12 text-center">
+                        <div class="flex flex-col items-center justify-center text-gray-500">
+                            <FileText class="w-12 h-12 mb-3 text-gray-400" />
+                            <p class="text-lg font-medium">Không có đơn hàng nào</p>
+                            <p class="text-sm mt-1">Hãy tạo đơn hàng mới để bắt đầu</p>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
         </table>
     </div>
 </template>
 
 <script setup>
 import OrderStatusBadge from "@/components/orders/OrderStatusBadge.vue";
-import { Eye, Printer } from "lucide-vue-next";
+import { Eye, Printer, FileText } from "lucide-vue-next";
+import { formatCurrency, formatDate } from "@/utils/format";
 const props = defineProps({
+    fieldsName: {
+        type: Array,
+        default: () => ["Mã đơn hàng", "Khách hàng", "Ngày đặt", "Sản phẩm", "Tổng tiền", "Trạng thái", "Thao tác"],
+    },
     orders: {
         type: Array,
         default: () => [],
@@ -70,15 +88,4 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["print"]);
-
-const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString("vi-VN");
-};
-
-const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("vi-VN", {
-        style: "currency",
-        currency: "VND",
-    }).format(amount);
-};
 </script>

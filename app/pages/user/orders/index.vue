@@ -7,7 +7,7 @@
                 Danh sách đơn hàng
             </h1>
             <NuxtLink
-                to="user/orders/create"
+                to="orders/create"
                 class="inline-flex items-center gap-2 bg-black text-white px-5 py-2.5 rounded-xl font-medium hover:bg-gray-800 active:scale-95 transition-all shadow-md"
             >
                 <span class="text-lg font-bold">+</span>
@@ -37,7 +37,7 @@
 
         <!-- Table -->
         <div v-else class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
-            <OrderTable :orders="paginatedOrders" @print="handlePrint" />
+            <OrderTable :fields-name="fieldsName" :orders="paginatedOrders" @print="handlePrint" />
         </div>
 
         <!-- Empty state -->
@@ -69,6 +69,8 @@ const filters = reactive({
 const currentPage = ref(1);
 const pageSize = 10;
 const pending = ref(false);
+
+const fieldsName = ["Mã đơn hànggg", "Khách hàng", "Ngày đặt", "Sản phẩm", "Tổng tiền", "Trạng thái", "Thao tác"];
 
 const orders = ref([
     {
@@ -313,7 +315,7 @@ const paginatedOrders = computed(() => {
     return filteredOrders.value.slice(start, end);
 });
 
-const totalPages = computed(() => Math.ceil((orders.value.length || 0) / pageSize));
+const totalPages = computed(() => Math.ceil((filteredOrders.value.length || 0) / pageSize));
 
 const resetAndFetch = () => {
     currentPage.value = 1;

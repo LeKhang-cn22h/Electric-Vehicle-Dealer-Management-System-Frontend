@@ -1,24 +1,22 @@
 <template>
-  <div class="test-drive-page">
-    <TestDriveBooking />
-  </div>
+    <div class="test-drive-page">
+        <TestDriveBooking />
+    </div>
 </template>
 
 <script setup lang="ts">
 definePageMeta({
-  layout: 'default'
-})
+    layout: "default",
+});
 
 // Import component
-import TestDriveBooking from 'D:/XDPMOOP/FE/Electric-Vehicle-Dealer-Management-System-Frontend/app/components/test-drive/TestDriverBooking.vue'
-
-
+import TestDriveBooking from "@/components/test-drive/TestDriverBooking.vue";
 </script>
 
 <style scoped>
 .test-drive-page {
-  min-height: 100vh;
-  padding: 20px;
-  background-color: #f5f5f5;
+    min-height: 100vh;
+    padding: 20px;
+    background-color: #f5f5f5;
 }
 </style>
