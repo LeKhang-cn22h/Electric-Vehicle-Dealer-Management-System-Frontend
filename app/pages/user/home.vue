@@ -1,595 +1,749 @@
-<script setup>
-definePageMeta({
-  alias: ["/"], // map URL "/" vào trang này
-});
+<script setup lang="ts">
+import { ref } from "vue";
 
-import { ref, computed, onMounted, onUnmounted } from "vue";
-import { useBook, showApiAddress } from "~/composable/user/book";
+definePageMeta({ alias: ["/use/home"] });
 
-const { book, loading, load } = useBook();
-const apiAddress = showApiAddress();
+const stats = [
+  { number: "2+", label: "Năm Kinh Nghiệm" },
+  { number: "100+", label: "Khách Hàng Hài Lòng" },
+  { number: "10+", label: "Mẫu Xe Đa Dạng" },
+  { number: "24/7", label: "Hỗ Trợ Khách Hàng" },
+];
 
-// Tự động tải khi vào page
-onMounted(() => {
-  load();
-});
+const features = [
+  {
+    icon: "🚗",
+    title: "Đa Dạng Dòng Xe",
+    desc: "Hơn 100+ mẫu xe cao cấp từ các thương hiệu hàng đầu thế giới",
+  },
+  {
+    icon: "✨",
+    title: "Chất Lượng Đảm Bảo",
+    desc: "100% xe chính hãng, bảo hành toàn diện và hỗ trợ trọn đời",
+  },
+  {
+    icon: "💰",
+    title: "Giá Tốt Nhất",
+    desc: "Cam kết giá cạnh tranh với chính sách trả góp 0% lãi suất",
+  },
+  {
+    icon: "🔧",
+    title: "Bảo Dưỡng Miễn Phí",
+    desc: "Dịch vụ bảo dưỡng định kỳ miễn phí trong 3 năm đầu",
+  },
+];
 
-// Tự động tải ảnh từ thư mục showcase
-const images = ref([]);
-const mainIdx = ref(2); // index của box chính (main), mặc định là ảnh giữa
-const autoSlideInterval = ref(null);
-const isHovering = ref(false);
+// Services
+const services = [
+  {
+    title: "Tư Vấn Chuyên Nghiệp",
+    desc: "Đội ngũ chuyên viên tư vấn giàu kinh nghiệm, tận tâm",
+    image: "/contact.png",
+  },
+  {
+    title: "Lái Thử Miễn Phí",
+    desc: "Trải nghiệm xe trước khi quyết định mua",
+    image: "/drive.png",
+  },
+  {
+    title: "Hỗ Trợ Vay Vốn",
+    desc: "Hỗ trợ thủ tục vay ngân hàng nhanh chóng",
+    image: "/loans.png",
+  },
+];
 
-// Tải danh sách ảnh từ showcase
-onMounted(async () => {
-  // Danh sách các file có thể có trong showcase
-  const showcaseFiles = [
-    "/showcase/demo1.gif",
-    "/showcase/demo2.gif",
-    "/showcase/demo3.webp",
-    "/showcase/demo4.gif",
-    "/showcase/demo5.webp",
-    "/showcase/app1.png",
-    "/showcase/app2.png",
-    "/showcase/web1.gif",
-    "/showcase/web2.gif",
-    "/showcase/mobile1.webp",
-  ];
-
-  const loadedImages = [];
-
-  // Kiểm tra file nào tồn tại
-  for (const imagePath of showcaseFiles) {
-    try {
-      const response = await fetch(imagePath, { method: "HEAD" });
-      if (response.ok) {
-        loadedImages.push(imagePath);
-      }
-    } catch (error) {
-      // File không tồn tại, bỏ qua
-    }
-  }
-
-  // Nếu không có ảnh nào trong showcase, dùng ảnh mặc định
-  if (loadedImages.length === 0) {
-    images.value = ["/a1.png", "/a2.png", "/a3.png", "/a4.png", "/a5.png"];
-  } else {
-    images.value = loadedImages;
-  }
-
-  // Bắt đầu auto slide
-  startAutoSlide();
-});
-
-// Dọn dẹp khi component bị hủy
-onUnmounted(() => {
-  stopAutoSlide();
-});
-
-const visibleImages = computed(() => {
-  const res = [];
-  const len = images.value.length;
-  for (let k = -2; k <= 2; k++) {
-    const idx = (mainIdx.value + k + len) % len;
-    res.push(images.value[idx]);
-  }
-  return res;
-});
-
-// Khi bấm vào box trái/phải
-function onBoxClick(idx) {
-  if (idx === 2) return; // bấm vào box chính thì không làm gì
-  // idx: 0 1 2 3 4
-  // mainIdx dịch sang trái/phải tương ứng
-  const delta = idx - 2;
-  mainIdx.value =
-    (mainIdx.value + delta + images.value.length) % images.value.length;
-}
-
-// Auto slide functions
-function startAutoSlide() {
-  if (autoSlideInterval.value || isHovering.value) return;
-
-  autoSlideInterval.value = setInterval(() => {
-    if (!isHovering.value && images.value.length > 0) {
-      mainIdx.value = (mainIdx.value + 1) % images.value.length;
-    }
-  }, 3000); // Chuyển ảnh mỗi 3 giây
-}
-
-function stopAutoSlide() {
-  if (autoSlideInterval.value) {
-    clearInterval(autoSlideInterval.value);
-    autoSlideInterval.value = null;
-  }
-}
-
-// Hover events
-function onMouseEnter() {
-  isHovering.value = true;
-  stopAutoSlide();
-}
-
-function onMouseLeave() {
-  isHovering.value = false;
-  startAutoSlide();
-}
+// Cars showcase
+const carShowcase = ref([
+  {
+    src: "/showcase/xe1.jpg",
+    name: "Mercedes-Benz S-Class",
+    tagline: "Siêu sang · Full Option",
+    price: "Giá tốt • Liên hệ",
+  },
+  {
+    src: "/showcase/xe2.jpg",
+    name: "BMW 7 Series",
+    tagline: "Phong cách doanh nhân",
+    price: "Trả góp 0% lãi suất",
+  },
+  {
+    src: "/showcase/xe3.jpg",
+    name: "Lexus LX 600",
+    tagline: "SUV đẳng cấp hạng sang",
+    price: "Giao xe ngay",
+  },
+  {
+    src: "/showcase/xe4.jpg",
+    name: "Porsche Cayenne",
+    tagline: "Hiệu năng & sang trọng",
+    price: "Có xe trưng bày",
+  },
+  {
+    src: "/showcase/xe5.jpg",
+    name: "Range Rover Vogue",
+    tagline: "Biểu tượng quyền lực",
+    price: "Hotline: 1900 xxxx",
+  },
+]);
 </script>
 
 <template>
-  <!-- Banner -->
-  <section class="banner">
-    <h1>EzLife</h1>
-    <h2>Cung cấp giải pháp phần mềm</h2>
-    <div
-      style="
-        display: flex;
-        flex-direction: row;
-        justify-content: center;
-        align-items: center;
-        margin-bottom: 10%;
-      "
-    >
-      <div
-        class="banner-slider"
-        @mouseenter="onMouseEnter"
-        @mouseleave="onMouseLeave"
-      >
-        <div
-          v-for="(img, idx) in visibleImages"
-          :key="idx + '-' + img"
-          :class="[
-            'box',
-            { main: idx === 2 },
-            { boxside: idx === 0 || idx === 4 },
-          ]"
-          @click="onBoxClick(idx)"
-          style="cursor: pointer"
-        >
-          <img :src="img" alt="" />
+  <div class="home-page">
+    <section class="hero-section">
+      <div class="hero-overlay"></div>
+
+      <div class="hero-content">
+        <h1 class="hero-title">
+          Showroom Xe Hơi<br />
+          <span class="highlight">Cao Cấp & Sang Trọng</span>
+        </h1>
+
+        <p class="hero-subtitle">
+          Khám phá bộ sưu tập xe sang trọng với giá tốt nhất thị trường
+        </p>
+
+        <div class="hero-buttons">
+          <a href="#cars" class="btn btn-primary">Xem Bộ Sưu Tập</a>
+          <a href="#contact" class="btn btn-secondary">Liên Hệ Ngay</a>
         </div>
       </div>
-    </div>
-    <div class="contact-btns">
-      <a href="#" class="zalo-btn"></a>
-      <a href="#" class="messenger-btn"></a>
-    </div>
-  </section>
 
-  <div>
-    <h1>Danh sách sách</h1>
-
-    <button @click="load" :disabled="loading">
-      {{ loading ? "Đang tải..." : "Tải sách" }}
-    </button>
-
-    <!-- Hiển thị địa chỉ API -->
-    <p>API: {{ apiAddress }}</p>
-
-    <!-- Hiển thị danh sách book -->
-    <ul>
-      <li v-for="(item, index) in book" :key="index">
-        {{ item.title }}
-      </li>
-    </ul>
-  </div>
-
-  <!-- Lý do chọn -->
-  <section class="why">
-    <h3>Vì sao bạn nên chọn <span>EzLife</span>?</h3>
-    <p>
-      Sau đây là những lý do bạn nên sử dụng dịch vụ thiết kế Web App tại Ezlife
-    </p>
-
-    <div class="rowwhy">
-      <ul class="reasons">
-        <li><b>01</b> Giá thành tốt nhất thị trường</li>
-        <li><b>02</b> Cam kết chất lượng, chăm sóc khách hàng</li>
-        <li><b>03</b> Nhân sự tư duy tốt và thẩm mỹ cao</li>
-      </ul>
-      <div class="cards-stack">
-        <DemoCard class="card card--left" />
-        <DemoCard class="card card--right" />
+      <div class="scroll-indicator">
+        <span>Scroll Down</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <path
+            d="M12 5v14m0 0l7-7m-7 7l-7-7"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          />
+        </svg>
       </div>
-    </div>
-  </section>
+    </section>
+    <section class="stats-section">
+      <div class="container">
+        <div class="stats-grid">
+          <div v-for="stat in stats" :key="stat.label" class="stat-card">
+            <div class="stat-number">{{ stat.number }}</div>
+            <div class="stat-label">{{ stat.label }}</div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="carousel-section" id="cars">
+      <div class="container">
+        <div class="cars-header">
+          <div class="cars-headline">
+            <h2 class="cars-title">Bộ Sưu Tập Xe Nổi Bật</h2>
+            <p class="cars-subtitle">
+              Xe sang – tình trạng mới, giấy tờ rõ ràng, hỗ trợ vay và giao tận
+              nơi
+            </p>
+          </div>
+        </div>
 
-  <!-- Lợi ích -->
-  <section class="benefits">
-    <h3>LỢI ÍCH CỦA <span>WEB/APP CHUYÊN NGHIỆP</span></h3>
+        <div class="cars-grid">
+          <div class="car-card" v-for="car in carShowcase" :key="car.src">
+            <div class="car-image">
+              <img :src="car.src" :alt="car.name" draggable="false" />
+              <button class="quick-view">Xem Chi Tiết</button>
+            </div>
 
-    <div class="benefit-list">
-      <article class="benefit-card card--seo">
-        <img src="/seologo.png" class="benefit-icon" alt="SEO" />
-        <h4>Chuẩn SEO</h4>
-        <p>
-          WebApp được tối ưu SEO với từ khóa, thẻ meta, URL thân thiện và tối ưu
-          nội dung chất lượng, giúp đạt thứ hạng cao trên công cụ tìm kiếm.
-        </p>
-      </article>
+            <div class="car-info">
+              <div class="car-top-row">
+                <div class="car-name">{{ car.name }}</div>
+                <div class="badge-status">Có sẵn</div>
+              </div>
 
-      <article class="benefit-card card--speed">
-        <img src="/tocdologo.png" class="benefit-icon" alt="Speed" />
-        <h4>Tốc độ</h4>
-        <p>
-          Tốc độ load nhanh, cải thiện trải nghiệm người dùng và thứ hạng của
-          WebApp.
-        </p>
-      </article>
+              <div class="car-tagline">{{ car.tagline }}</div>
 
-      <article class="benefit-card card--features">
-        <img src="/tinhnanglogo.png" class="benefit-icon" alt="Features" />
-        <h4>Tính năng đa dạng</h4>
-        <p>
-          Tích hợp TMĐT, thanh toán trực tuyến, tìm kiếm nâng cao… theo đúng nhu
-          cầu.
-        </p>
-      </article>
+              <div class="car-bottom-row">
+                <div class="car-price">{{ car.price }}</div>
+                <a class="car-action" href="#contact">Tư vấn</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="features-section">
+      <div class="container">
+        <div class="features-grid">
+          <div
+            v-for="feature in features"
+            :key="feature.title"
+            class="feature-card"
+          >
+            <div class="feature-icon">{{ feature.icon }}</div>
+            <h3 class="feature-title">{{ feature.title }}</h3>
+            <p class="feature-desc">{{ feature.desc }}</p>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="services-section">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title">Dịch Vụ Của Chúng Tôi</h2>
+          <p class="section-subtitle">
+            Trải nghiệm mua xe cao cấp với đầy đủ tiện ích
+          </p>
+        </div>
 
-      <article class="benefit-card card--security">
-        <img src="/baomatlogo.png" class="benefit-icon" alt="Security" />
-        <h4>Bảo mật tuyệt đối</h4>
-        <p>HTTPS, tường lửa/IDS, best practices bảo vệ dữ liệu người dùng.</p>
-      </article>
+        <div class="services-grid">
+          <div
+            v-for="service in services"
+            :key="service.title"
+            class="service-card"
+          >
+            <div class="service-image-wrapper">
+              <img
+                :src="service.image"
+                :alt="service.title"
+                class="service-image-img"
+                draggable="false"
+              />
+            </div>
 
-      <article class="benefit-card card--admin">
-        <img src="/quantrilogo.png" class="benefit-icon" alt="Admin" />
-        <h4>Dễ dàng quản trị</h4>
-        <p>
-          Hệ thống quản trị nội dung linh hoạt, dễ dùng, cập nhật nhanh chóng.
-        </p>
-      </article>
+            <h3 class="service-title">{{ service.title }}</h3>
+            <p class="service-desc">{{ service.desc }}</p>
 
-      <article class="benefit-card card--connect">
-        <img src="/ketnoilogo.png" class="benefit-icon" alt="Connect" />
-        <h4>Kết nối</h4>
-        <p>
-          Kết nối mạng xã hội, mở rộng tệp khách hàng, tăng truy cập tự nhiên.
-        </p>
-      </article>
+            <a href="#contact" class="service-link">
+              Tìm hiểu thêm
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M5 12h14m0 0l-7-7m7 7l-7 7"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+              </svg>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="contact-section" id="contact">
+      <div class="container">
+        <div class="contact-content">
+          <div class="contact-info">
+            <h2 class="contact-title">Liên Hệ Với Chúng Tôi</h2>
+            <p class="contact-desc">
+              Đội ngũ tư vấn của chúng tôi sẵn sàng hỗ trợ bạn 24/7
+            </p>
 
-      <article class="benefit-card card--platform">
-        <img src="/nentanglogo.png" class="benefit-icon" alt="Platform" />
-        <h4>Nền tảng</h4>
-        <p>Đa nền tảng, đa thiết bị.</p>
-      </article>
+            <div class="contact-details">
+              <div class="contact-item">
+                <span class="contact-icon">📍</span>
+                <div>
+                  <strong>Địa chỉ</strong>
+                  <p>123 Đường ABC, Quận XYZ, TP.HCM</p>
+                </div>
+              </div>
 
-      <article class="benefit-card card--uiux">
-        <img src="/uilogo.png" class="benefit-icon" alt="UI/UX" />
-        <h4>Chuẩn UI/UX</h4>
-        <p>Thiết kế đẹp, trực quan, tăng trải nghiệm và giữ chân người dùng.</p>
-      </article>
-    </div>
-  </section>
+              <div class="contact-item">
+                <span class="contact-icon">📞</span>
+                <div>
+                  <strong>Hotline</strong>
+                  <p>1900 xxxx (Miễn phí)</p>
+                </div>
+              </div>
+
+              <div class="contact-item">
+                <span class="contact-icon">✉️</span>
+                <div>
+                  <strong>Email</strong>
+                  <p>contact@showroom.vn</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="contact-buttons">
+            <a href="https://zalo.me" class="contact-btn zalo-btn">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path
+                  d="M12 2C6.477 2 2 6.145 2 11.243c0 2.85 1.34 5.392 3.448 7.128l-.88 3.23a.5.5 0 00.72.576l3.58-1.87C9.87 20.752 10.918 21 12 21c5.523 0 10-4.145 10-9.243C22 6.145 17.523 2 12 2z"
+                />
+              </svg>
+              <span>Chat Zalo</span>
+            </a>
+
+            <a href="https://m.me" class="contact-btn messenger-btn">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path
+                  d="M12 2C6.477 2 2 6.145 2 11.486c0 2.965 1.482 5.607 3.796 7.323v3.691a.5.5 0 00.771.42l3.692-2.308A10.945 10.945 0 0012 21c5.523 0 10-4.477 10-9.514C22 6.145 17.523 2 12 2z"
+                />
+              </svg>
+              <span>Messenger</span>
+            </a>
+
+            <a href="tel:1900xxxx" class="contact-btn phone-btn">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+              >
+                <path
+                  d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+              </svg>
+              <span>Gọi Ngay</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
 </template>
 
-<style>
-.banner {
-  text-align: center;
-  padding: 2rem 1rem 1rem 1rem;
-  color: #fff;
-}
-.banner h1 {
-  font-size: 2.2rem;
-  font-weight: bold;
-  margin-bottom: 0.2em;
-  letter-spacing: 2px;
-}
-.banner h2 {
-  font-size: 1.3rem;
-  font-weight: 500;
-  margin-bottom: 1.5em;
-}
-.banner-slider {
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  margin-bottom: 2em;
-  margin: 0 2%;
-  gap: 2rem;
+<style scoped>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-.banner-slider .box {
-  width: 340px;
-  height: 340px;
-  background: #ccc;
-  border-radius: 10px;
-  opacity: 0.7;
-  box-shadow: 4px 6px 0 #0002;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s cubic-bezier(0.4, 2, 0.6, 1);
-  cursor: pointer;
-  overflow: hidden;
+html {
+  scroll-behavior: smooth;
+}
+
+.home-page {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  overflow-x: hidden;
+  color: #1e293b;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.hero-section {
   position: relative;
-}
-
-/* Thêm hiệu ứng hover cho box */
-.banner-slider .box:hover:not(.main) {
-  transform: scale(1.05);
-  opacity: 0.9;
-  box-shadow: 6px 8px 15px #0003;
-}
-
-.banner-slider .boxside {
-  width: 180px;
-  height: 180px;
-  background: #ccc;
-  border-radius: 10px;
-  opacity: 0.3;
-  box-shadow: 4px 6px 0 #0002;
+  height: 100vh;
+  min-height: 600px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s cubic-bezier(0.4, 2, 0.6, 1);
-  cursor: pointer;
   overflow: hidden;
 }
 
-/* Hiệu ứng hover cho boxside */
-.banner-slider .boxside:hover {
-  transform: scale(1.1);
-  opacity: 0.6;
-  box-shadow: 6px 8px 15px #0003;
-}
-
-.banner-slider .box img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  transition: transform 0.3s ease;
-}
-
-/* Hiệu ứng hover cho ảnh */
-.banner-slider .box:hover img {
-  transform: scale(1.1);
-}
-
-.banner-slider .main {
-  width: 600px;
-  height: 600px;
-  background: #fff;
-  opacity: 1;
-  z-index: 2;
-  box-shadow: 6px 10px 0 #0002;
-}
-
-/* Hiệu ứng hover cho main box */
-.banner-slider .main:hover {
-  transform: scale(1.02);
-  box-shadow: 8px 12px 20px #0004;
-}
-
-/* Thêm indicator nhỏ để hiển thị đang auto slide */
-.banner-slider::after {
-  content: "";
+.hero-overlay {
   position: absolute;
-  bottom: -20px;
+  inset: 0;
+  background: radial-gradient(
+      circle at 20% 50%,
+      rgba(255, 255, 255, 0.1) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 80% 80%,
+      rgba(255, 255, 255, 0.1) 0%,
+      transparent 50%
+    );
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  color: white;
+  max-width: 800px;
+  padding: 24px;
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.hero-title {
+  font-size: clamp(32px, 6vw, 64px);
+  font-weight: 900;
+  line-height: 1.2;
+  margin-bottom: 24px;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.highlight {
+  background: linear-gradient(120deg, #fff 0%, #ffd700 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-subtitle {
+  font-size: clamp(16px, 2.5vw, 20px);
+  margin-bottom: 40px;
+  opacity: 0.95;
+  font-weight: 500;
+}
+
+.hero-buttons {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn {
+  padding: 16px 32px;
+  border-radius: 50px;
+  font-weight: 600;
+  font-size: 16px;
+  text-decoration: none;
+  transition: all 0.3s;
+  display: inline-block;
+}
+
+.btn-primary {
+  background: white;
+  color: #667eea;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.btn-primary:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: white;
+  border: 2px solid white;
+}
+
+.btn-secondary:hover {
+  background: white;
+  color: #667eea;
+  transform: translateY(-4px);
+}
+
+.scroll-indicator {
+  position: absolute;
+  bottom: 40px;
   left: 50%;
   transform: translateX(-50%);
-  width: 60px;
-  height: 3px;
-  background: linear-gradient(90deg, #3ee6c5, #009ee3);
-  border-radius: 2px;
-  animation: slideIndicator 3s linear infinite;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: white;
+  opacity: 0.8;
+  animation: bounce 2s infinite;
+  font-size: 14px;
 }
 
-@keyframes slideIndicator {
-  0% {
-    width: 0%;
-  }
+@keyframes bounce {
+  0%,
   100% {
-    width: 60px;
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    transform: translateX(-50%) translateY(-10px);
   }
 }
 
-/* Dừng animation khi hover */
-.banner-slider:hover::after {
-  animation-play-state: paused;
+.stats-section {
+  padding: 80px 0;
+  background: white;
 }
 
-.contact-btns {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: flex-end;
-  gap: 1rem;
-  margin-bottom: 2em;
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 32px;
 }
-.phone-btn {
-  background: #3ee6c5;
-  color: #222;
-  border: none;
-  border-radius: 8px;
-  padding: 0.7em 1.2em;
-  font-weight: bold;
-  font-size: 1rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.5em;
-}
-.zalo-btn,
-.messenger-btn {
-  display: inline-block;
-  background: #fff;
-  color: #009ee3;
-  border-radius: 50%;
-  width: 48px;
-  height: 48px;
-  font-weight: bold;
-  font-size: 1rem;
+
+.stat-card {
   text-align: center;
-  line-height: 48px;
-  box-shadow: 0 2px 8px #0002;
-  text-decoration: none;
-  margin-left: 0.5em;
-  transition: all 0.3s ease;
+  padding: 24px;
+  animation: fadeInUp 0.6s ease-out;
 }
 
-/* Thêm hover cho contact buttons */
-.zalo-btn:hover,
-.messenger-btn:hover {
-  transform: translateY(-2px) scale(1.1);
-  box-shadow: 0 4px 15px #0003;
+.stat-number {
+  font-size: 48px;
+  font-weight: 900;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 8px;
 }
 
-.zalo-btn {
-  background: #fff url("/zalo.png") center/70% no-repeat;
-}
-.messenger-btn {
-  background: #fff url("/messenger.png") center/70% no-repeat;
-}
-
-.why {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-around;
-  background: #222222a0;
-  backdrop-filter: #2222228b blur(8px);
-  color: #fff;
-  padding: 3% 5% 3% 5%;
-  border-radius: 20px;
-  margin: 10%;
-  box-shadow: 0 4px 24px #0002;
-}
-.why p {
-  font-size: 1.3rem;
-  line-height: 1.6;
-}
-.why h3 {
-  font-size: 1.8rem;
-  margin-bottom: 0.5em;
-}
-.why h3 span {
-  color: #3ee6c5;
-}
-.why .rowwhy {
-  display: flex;
-  flex: 1;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-}
-.why .reasons {
-  list-style: none;
-  padding: 0;
-  margin: 3% 2% 2%;
-}
-.why .reasons li {
-  background: #fff;
-  color: #222;
-  border-radius: 8px;
-  margin-bottom: 4%;
-  padding: 0.7em 1em;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 1em;
-}
-.why .reasons b {
-  color: #009ee3;
-  font-size: 1.1em;
-  margin-right: 0.5em;
+.stat-label {
+  font-size: 16px;
+  color: #64748b;
+  font-weight: 600;
 }
 
-/* Khung chồng thẻ */
-.rowwhy .cards-stack {
-  display: grid; /* quan trọng */
-  place-items: center;
-}
-
-/* Tất cả con cùng nằm 1 ô grid → chồng lên nhau */
-.cards-stack > * {
-  grid-area: 1 / 1;
-}
-
-.hinhminhhoa {
-  width: 150px;
-  object-fit: contain;
-  margin-bottom: 0.5em;
-}
-
-.card {
-  width: 150px;
-  height: 200px;
-  margin: 10%;
-  border-radius: 16px;
-  background: url("/a1.png") center/cover no-repeat;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-  transition: transform 0.2s ease;
-}
-
-/* Lệch và xoay nhẹ để thấy overlap */
-.card--right {
-  transform: rotate(8deg) translateX(60px);
-  z-index: 0;
-}
-
-.card--left {
-  transform: rotate(-8deg) translateX(-60px);
-  z-index: 1;
-}
-
-/* Hover để nổi lên */
-.card--left:hover {
-  transform: rotate(0deg) translateX(-60px) translateY(-10px) scale(1.5);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
-  z-index: 2;
-}
-.card--right:hover {
-  transform: rotate(0deg) translateX(60px) translateY(-10px) scale(1.5);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
-  z-index: 2;
-}
-
-.benefits {
-  flex: 1;
-  align-self: center;
-  justify-self: center;
-  color: #ffffff;
-  padding: 3% 5% 3% 5%;
-  margin: 0 1rem 1rem 1rem;
-  border-radius: 20px;
-}
-
-.benefits h3 {
-  text-align: center;
-  font-style: oblique;
-  margin: 0 0 30px;
-  letter-spacing: 0.6px;
-  font-weight: 800;
+.carousel-section {
   position: relative;
+  padding: 80px 0 100px;
+  background: radial-gradient(
+      circle at 20% 20%,
+      rgba(102, 126, 234, 0.12) 0%,
+      rgba(118, 75, 162, 0) 70%
+    ),
+    radial-gradient(
+      circle at 80% 30%,
+      rgba(255, 255, 255, 0.4) 0%,
+      rgba(255, 255, 255, 0) 60%
+    ),
+    linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
 }
 
-/* Thêm hiệu ứng gạch dưới cho title */
-.benefits h3::after {
+.cars-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 16px;
+  margin-bottom: 40px;
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.cars-headline {
+  max-width: 700px;
+  text-align: center;
+}
+
+.cars-title {
+  font-size: clamp(24px, 2vw, 32px);
+  font-weight: 800;
+  line-height: 1.2;
+  position: relative;
+  background: linear-gradient(
+    270deg,
+    #ff0000,
+    #00ff1e,
+    #006eff,
+    #7c00a6,
+    #ff0000
+  );
+  background-size: 800% 800%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradientText 6s linear infinite;
+  margin: 0 0 12px;
+  letter-spacing: 0.4px;
+  align-self: center;
+}
+
+.cars-title::after {
   content: "";
   position: absolute;
   bottom: -8px;
   left: 50%;
   transform: translateX(-50%);
-  width: 0;
+  width: 160px;
   height: 3px;
-  background: linear-gradient(90deg, #00ffff, #0080ff);
   border-radius: 2px;
+  background: linear-gradient(90deg, #00ffff, #0080ff);
   animation: titleUnderline 2s ease-out forwards;
-  animation-delay: 0.5s;
 }
 
-@keyframes titleUnderline {
-  to {
-    width: 200px;
-  }
+.cars-subtitle {
+  font-size: 15px;
+  line-height: 1.5;
+  color: #64748b;
+  max-width: 520px;
+  font-weight: 500;
 }
-.benefits h3 span {
-  background: linear-gradient(270deg, #ff0000, #00ff1e, #006eff, #7c00a6);
-  background-size: 800% 800%;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: gradientText 4s ease-in-out infinite;
+
+.cars-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #1e293b;
+  color: #fff;
+  border-radius: 999px;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  line-height: 1;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: all 0.25s;
+}
+
+.cars-cta:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 28px 48px rgba(0, 0, 0, 0.6);
+}
+
+.cars-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 28px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.car-card {
+  background: #0f172a;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  flex-direction: column;
+  transition: all 0.28s;
+  min-height: 320px;
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.car-card:hover {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 40px 80px rgba(0, 0, 0, 0.7);
+}
+
+.car-image {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: radial-gradient(circle at 50% 20%, #1e293b 0%, #000 70%);
+  overflow: hidden;
+}
+
+.car-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.4s;
+}
+
+.car-card:hover .car-image img {
+  transform: scale(1.07);
+}
+
+.quick-view {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(10px);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  padding: 8px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.25s;
+}
+
+.quick-view:hover {
+  background: rgba(255, 255, 255, 0.22);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5);
+}
+
+.car-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 16px 20px;
+  color: #fff;
+  background: radial-gradient(
+      circle at 0% 0%,
+      rgba(30, 41, 59, 0.7) 0%,
+      rgba(0, 0, 0, 0.3) 70%
+    ),
+    rgba(0, 0, 0, 0.4);
+}
+
+.car-top-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.car-name {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #fff;
+  letter-spacing: 0.2px;
+}
+
+.badge-status {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #6ee7b7;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.car-tagline {
+  font-size: 13px;
+  line-height: 1.4;
+  color: #94a3b8;
+  font-weight: 500;
+  min-height: 2.8em;
+  margin-bottom: 12px;
+}
+
+.car-bottom-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  row-gap: 10px;
+}
+
+.car-price {
+  font-size: 13px;
+  font-weight: 600;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  border-radius: 8px;
+  padding: 6px 10px;
+  line-height: 1.3;
+}
+
+.car-action {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  background: linear-gradient(90deg, #4f46e5 0%, #7c3aed 100%);
+  color: #fff;
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  box-shadow: 0 12px 24px rgba(124, 58, 237, 0.4);
+  transition: all 0.25s;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.car-action:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 32px rgba(124, 58, 237, 0.6);
 }
 
 @keyframes gradientText {
@@ -604,183 +758,444 @@ function onMouseLeave() {
   }
 }
 
-/* Lưới chính giống ảnh: thẻ SEO cao 2 hàng bên trái */
-.benefit-list {
+@keyframes titleUnderline {
+  0% {
+    width: 0;
+  }
+  100% {
+    width: 160px;
+  }
+}
+
+.features-section {
+  padding: 100px 0;
+  background: white;
+}
+
+.features-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-auto-rows: minmax(140px, auto);
-  gap: 18px;
-  max-width: 1000px;
-  margin: 0 auto;
-  grid-template-areas:
-    "seo speed features"
-    "seo security admin"
-    "connect platform uiux";
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 32px;
 }
 
-/* Stagger animation cho các card khi load */
-.benefit-card {
-  animation: cardFadeIn 0.6s ease-out forwards;
-  opacity: 0;
-  transform: translateY(20px);
+.feature-card {
+  text-align: center;
+  padding: 40px 24px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 20px;
+  transition: all 0.3s;
+  animation: fadeInUp 0.6s ease-out;
 }
 
-.card--seo {
-  animation-delay: 0.1s;
-}
-.card--speed {
-  animation-delay: 0.2s;
-}
-.card--features {
-  animation-delay: 0.3s;
-}
-.card--security {
-  animation-delay: 0.4s;
-}
-.card--admin {
-  animation-delay: 0.5s;
-}
-.card--connect {
-  animation-delay: 0.6s;
-}
-.card--platform {
-  animation-delay: 0.7s;
-}
-.card--uiux {
-  animation-delay: 0.8s;
+.feature-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
 }
 
-@keyframes cardFadeIn {
+.feature-icon {
+  font-size: 56px;
+  margin-bottom: 20px;
+  display: inline-block;
+  transition: transform 0.3s;
+}
+
+.feature-card:hover .feature-icon {
+  transform: scale(1.2) rotate(5deg);
+}
+
+.feature-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 12px;
+}
+
+.feature-desc {
+  font-size: 15px;
+  color: #64748b;
+  line-height: 1.6;
+}
+
+.services-section {
+  padding: 100px 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.section-header {
+  text-align: center;
+  margin-bottom: 60px;
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.section-title {
+  font-size: clamp(28px, 5vw, 42px);
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 16px;
+  position: relative;
+  font-style: oblique;
+  letter-spacing: 0.6px;
+}
+
+.section-title::after {
+  content: "";
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+  height: 3px;
+  background: linear-gradient(90deg, #00ffff, #0080ff);
+  border-radius: 2px;
+}
+
+.section-subtitle {
+  font-size: 18px;
+  color: #e2e8f0;
+}
+
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 32px;
+}
+
+.service-card {
+  background: white;
+  border-radius: 20px;
+  padding: 40px 24px;
+  text-align: center;
+  transition: all 0.3s;
+  animation: fadeInUp 0.6s ease-out;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.15);
+}
+
+.service-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 32px 64px rgba(0, 0, 0, 0.2);
+}
+
+.service-image-wrapper {
+  width: 50%;
+  height: 160px;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.2);
+  margin: 0 auto 24px auto;
+  background: #0f172a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.service-image-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  user-select: none;
+}
+
+.service-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 12px;
+}
+
+.service-desc {
+  font-size: 15px;
+  color: #64748b;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.service-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #667eea;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s;
+  font-size: 14px;
+}
+
+.service-link:hover {
+  gap: 12px;
+  color: #764ba2;
+}
+
+.contact-section {
+  padding: 100px 0;
+  background: white;
+}
+
+.contact-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+}
+
+.contact-title {
+  font-size: clamp(28px, 5vw, 42px);
+  font-weight: 800;
+  color: #1e293b;
+  margin-bottom: 16px;
+}
+
+.contact-desc {
+  font-size: 18px;
+  color: #64748b;
+  margin-bottom: 40px;
+}
+
+.contact-details {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.contact-item {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.contact-icon {
+  font-size: 32px;
+  flex-shrink: 0;
+}
+
+.contact-item strong {
+  display: block;
+  color: #1e293b;
+  font-size: 16px;
+  margin-bottom: 4px;
+}
+
+.contact-item p {
+  color: #64748b;
+  font-size: 15px;
+  margin: 0;
+}
+
+.contact-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.contact-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 32px;
+  border-radius: 50px;
+  background: white;
+  border: 2px solid #e2e8f0;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 16px;
+  transition: all 0.3s;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.contact-btn svg {
+  width: 24px;
+  height: 24px;
+}
+
+.zalo-btn {
+  color: #0068ff;
+}
+
+.zalo-btn:hover {
+  background: #0068ff;
+  color: white;
+  border-color: #0068ff;
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 104, 255, 0.3);
+}
+
+.messenger-btn {
+  color: #0084ff;
+}
+
+.messenger-btn:hover {
+  background: linear-gradient(135deg, #0084ff, #00c6ff);
+  color: white;
+  border-color: #0084ff;
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 132, 255, 0.3);
+}
+
+.phone-btn {
+  color: #10b981;
+}
+
+.phone-btn:hover {
+  background: #10b981;
+  color: white;
+  border-color: #10b981;
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(16, 185, 129, 0.3);
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
 
-/* Map area cho từng card */
-.card--seo {
-  grid-area: seo;
-  grid-row: span 2;
-  padding: 20px;
-}
-.card--speed {
-  grid-area: speed;
-}
-.card--features {
-  grid-area: features;
-}
-.card--security {
-  grid-area: security;
-}
-.card--admin {
-  grid-area: admin;
-}
-.card--connect {
-  grid-area: connect;
-}
-.card--platform {
-  grid-area: platform;
-}
-.card--uiux {
-  grid-area: uiux;
-}
-
-/* Card style */
-.benefit-card {
-  background: #fff;
-  color: #1d2a33;
-  border-radius: 16px;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
-  padding: 16px 16px 18px;
-  display: grid;
-  align-content: start;
-  gap: 8px;
-  position: relative;
-  overflow: hidden;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Gradient overlay hiệu ứng */
-.benefit-card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, #00ffff 0%, #0080ff 50%, #0040ff 100%);
-  transition: left 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 1;
-}
-
-.benefit-card:hover::before {
-  left: 0;
-}
-
-.benefit-card:hover {
-  transform: translateY(-8px) scale(1.03);
-  box-shadow: 0 20px 40px rgba(0, 255, 255, 0.3);
-  color: white;
-}
-
-/* Đưa nội dung lên trên overlay */
-.benefit-card > * {
-  position: relative;
-  z-index: 2;
-  transition: all 0.3s ease;
-}
-
-.benefit-card h4 {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 800;
-  transition: all 0.3s ease;
-}
-
-.benefit-card:hover h4 {
-  color: white;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-}
-
-.benefit-card p {
-  margin: 0;
-  line-height: 1.45;
-  color: #344b5a;
-  transition: all 0.3s ease;
-}
-
-.benefit-card:hover p {
-  color: rgba(255, 255, 255, 0.95);
-}
-
-/* Thẻ SEO cao 2 hàng + icon lớn */
-.benefit-icon {
-  width: 72px;
-  height: 72px;
-  object-fit: contain;
-  margin-bottom: 6px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
-}
-
-.benefit-card:hover .benefit-icon {
-  transform: scale(1.1) rotate(5deg);
-  filter: drop-shadow(0 4px 12px rgba(255, 255, 255, 0.3)) brightness(1.1);
-}
-
-/* Responsive: tablet 2 cột, mobile 1 cột */
-@media (max-width: 1024px) {
-  .benefit-list {
-    grid-template-columns: repeat(2, 1fr);
-    grid-template-areas: none; /* bỏ layout cố định để tự chảy */
+@media (max-width: 768px) {
+  .hero-section {
+    height: auto;
+    min-height: 500px;
+    padding: 80px 0;
   }
-  .card--seo {
-    grid-row: auto;
-  } /* không còn span 2 hàng */
-}
-@media (max-width: 640px) {
-  .benefit-list {
+
+  .scroll-indicator {
+    display: none;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+
+  .stat-number {
+    font-size: 36px;
+  }
+
+  .carousel-section {
+    padding: 60px 0 80px;
+  }
+
+  .cars-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .cars-cta {
+    font-size: 13px;
+    padding: 10px 14px;
+  }
+
+  .cars-grid {
+    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+
+  .car-card {
+    min-height: 300px;
+    border-radius: 14px;
+  }
+
+  .car-info {
+    padding: 14px 14px 18px;
+  }
+
+  .car-name {
+    font-size: 14px;
+  }
+
+  .badge-status {
+    font-size: 10px;
+    padding: 5px 6px;
+    border-radius: 5px;
+  }
+
+  .car-tagline {
+    font-size: 12px;
+    min-height: 2.6em;
+  }
+
+  .car-price {
+    font-size: 12px;
+    padding: 5px 8px;
+    border-radius: 6px;
+  }
+
+  .car-action {
+    font-size: 12px;
+    padding: 7px 10px;
+    border-radius: 6px;
+  }
+
+  .features-section,
+  .services-section,
+  .contact-section {
+    padding: 60px 0;
+  }
+
+  .features-grid,
+  .services-grid {
     grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .contact-content {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0 16px;
+  }
+
+  .hero-title {
+    font-size: 28px;
+  }
+
+  .hero-subtitle {
+    font-size: 14px;
+  }
+
+  .cars-title {
+    font-size: clamp(28px, 5vw, 42px);
+    font-weight: 800;
+    color: #1e293b;
+    margin-bottom: 16px;
+    text-align: center;
+  }
+
+  .cars-subtitle {
+    font-size: 14px;
+    max-width: 100%;
+  }
+
+  .cars-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .car-card {
+    min-height: 260px;
+  }
+
+  .car-image {
+    aspect-ratio: 4 / 3;
+  }
+
+  .contact-title {
+    font-size: 24px;
+  }
+
+  .contact-desc {
+    font-size: 14px;
+  }
+
+  .contact-icon {
+    font-size: 24px;
   }
 }
 </style>
