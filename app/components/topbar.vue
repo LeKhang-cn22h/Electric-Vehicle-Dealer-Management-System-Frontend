@@ -28,6 +28,7 @@ onMounted(() => window.addEventListener("keydown", onKeydown));
 onBeforeUnmount(() => window.removeEventListener("keydown", onKeydown));
 
 const commonMenu = [
+
   { label: "Trang chủ", to: "/user/home" },
   { label: "Danh mục xe", to: "/catalog" },
   { label: "So sánh xe", to: "/compare" },
@@ -36,7 +37,7 @@ const commonMenu = [
 ];
 const topLeftLinks = computed(() => commonMenu);
 
-const cta = computed(() => ({ label: "Đăng ký lái thử", to: "/test-drive" }));
+const cta = computed(() => ({ label: "Đăng ký lái thử", to: "/user/test-driver" }));
 
 function go(to) {
   router.push(to);
