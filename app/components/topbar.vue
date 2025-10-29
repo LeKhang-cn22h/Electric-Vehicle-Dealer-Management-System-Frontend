@@ -32,11 +32,11 @@ const commonMenu = [
     { label: "Danh mục xe", to: "/catalog" },
     { label: "So sánh xe", to: "/compare" },
     { label: "Khuyến mãi", to: "/promotions" },
-    { label: "Danh sách đơn hàng", to: "user/orders" }, // chỉ để test
+    { label: "Danh sách đơn hàng", to: "/user/orders" }, 
 ];
 const topLeftLinks = computed(() => commonMenu);
 
-const cta = computed(() => ({ label: "Đăng ký lái thử", to: "/test-drive" }));
+const cta = computed(() => ({ label: "Đăng ký lái thử", to: "/user/test-driver" }));
 
 function go(to) {
     router.push(to);
