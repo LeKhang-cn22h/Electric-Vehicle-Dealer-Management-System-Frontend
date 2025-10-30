@@ -1,4 +1,4 @@
-export interface ProductItem {
+declare interface ProductItem {
     id?: number | string;
     productName: string;
     skuCode: string;

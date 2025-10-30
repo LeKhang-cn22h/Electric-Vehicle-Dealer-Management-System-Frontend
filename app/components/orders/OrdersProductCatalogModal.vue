@@ -125,16 +125,16 @@
     </div>
 </template>
 
-<script setup>
-import { formatCurrency } from "@/utils/format";
+<script setup lang="ts">
+import { formatCurrency, toProductItem } from "@/utils/format";
 
-/**
- * @typedef {import('@/types/ProductItem').ProductItem} ProductItem
- */
+// Emit event types rõ ràng
+const emit = defineEmits<{
+    (e: "close"): void;
+    (e: "select", product: ProductItem): void;
+}>();
 
-const emit = defineEmits(["close", "select"]);
-
-// Filters state
+// Filters type
 const filters = reactive({
     search: "",
     brand: "",
@@ -142,8 +142,8 @@ const filters = reactive({
     priceRange: "",
 });
 
-// Mock data - Thay bằng API call thực tế
-const products = ref([
+// products: dùng ref với kiểu CatalogProduct[]
+const products = ref<CatalogProduct[]>([
     {
         id: 1,
         name: "Honda Vision 2024",
@@ -164,70 +164,11 @@ const products = ref([
         price: 48000000,
         inStock: true,
     },
-    {
-        id: 3,
-        name: "Honda SH Mode 2024",
-        sku: "HON-SHM-2024",
-        brand: "Honda",
-        category: "scooter",
-        colors: ["Đen", "Xám", "Trắng"],
-        price: 55000000,
-        inStock: true,
-    },
-    {
-        id: 4,
-        name: "Yamaha Sirius",
-        sku: "YAM-SIR-2024",
-        brand: "Yamaha",
-        category: "manual",
-        colors: ["Đen", "Đỏ"],
-        price: 22000000,
-        inStock: false,
-    },
-    {
-        id: 5,
-        name: "Honda Wave Alpha",
-        sku: "HON-WAV-ALP",
-        brand: "Honda",
-        category: "manual",
-        colors: ["Đen", "Xanh", "Đỏ"],
-        price: 19000000,
-        inStock: true,
-    },
-    {
-        id: 6,
-        name: "SYM Star SR 170",
-        sku: "SYM-STR-170",
-        brand: "SYM",
-        category: "sport",
-        colors: ["Đen", "Trắng"],
-        price: 65000000,
-        inStock: true,
-    },
-    {
-        id: 7,
-        name: "Honda Air Blade 160",
-        sku: "HON-AIR-160",
-        brand: "Honda",
-        category: "scooter",
-        colors: ["Đen", "Xanh", "Trắng"],
-        price: 42000000,
-        inStock: true,
-    },
-    {
-        id: 8,
-        name: "Yamaha Janus",
-        sku: "YAM-JAN-2024",
-        brand: "Yamaha",
-        category: "scooter",
-        colors: ["Hồng", "Xanh", "Trắng"],
-        price: 29000000,
-        inStock: true,
-    },
+    // ... các sản phẩm khác
 ]);
 
 // Computed filtered products
-const filteredProducts = computed(() => {
+const filteredProducts = computed<CatalogProduct[]>(() => {
     return products.value.filter((product) => {
         // Search filter
         if (filters.search) {
@@ -249,38 +190,21 @@ const filteredProducts = computed(() => {
 
         // Price range filter
         if (filters.priceRange) {
-            const price = product.price / 1000000; // Convert to millions
+            const price = product.price / 1_000_000;
             const [min, max] = filters.priceRange.split("-");
 
-            if (max === "+") {
-                if (price < parseInt(min)) return false;
-            } else {
-                if (price < parseInt(min) || price > parseInt(max)) return false;
-            }
+            const minValue = parseInt(min ?? "0");
+            const maxValue = max === "+" ? Infinity : parseInt(max ?? "0");
+
+            if (price < minValue || price > maxValue) return false;
         }
 
         return true;
     });
 });
 
-/**
- * Select product and convert to ProductItem format
- * @param {Object} product - Product from catalog
- */
-const selectProduct = (product) => {
+const selectProduct = (product: CatalogProduct) => {
     if (!product.inStock) return;
-
-    // Convert product catalog format to ProductItem format
-    /** @type {ProductItem} */
-    const productItem = {
-        id: product.id,
-        productName: product.name,
-        skuCode: product.sku,
-        color: product.colors[0], // Default to first color
-        unitPrice: product.price,
-        quantity: 1,
-    };
-
-    emit("select", productItem);
+    emit("select", toProductItem(product));
 };
 </script>

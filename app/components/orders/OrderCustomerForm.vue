@@ -37,6 +37,7 @@
                             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="Nhập họ tên"
                         />
+                        <p v-if="errors.fullName" class="text-red-500 text-sm">{{ errors.fullName }}</p>
                     </div>
 
                     <div>
@@ -49,6 +50,7 @@
                             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="Nhập số điện thoại"
                         />
+                        <p v-if="errors.phone" class="text-red-500 text-sm">{{ errors.phone }}</p>
                     </div>
 
                     <div>
@@ -87,7 +89,11 @@
     </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { CustomerSchema, CreateCustomerSchema } from "@/schemas";
+import type { Customer, CreateCustomer } from "@/schemas";
+import { z } from "zod";
+
 const props = defineProps({
     customer: {
         type: Object,
@@ -95,41 +101,62 @@ const props = defineProps({
     },
 });
 
-const emit = defineEmits(["update:customer", "next"]);
+const emit = defineEmits<{
+    (e: "update:customer", customer: CreateCustomer): void;
+    (e: "next"): void;
+}>();
 
 // State
-const searchResults = ref([]);
-const newCustomer = reactive({
+const searchResults = ref<Customer[]>([]);
+const newCustomer = reactive<CreateCustomer>({
     fullName: "",
     phone: "",
     email: "",
     address: "",
 });
 
-// Computed
-const isFormValid = computed(() => {
-    return props.customer || (newCustomer.fullName && newCustomer.phone);
-});
+const errors = reactive<Partial<Record<keyof CreateCustomer, string>>>({});
 
-// Methods
-const handleCustomerSearch = async (query) => {
+// Kiểm tra form realtime
+watch(
+    newCustomer,
+    (val) => {
+        try {
+            Object.keys(errors).forEach((key) => delete errors[key as keyof CreateCustomer]);
+            CreateCustomerSchema.parse(val);
+        } catch (err) {
+            if (err instanceof z.ZodError) {
+                // Cast err về đúng type
+                const zodError = err as z.ZodError<CreateCustomer>;
+                zodError.issues.forEach((e) => {
+                    if (e.path.length) {
+                        const path = e.path[0] as keyof CreateCustomer;
+                        errors[path] = e.message;
+                    }
+                });
+            }
+        }
+    },
+    { deep: true }
+);
+
+// Form có hợp lệ
+const isFormValid = computed(() => Object.keys(errors).length === 0 && newCustomer.fullName && newCustomer.phone);
+
+const handleCustomerSearch = async (query: string) => {
     if (!query) {
         searchResults.value = [];
         return;
     }
-
-    // TODO: Gọi API tìm kiếm khách hàng
     try {
-        const response = await $fetch("/api/customers/search", {
-            params: { q: query },
-        });
+        const response = await $fetch<Customer[]>("/api/customers/search", { params: { q: query } });
         searchResults.value = response;
-    } catch (error) {
-        console.error("Lỗi tìm kiếm khách hàng:", error);
+    } catch (err) {
+        console.error(err);
     }
 };
 
-const selectCustomer = (customer) => {
+const selectCustomer = (customer: Customer) => {
     emit("update:customer", customer);
     searchResults.value = [];
 };
