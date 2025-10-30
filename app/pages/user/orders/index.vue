@@ -7,7 +7,7 @@
                 Danh sách đơn hàng
             </h1>
             <NuxtLink
-                to="orders/create"
+                to="/user/orders/create"
                 class="inline-flex items-center gap-2 bg-black text-white px-5 py-2.5 rounded-xl font-medium hover:bg-gray-800 active:scale-95 transition-all shadow-md"
             >
                 <span class="text-lg font-bold">+</span>
