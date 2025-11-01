@@ -127,6 +127,7 @@
 
 <script setup lang="ts">
 import { formatCurrency, toProductItem } from "@/utils/format";
+import type { CatalogProduct, ProductItem } from "@/schemas";
 
 // Emit event types rõ ràng
 const emit = defineEmits<{

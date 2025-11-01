@@ -1,3 +1,4 @@
+import type { CatalogProduct, ProductItem } from "@/schemas";
 export const formatCurrency = (value: number): string => {
     return new Intl.NumberFormat("vi-VN", {
         style: "currency",

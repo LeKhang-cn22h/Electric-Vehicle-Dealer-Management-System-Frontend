@@ -10,7 +10,7 @@ export const CreateCustomerSchema = z.object({
 
 // Schema cho customer từ database (có id)
 export const CustomerSchema = CreateCustomerSchema.extend({
-    id: z.string().or(z.number()),
+    id: z.union([z.string(), z.number()]),
     createdAt: z.date().optional(), // Nếu có
     updatedAt: z.date().optional(), // Nếu có
 });
