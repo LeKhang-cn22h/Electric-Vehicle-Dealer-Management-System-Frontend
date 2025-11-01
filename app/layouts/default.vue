@@ -1,9 +1,9 @@
 <script setup>
 import Notification from '~/components/common/Notification.vue'
 import { useNotification } from '~/composables/useNotification'
+import SiteFooter from "~/components/SiteFooter.vue";
 
 const { notification } = useNotification()
-import SiteFooter from "~/components/SiteFooter.vue";
 </script>
 
 <template>
@@ -12,14 +12,15 @@ import SiteFooter from "~/components/SiteFooter.vue";
       <Topbar />
       <div class="content">
         <slot />
-          <Notification
-            v-if="notification.message"
-            :message="notification.message"
-            :type="notification.type"
-           />
+        <!-- Notification component -->
+        <Notification
+          v-if="notification.message"
+          :id="notification.id"
+          :message="notification.message"
+          :type="notification.type"
+        />
       </div>
     </main>
-
     <SiteFooter />
   </div>
 </template>
