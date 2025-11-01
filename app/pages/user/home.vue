@@ -2,7 +2,16 @@
 import { ref } from "vue";
 
 definePageMeta({ alias: ["/use/home"] });
+type User = { id: number; firstName: string; lastName: string; age: number };
 
+const {
+  data: usersRes,
+  pending,
+  error,
+} = await useFetch<User[]>("http://localhost:4000/users");
+
+// luôn trả về mảng (không null) để template không bị never
+const users = computed<User[]>(() => usersRes.value ?? []);
 const stats = [
   { number: "2+", label: "Năm Kinh Nghiệm" },
   { number: "100+", label: "Khách Hàng Hài Lòng" },
@@ -139,6 +148,11 @@ const carShowcase = ref([
               Xe sang – tình trạng mới, giấy tờ rõ ràng, hỗ trợ vay và giao tận
               nơi
             </p>
+            <ul v-if="users">
+              <li v-for="u in users" :key="u.id">
+                {{ u.firstName }} {{ u.lastName }} ({{ u.age }})
+              </li>
+            </ul>
           </div>
         </div>
 
