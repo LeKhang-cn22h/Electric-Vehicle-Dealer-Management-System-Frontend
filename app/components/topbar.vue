@@ -32,7 +32,8 @@ const commonMenu = [
     { label: "Danh mục xe", to: "/catalog" },
     { label: "So sánh xe", to: "/compare" },
     { label: "Khuyến mãi", to: "/promotions" },
-    { label: "Danh sách đơn hàng", to: "/user/orders" }, // chỉ để test
+    { label: "Danh sách đơn hàng", to: "/user/orders" }, 
+    {label:"Khiếu nại", to: "/Customer/feedback"},
 ];
 const topLeftLinks = computed(() => commonMenu);
 
