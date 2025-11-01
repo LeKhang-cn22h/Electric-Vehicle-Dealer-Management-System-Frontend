@@ -37,6 +37,6 @@ onMounted(async () => {
 })
 
 function goBack() {
-  router.push('/feedback/list')
+  router.push({ name: 'FeedbackList' })
 }
 </script>
