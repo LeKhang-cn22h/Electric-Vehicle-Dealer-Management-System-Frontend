@@ -105,6 +105,7 @@ const carShowcase = ref([
         <div class="hero-buttons">
           <a href="#cars" class="btn btn-primary">Xem Bộ Sưu Tập</a>
           <a href="#contact" class="btn btn-secondary">Liên Hệ Ngay</a>
+          <a href="/EVM_staff" class="btn btn-primary">Trang EVM_staff</a>
         </div>
       </div>
 
