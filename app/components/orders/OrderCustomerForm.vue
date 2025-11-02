@@ -6,7 +6,7 @@
             <!-- Tìm khách hàng hiện có -->
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2"> Tìm khách hàng hiện có </label>
-                <SearchInput placeholder="Tìm theo tên, số điện thoại, email..." @search="handleCustomerSearch" />
+                <SearchInput v-model="searchQuery" placeholder="Tìm theo tên, số điện thoại, email..." />
 
                 <!-- Danh sách kết quả tìm kiếm -->
                 <div v-if="searchResults.length > 0" class="mt-2 space-y-2">
@@ -34,9 +34,11 @@
                         <input
                             v-model="newCustomer.fullName"
                             type="text"
+                            @input="validateField('fullName')"
                             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="Nhập họ tên"
                         />
+                        <span v-if="errors.fullName" class="text-red-500 text-sm">{{ errors.fullName }}</span>
                     </div>
 
                     <div>
@@ -46,9 +48,12 @@
                         <input
                             v-model="newCustomer.phone"
                             type="tel"
+                            @keypress="onlyNumber"
+                            @input="validateField('phone')"
                             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="Nhập số điện thoại"
                         />
+                        <span v-if="errors.phone" class="text-red-500 text-sm">{{ errors.phone }}</span>
                     </div>
 
                     <div>
@@ -56,9 +61,11 @@
                         <input
                             v-model="newCustomer.email"
                             type="email"
+                            @input="validateField('email')"
                             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="Nhập email"
                         />
+                        <p v-if="errors.email" class="text-red-500 text-sm">{{ errors.email }}</p>
                     </div>
 
                     <div>
@@ -66,9 +73,11 @@
                         <input
                             v-model="newCustomer.address"
                             type="text"
+                            @input="validateField('address')"
                             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="Nhập địa chỉ"
                         />
+                        <span v-if="errors.address" class="text-red-500 text-sm">{{ errors.address }}</span>
                     </div>
                 </div>
             </div>
@@ -76,7 +85,7 @@
             <!-- Navigation -->
             <div class="flex justify-end pt-6">
                 <button
-                    @click="$emit('next')"
+                    @click="handleNext"
                     :disabled="!isFormValid"
                     class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -87,50 +96,104 @@
     </div>
 </template>
 
-<script setup>
-const props = defineProps({
-    customer: {
-        type: Object,
-        default: null,
-    },
-});
+<script setup lang="ts">
+import SearchInput from "@/components/shared/SearchInput.vue";
+import { CustomerSchema, CreateCustomerSchema } from "@/schemas";
+import type { Customer, CreateCustomer } from "@/schemas";
+import { useDebounceFn } from "@vueuse/core";
+import { z } from "zod";
+import type { ApiResponse } from "@/types/";
 
-const emit = defineEmits(["update:customer", "next"]);
+const props = defineProps<{
+    customer: Customer | null;
+}>();
+
+const emit = defineEmits<{
+    (e: "update:customer", customer: CreateCustomer): void;
+    (e: "next"): void;
+}>();
 
 // State
-const searchResults = ref([]);
-const newCustomer = reactive({
+const searchQuery = ref("");
+const searchResults = ref<Customer[]>([]);
+const newCustomer = reactive<CreateCustomer>({
     fullName: "",
     phone: "",
     email: "",
     address: "",
 });
 
-// Computed
-const isFormValid = computed(() => {
-    return props.customer || (newCustomer.fullName && newCustomer.phone);
-});
+// Chỉ cho phép nhập số
+const onlyNumber = (event: KeyboardEvent) => {
+    const charCode = event.which || event.keyCode;
+    // Cho phép: số 0-9
+    if (charCode < 48 || charCode > 57) {
+        event.preventDefault();
+    }
+};
 
-// Methods
-const handleCustomerSearch = async (query) => {
-    if (!query) {
+const errors = reactive<Partial<Record<keyof CreateCustomer, string>>>({});
+
+// Hàm kiểm tra validate của các input
+function validateField(field: keyof CreateCustomer) {
+    delete errors[field];
+    try {
+        CreateCustomerSchema.pick({ [field]: true }).parse({
+            [field]: newCustomer[field],
+        });
+    } catch (err) {
+        if (err instanceof z.ZodError && err.issues.length > 0) {
+            const issue = err.issues[0];
+            if (issue) {
+                errors[field] = issue.message;
+            }
+        }
+    }
+}
+
+// Form có hợp lệ
+const isFormValid = computed(() => Object.keys(errors).length === 0 && newCustomer.fullName && newCustomer.phone);
+
+// Hàm search API
+const handleCustomerSearch = async (query: string) => {
+    if (!query || query.trim().length < 2) {
         searchResults.value = [];
         return;
     }
 
-    // TODO: Gọi API tìm kiếm khách hàng
     try {
-        const response = await $fetch("/api/customers/search", {
-            params: { q: query },
+        const response = await $fetch<ApiResponse<Customer[]>>("/api/customers/search", {
+            params: { q: query.trim() },
         });
-        searchResults.value = response;
-    } catch (error) {
-        console.error("Lỗi tìm kiếm khách hàng:", error);
+        searchResults.value = response.data;
+    } catch (err) {
+        console.error("Error searching customers:", err);
+        searchResults.value = [];
     }
 };
 
-const selectCustomer = (customer) => {
+const debouncedSearch = useDebounceFn(handleCustomerSearch, 300);
+
+// Watch searchQuery và tự động search
+watch(searchQuery, (newQuery) => {
+    debouncedSearch(newQuery);
+});
+
+const selectCustomer = (customer: Customer) => {
     emit("update:customer", customer);
     searchResults.value = [];
+    searchQuery.value = ""; // Clear search query
+};
+
+const handleNext = () => {
+    // Nếu đã chọn customer từ search thì emit customer đó
+    if (props.customer) {
+        emit("next");
+        return;
+    }
+
+    // Nếu tạo mới thì emit newCustomer
+    emit("update:customer", newCustomer);
+    emit("next");
 };
 </script>

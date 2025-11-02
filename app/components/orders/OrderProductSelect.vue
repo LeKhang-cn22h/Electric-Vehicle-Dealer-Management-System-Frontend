@@ -83,9 +83,6 @@
 import { ref, computed } from "vue";
 import SearchInput from "@/components/shared/SearchInput.vue";
 import ProductCatalogModal from "@/components/orders/OrdersProductCatalogModal.vue";
-/**
- * @typedef {import('@/types/ProductItem').ProductItem} ProductItem
- */
 
 const props = defineProps({
     items: {
