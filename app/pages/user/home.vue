@@ -64,30 +64,35 @@ const services = [
 // Cars showcase
 const carShowcase = ref([
   {
+    id: 1,
     src: "/showcase/xe1.jpg",
     name: "Mercedes-Benz S-Class",
     tagline: "Siêu sang · Full Option",
     price: "Giá tốt • Liên hệ",
   },
   {
+    id: 2,
     src: "/showcase/xe2.jpg",
     name: "BMW 7 Series",
     tagline: "Phong cách doanh nhân",
     price: "Trả góp 0% lãi suất",
   },
   {
+    id: 3,
     src: "/showcase/xe3.jpg",
     name: "Lexus LX 600",
     tagline: "SUV đẳng cấp hạng sang",
     price: "Giao xe ngay",
   },
   {
+    id: 4,
     src: "/showcase/xe4.jpg",
     name: "Porsche Cayenne",
     tagline: "Hiệu năng & sang trọng",
     price: "Có xe trưng bày",
   },
   {
+    id: 5,
     src: "/showcase/xe5.jpg",
     name: "Range Rover Vogue",
     tagline: "Biểu tượng quyền lực",
@@ -158,26 +163,28 @@ const carShowcase = ref([
         </div>
 
         <div class="cars-grid">
-          <div class="car-card" v-for="car in carShowcase" :key="car.src">
+          <NuxtLink
+            v-for="car in carShowcase"
+            :key="car.id"
+            :to="`/product/${car.id}`"
+            class="car-card"
+          >
             <div class="car-image">
               <img :src="car.src" :alt="car.name" draggable="false" />
-              <button class="quick-view">Xem Chi Tiết</button>
+              <span class="quick-view">Xem Chi Tiết</span>
             </div>
-
             <div class="car-info">
               <div class="car-top-row">
                 <div class="car-name">{{ car.name }}</div>
                 <div class="badge-status">Có sẵn</div>
               </div>
-
               <div class="car-tagline">{{ car.tagline }}</div>
-
               <div class="car-bottom-row">
                 <div class="car-price">{{ car.price }}</div>
-                <a class="car-action" href="#contact">Tư vấn</a>
+                <span class="car-action">Tư vấn</span>
               </div>
             </div>
-          </div>
+          </NuxtLink>
         </div>
       </div>
     </section>
