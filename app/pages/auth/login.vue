@@ -282,8 +282,6 @@ body {
   background: #e8f8f1;
   border-color: #bbefd9;
 }
-
-/* ===== Form ===== */
 .form {
   display: grid;
   gap: 16px;

@@ -2,7 +2,16 @@
 import { ref } from "vue";
 
 definePageMeta({ alias: ["/use/home"] });
+type User = { id: number; firstName: string; lastName: string; age: number };
 
+const {
+  data: usersRes,
+  pending,
+  error,
+} = await useFetch<User[]>("http://localhost:4000/users");
+
+// luôn trả về mảng (không null) để template không bị never
+const users = computed<User[]>(() => usersRes.value ?? []);
 const stats = [
   { number: "2+", label: "Năm Kinh Nghiệm" },
   { number: "100+", label: "Khách Hàng Hài Lòng" },
@@ -55,30 +64,35 @@ const services = [
 // Cars showcase
 const carShowcase = ref([
   {
+    id: 1,
     src: "/showcase/xe1.jpg",
     name: "Mercedes-Benz S-Class",
     tagline: "Siêu sang · Full Option",
     price: "Giá tốt • Liên hệ",
   },
   {
+    id: 2,
     src: "/showcase/xe2.jpg",
     name: "BMW 7 Series",
     tagline: "Phong cách doanh nhân",
     price: "Trả góp 0% lãi suất",
   },
   {
+    id: 3,
     src: "/showcase/xe3.jpg",
     name: "Lexus LX 600",
     tagline: "SUV đẳng cấp hạng sang",
     price: "Giao xe ngay",
   },
   {
+    id: 4,
     src: "/showcase/xe4.jpg",
     name: "Porsche Cayenne",
     tagline: "Hiệu năng & sang trọng",
     price: "Có xe trưng bày",
   },
   {
+    id: 5,
     src: "/showcase/xe5.jpg",
     name: "Range Rover Vogue",
     tagline: "Biểu tượng quyền lực",
@@ -105,6 +119,7 @@ const carShowcase = ref([
         <div class="hero-buttons">
           <a href="#cars" class="btn btn-primary">Xem Bộ Sưu Tập</a>
           <a href="#contact" class="btn btn-secondary">Liên Hệ Ngay</a>
+          <a href="/EVM_staff" class="btn btn-primary">Trang EVM_staff</a>
         </div>
       </div>
 
@@ -139,30 +154,37 @@ const carShowcase = ref([
               Xe sang – tình trạng mới, giấy tờ rõ ràng, hỗ trợ vay và giao tận
               nơi
             </p>
+            <ul v-if="users">
+              <li v-for="u in users" :key="u.id">
+                {{ u.firstName }} {{ u.lastName }} ({{ u.age }})
+              </li>
+            </ul>
           </div>
         </div>
 
         <div class="cars-grid">
-          <div class="car-card" v-for="car in carShowcase" :key="car.src">
+          <NuxtLink
+            v-for="car in carShowcase"
+            :key="car.id"
+            :to="`/product/${car.id}`"
+            class="car-card"
+          >
             <div class="car-image">
               <img :src="car.src" :alt="car.name" draggable="false" />
-              <button class="quick-view">Xem Chi Tiết</button>
+              <span class="quick-view">Xem Chi Tiết</span>
             </div>
-
             <div class="car-info">
               <div class="car-top-row">
                 <div class="car-name">{{ car.name }}</div>
                 <div class="badge-status">Có sẵn</div>
               </div>
-
               <div class="car-tagline">{{ car.tagline }}</div>
-
               <div class="car-bottom-row">
                 <div class="car-price">{{ car.price }}</div>
-                <a class="car-action" href="#contact">Tư vấn</a>
+                <span class="car-action">Tư vấn</span>
               </div>
             </div>
-          </div>
+          </NuxtLink>
         </div>
       </div>
     </section>

@@ -5,9 +5,9 @@
     </div>
 </template>
 
-<script setup lang="ts">
-    import feedbackform from "../../components/feedback/FeedbackForm.vue";
-    import { useNotification } from '../../composables/useNotification.js';
+<script setup>
+    import feedbackform from "@/components/feedback/FeedbackForm.vue";
+    import { useNotification } from '@/composables/useNotification.js';
     const { showNotification } = useNotification()
     function handleSubmit() {
         // sau khi gửi form thành công
