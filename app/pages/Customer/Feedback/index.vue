@@ -14,19 +14,19 @@
 
 <script setup>
 import { onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { routes } from '@/router/index.ts'  
+import { useRouter } from '#app'
 import {useFeedback}  from '@/composables/useFeedback.js'
 import FeedbackTable from '@/components/feedback/FeedbackTable.vue'
+const router = useRouter()
 
-const router = useRouter();
 const { feedbacks, keyword, fetchFeedbacks } = useFeedback();
 onMounted(fetchFeedbacks)
 function viewFeedbackDetail(id){
-    router.push(routes.FeedbackDetail.replace(':id', id));
+    console.log('Click xem chi tiết id:', id)
+    router.push(`/Customer/Feedback/${id}`)
 }
 function createFeedback(){
-    router.push(routes.CreateFB)
+    router.push(`/Customer/Feedback/Sendfeedback`)
 }
 </script>
 
