@@ -28,6 +28,7 @@ onMounted(() => window.addEventListener("keydown", onKeydown));
 onBeforeUnmount(() => window.removeEventListener("keydown", onKeydown));
 
 const commonMenu = [
+    // { label: "EVM Staff", to: "/EVM_staff" },
     { label: "Trang chủ", to: "/user/home" },
     { label: "Danh mục xe", to: "/catalog" },
     { label: "So sánh xe", to: "/compare" },
