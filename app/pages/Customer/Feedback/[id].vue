@@ -6,13 +6,13 @@
       <p><strong>Tiêu đề:</strong> {{ feedback.tieuDe }}</p>
       <p><strong>Ngày gửi:</strong> {{ feedback.ngayGui }}</p>
       <p><strong>Nội dung:</strong></p>
-      <p class="border p-4 rounded-xl bg-gray-50">{{ feedback.noiDung }}</p>
+      <p class="border p-4 rounded-xl bg-gray-50">{{ feedback.noidung }}</p>
     </div>
 
     <AdminResponse :response="feedback.phanHoiAdmin" />
 
     <button @click="goBack" class="mt-6 bg-blue-600 text-white px-6 py-2 rounded-xl hover:bg-blue-700">
-      Quay lại danh sách
+      Quay lại
     </button>
   </div>
 </template>
@@ -37,6 +37,6 @@ onMounted(async () => {
 })
 
 function goBack() {
-  router.push({ name: 'FeedbackList' })
+  router.back();
 }
 </script>
