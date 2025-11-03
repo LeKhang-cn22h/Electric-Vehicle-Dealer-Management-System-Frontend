@@ -85,23 +85,21 @@
     </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import OrderCustomerForm from "@/components/orders/OrderCustomerForm.vue";
 import OrderProductSelect from "@/components/orders/OrderProductSelect.vue";
 import OrderPromotionSelect from "@/components/orders/OrderPromotionSelect.vue";
 import OrderPaymentMethod from "@/components/orders/OrderPaymentMethod.vue";
 import OrderSummary from "@/components/orders/OrderSummary.vue";
-/**
- * @typedef {import('@/types/ProductItem').ProductItem} ProductItem
- */
+import type { Customer, ProductItem, Promotion } from "@/schemas";
+import type { ApiResponse, CreateOrderResponse } from "@/types/";
 
 // State
 const currentStep = ref(1);
 const orderData = reactive({
-    customer: null,
-    /** @type {ProductItem[]} */
-    items: [],
-    appliedPromotions: [],
+    customer: null as Customer | null,
+    items: [] as ProductItem[],
+    appliedPromotions: [] as Promotion[],
     payment: {
         method: "cash", // cash, installment
         bankPartner: null,
@@ -133,7 +131,7 @@ const orderTotal = computed(() => {
 });
 
 // Methods
-const getStepClass = (stepId) => {
+const getStepClass = (stepId: number) => {
     if (currentStep.value > stepId) {
         return "bg-blue-600 text-white";
     } else if (currentStep.value === stepId) {
@@ -143,14 +141,15 @@ const getStepClass = (stepId) => {
     }
 };
 
-const goToStep = (step) => {
+const goToStep = (step: number) => {
     currentStep.value = step;
 };
 
+// Gọi API tạo đơn hàng
 const createOrder = async () => {
     try {
         // TODO: Gọi API tạo đơn hàng
-        const response = await $fetch("/api/orders", {
+        const response = await $fetch<ApiResponse<CreateOrderResponse>>("/api/orders", {
             method: "POST",
             body: {
                 customerId: orderData.customer?.id,
@@ -162,7 +161,7 @@ const createOrder = async () => {
         });
 
         // Chuyển hướng đến trang chi tiết đơn hàng
-        await navigateTo(`/orders/${response.orderId}`);
+        await navigateTo(`/orders/${response.data.orderId}`);
     } catch (error) {
         console.error("Lỗi khi tạo đơn hàng:", error);
         // TODO: Hiển thị thông báo lỗi
