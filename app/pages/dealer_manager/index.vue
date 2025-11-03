@@ -1,9 +1,9 @@
 <template>
-  <!-- <EVMStaffLayout> -->
-    <div class="evm-staff-dashboard">
+  <!-- <DealerManagerLayout> -->
+    <div class="dealer-manager-dashboard">
       <!-- Header -->
       <div class="dashboard-header">
-        <h1>EV Management Dashboard</h1>
+        <h1>Dealer Management Dashboard</h1>
         <p>Welcome to Electric Vehicle Management System</p>
       </div>
 
@@ -97,35 +97,25 @@
         </div>
       </div>
     </div>
-  <!-- </EVMStaffLayout> -->
+  <!-- </DealerManagerLayout> -->
 </template>
 
-<!-- <script setup>
-// IMPORT layout component
-import EVMStaffLayout from '@/layouts/EVMStaffLayout.vue'
-import { useRouter } from 'vue-router'
-
-const router = useRouter()
-
-const navigateTo = (route) => {
-  router.push(`/dealer_staff/EVM_staff/${route}`)
-}
-</script> -->
 <script setup>
 
 definePageMeta({
-  layout: 'evm-staff-layout'
+  layout: 'dealer-manager-layout'
 })
 
 import { useRouter } from 'vue-router'
 const router = useRouter()
 
 const navigateTo = (route) => {
-  router.push(`/EVM_staff/${route}`)
+  router.push(`/dealer_manager/${route}`)
 }
 </script>
+
 <style scoped>
-.evm-staff-dashboard {
+.dealer-manager-dashboard {
   padding: 20px 0;
 }
 

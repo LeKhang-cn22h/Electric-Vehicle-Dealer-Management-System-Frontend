@@ -1,9 +1,9 @@
 <template>
-  <nav class="evm-staff-topbar">
+  <nav class="dealer-manager-topbar">
     <div class="topbar-content">
       <div class="brand-section">
-        <router-link to="/dealer_staff/EVM_staff" class="brand-link">
-          <h2>EV MANAGEMENT STAFF</h2>
+        <router-link to="/dealer_mananger" class="brand-link">
+          <h2>DEALER MANAGER</h2>
         </router-link>
       </div>
 
@@ -34,8 +34,8 @@ const switchToUser = () => {
 </script>
 
 <style scoped>
-.evm-staff-topbar {
-  background: linear-gradient(135deg, #7587dc 0%, #6b71e0 100%);
+.dealer-manager-topbar {
+  background: linear-gradient(135deg, #7185e9 0%, #6b71e0 100%);
   color: white;
   padding: 0 20px;
   box-shadow: 0 2px 20px rgba(0,0,0,0.1);
