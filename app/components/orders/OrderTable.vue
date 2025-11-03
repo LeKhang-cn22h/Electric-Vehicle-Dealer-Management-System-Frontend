@@ -1,45 +1,28 @@
+<!-- components/common/BaseTable.vue -->
 <template>
     <div class="border border-gray-300 rounded-lg overflow-hidden">
         <table class="w-full">
             <thead class="bg-black">
                 <tr>
-                    <th class="px-4 py-4 text-left text-base font-semibold text-white" v-for="fieldName in fieldsName">
-                        {{ fieldName }}
+                    <th v-for="(field, i) in fieldsName" :key="i" class="px-4 py-4 text-left text-base font-semibold text-white">
+                        {{ field.label }}
                     </th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-gray-200" v-if="orders.length > 0">
+
+            <!-- Có dữ liệu -->
+            <tbody v-if="data.length">
                 <tr
-                    v-for="(order, index) in orders"
-                    :key="order.id"
+                    v-for="(row, rowIndex) in data"
+                    :key="rowKey ? row[rowKey] : rowIndex"
+                    :class="rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-200'"
                     class="transition-colors"
-                    :class="index % 2 === 0 ? 'bg-white' : 'bg-gray-200'"
                 >
-                    <td class="px-4 py-3 text-sm font-medium text-gray-900">
-                        {{ order.orderCode }}
-                    </td>
-                    <td class="px-4 py-3 text-sm text-gray-700">
-                        {{ order.customerName }}
-                    </td>
-                    <td class="px-4 py-3 text-sm text-gray-700">
-                        {{ formatDate(order.orderDate) }}
-                    </td>
-                    <td class="px-4 py-3 text-sm text-gray-700">
-                        <div class="flex flex-col">
-                            <span class="font-medium">{{ order.productName }}</span>
-                            <span class="text-gray-500">x{{ order.quantity }}</span>
-                        </div>
-                    </td>
-                    <td class="px-4 py-3 text-sm font-medium text-gray-900">
-                        {{ formatCurrency(order.totalAmount) }}
-                    </td>
-                    <td class="px-4 py-3">
-                        <OrderStatusBadge :status="order.status" />
-                    </td>
-                    <td class="px-4 py-3">
-                        <div class="flex gap-2">
+                    <td v-for="field in fieldsName" :key="field.key" class="px-4 py-3 text-sm">
+                        <!-- Nếu là cột thao tác thì dùng phần riêng -->
+                        <div v-if="field.key === 'actions'" class="flex gap-2">
                             <NuxtLink
-                                :to="`/orders/${order.id}`"
+                                :to="`/${basePath}/${row[rowKey]}`"
                                 class="text-gray-400 hover:text-black transition-colors"
                                 title="Xem chi tiết"
                             >
@@ -48,23 +31,28 @@
                             <button
                                 class="text-gray-400 hover:text-black transition-colors"
                                 title="In hóa đơn"
-                                @click="$emit('print', order)"
+                                @click="$emit('print', row)"
                             >
                                 <Printer class="w-5 h-5" />
                             </button>
                         </div>
+
+                        <!-- Còn lại thì hiển thị nội dung hoặc slot -->
+                        <template v-else>
+                            <slot :name="field.key" :row="row">
+                                {{ row[field.key] }}
+                            </slot>
+                        </template>
                     </td>
                 </tr>
             </tbody>
 
+            <!-- Không có dữ liệu -->
             <tbody v-else>
                 <tr>
-                    <td colspan="7" class="px-4 py-12 text-center">
-                        <div class="flex flex-col items-center justify-center text-gray-500">
-                            <FileText class="w-12 h-12 mb-3 text-gray-400" />
-                            <p class="text-lg font-medium">Không có đơn hàng nào</p>
-                            <p class="text-sm mt-1">Hãy tạo đơn hàng mới để bắt đầu</p>
-                        </div>
+                    <td :colspan="fieldsName.length" class="px-4 py-12 text-center text-gray-500">
+                        <FileText class="w-12 h-12 mb-3 text-gray-400 mx-auto" />
+                        <p class="text-lg font-medium">Không có dữ liệu nào</p>
                     </td>
                 </tr>
             </tbody>
@@ -72,20 +60,20 @@
     </div>
 </template>
 
-<script setup>
-import OrderStatusBadge from "@/components/orders/OrderStatusBadge.vue";
+<script setup lang="ts">
 import { Eye, Printer, FileText } from "lucide-vue-next";
-import { formatCurrency, formatDate } from "@/utils/format";
-const props = defineProps({
-    fieldsName: {
-        type: Array,
-        default: () => ["Mã đơn hàng", "Khách hàng", "Ngày đặt", "Sản phẩm", "Tổng tiền", "Trạng thái", "Thao tác"],
-    },
-    orders: {
-        type: Array,
-        default: () => [],
-    },
-});
 
-const emit = defineEmits(["print"]);
+interface Column {
+    label: string;
+    key: string;
+}
+
+defineEmits(["print"]);
+
+defineProps<{
+    fieldsName: Column[];
+    data: [];
+    rowKey: string;
+    basePath?: string; // ví dụ: 'orders' -> link thành /orders/:id
+}>();
 </script>

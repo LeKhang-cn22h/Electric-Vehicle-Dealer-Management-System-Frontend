@@ -1,14 +1,16 @@
 import type { CatalogProduct, ProductItem } from "@/schemas";
-export const formatCurrency = (value: number): string => {
+import { useNotification } from "@/composables/useNotification";
+
+export function formatCurrency(value: number): string {
     return new Intl.NumberFormat("vi-VN", {
         style: "currency",
         currency: "VND",
     }).format(value);
-};
+}
 
-export const formatDate = (dateString: string): string => {
+export function formatDate(dateString: string): string {
     return new Date(dateString).toLocaleDateString("vi-VN");
-};
+}
 
 export function toProductItem(product: CatalogProduct): ProductItem {
     return {
@@ -19,4 +21,14 @@ export function toProductItem(product: CatalogProduct): ProductItem {
         unitPrice: product.price,
         quantity: 1,
     };
+}
+
+export function notiSuccess(message: string): void {
+    const { showNotification } = useNotification();
+    showNotification(message, "success");
+}
+
+export function notiFail(message: string): void {
+    const { showNotification } = useNotification();
+    showNotification(message, "fail");
 }

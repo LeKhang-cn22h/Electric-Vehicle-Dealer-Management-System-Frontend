@@ -72,7 +72,7 @@
             </div>
 
             <!-- Thanh toán -->
-            <div class="border border-gray-200 rounded-lg">
+            <div v-if="isPayment" class="border border-gray-200 rounded-lg">
                 <div class="bg-gray-50 px-4 py-3 border-b">
                     <h3 class="font-medium text-gray-900">Phương thức thanh toán</h3>
                 </div>
@@ -123,7 +123,7 @@
                         <span class="text-blue-600">{{ formatCurrency(orderTotal) }}</span>
                     </div>
 
-                    <div v-if="orderData.payment.method === 'installment'" class="text-sm text-gray-600">
+                    <div v-if="isPayment && orderData.payment.method === 'installment'" class="text-sm text-gray-600">
                         * Trả trước: {{ formatCurrency(orderData.payment.downPayment || 0) }}
                     </div>
                 </div>
@@ -171,6 +171,10 @@ const props = defineProps({
     orderTotal: {
         type: Number,
         required: true,
+    },
+    isPayment: {
+        type: Boolean,
+        default: true,
     },
 });
 
