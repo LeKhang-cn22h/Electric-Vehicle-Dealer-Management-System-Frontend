@@ -1,6 +1,6 @@
 <template>
-  <EVMStaffLayout>
-    <div class="evm-staff-dashboard">
+  <!-- <EVMStaffLayout> -->
+    <div class="dealer-manager-dashboard">
       <!-- Header -->
       <div class="dashboard-header">
         <h1>DEALER MANAGER</h1>
@@ -97,7 +97,7 @@
         </div>
       </div>
     </div>
-  </EVMStaffLayout>
+  <!-- </EVMStaffLayout> -->
 </template>
 
 <script setup>
@@ -113,7 +113,7 @@ definePageMeta({
 </script>
 
 <style scoped>
-.evm-staff-dashboard {
+.dealer-manager-dashboard {
   padding: 20px 0;
 }
 
