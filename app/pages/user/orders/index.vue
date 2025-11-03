@@ -37,7 +37,13 @@
 
         <!-- Table -->
         <div v-else class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
-            <OrderTable :fields-name="fieldsName" :orders="paginatedOrders" @print="handlePrint" />
+            <OrderTable :fields-name="fieldsName" :data="paginatedOrders" rowKey="id" basePath="orders" @print="handlePrint">
+                <template #orderDate="{ row }">{{ formatDate(row.orderDate) }}</template>
+                <template #totalAmount="{ row }">{{ formatCurrency(row.totalAmount) }}</template>
+                <template #status="{ row }">
+                    <OrderStatusBadge :status="row.status" />
+                </template>
+            </OrderTable>
         </div>
 
         <!-- Empty state -->
@@ -59,18 +65,29 @@
 import OrderToolbar from "@/components/orders/OrderToolbar.vue";
 import OrderTable from "@/components/orders/OrderTable.vue";
 import OrderPagination from "@/components/orders/OrderPagination.vue";
+import OrderStatusBadge from "@/components/orders/OrderStatusBadge.vue";
+import { formatCurrency, formatDate } from "@/utils/format";
 import { ScrollText } from "lucide-vue-next";
+
 const filters = reactive({
     searchQuery: "",
     status: "",
     dateFrom: "",
     dateTo: "",
 });
+
 const currentPage = ref(1);
 const pageSize = 10;
 const pending = ref(false);
 
-const fieldsName = ["Mã đơn hànggg", "Khách hàng", "Ngày đặt", "Sản phẩm", "Tổng tiền", "Trạng thái", "Thao tác"];
+const fieldsName = [
+    { label: "Mã đơn hàng", key: "orderCode" },
+    { label: "Khách hàng", key: "customerName" },
+    { label: "Ngày đặt", key: "orderDate" },
+    { label: "Tổng tiền", key: "totalAmount" },
+    { label: "Trạng thái", key: "status" },
+    { label: "Thao tác", key: "actions" },
+];
 
 const orders = ref([
     {
