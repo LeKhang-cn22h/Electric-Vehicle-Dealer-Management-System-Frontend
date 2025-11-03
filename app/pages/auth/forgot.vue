@@ -390,8 +390,6 @@ body {
   width: 18px;
   height: 18px;
 }
-
-/* Success State */
 .success-state {
   display: grid;
   gap: 16px;
