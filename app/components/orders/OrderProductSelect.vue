@@ -62,7 +62,7 @@
             </div>
 
             <!-- Navigation -->
-            <div class="flex justify-between pt-6">
+            <!-- <div class="flex justify-between pt-6">
                 <button @click="$emit('back')" class="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-200">
                     Quay lại
                 </button>
@@ -73,7 +73,7 @@
                 >
                     Tiếp theo: Khuyến mãi
                 </button>
-            </div>
+            </div> -->
         </div>
     </div>
     <ProductCatalogModal v-if="showProductCatalog" @close="showProductCatalog = false" @select="addProductToOrder" />

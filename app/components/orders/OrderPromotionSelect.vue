@@ -80,14 +80,14 @@
             </div>
 
             <!-- Navigation -->
-            <div class="flex justify-between pt-6">
+            <!-- <div class="flex justify-between pt-6">
                 <button @click="$emit('back')" class="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-200">
                     Quay lại
                 </button>
                 <button @click="$emit('next')" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
                     Tiếp theo: Thanh toán
                 </button>
-            </div>
+            </div> -->
         </div>
     </div>
 </template>

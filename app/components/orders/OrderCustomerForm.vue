@@ -24,66 +24,76 @@
 
             <!-- Hoặc tạo khách hàng mới -->
             <div class="border-t pt-4">
-                <h3 class="text-md font-medium text-gray-900 mb-3">Hoặc tạo khách hàng mới</h3>
+                <button
+                    @click="showFormNewCustomer"
+                    :disabled="isNewCustomer"
+                    class="inline-flex items-center gap-2 bg-black text-white px-5 py-2.5 rounded-xl font-medium hover:bg-gray-800 active:scale-95 transition-all shadow-md"
+                >
+                    <span class="text-lg font-bold">+</span>
+                    <span>Tạo khách hàng mới</span>
+                </button>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">
-                            Họ tên <span class="text-red-500">*</span>
-                        </label>
-                        <input
-                            v-model="newCustomer.fullName"
-                            type="text"
-                            @input="validateField('fullName')"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="Nhập họ tên"
-                        />
-                        <span v-if="errors.fullName" class="text-red-500 text-sm">{{ errors.fullName }}</span>
-                    </div>
+                <div v-if="isNewCustomer">
+                    <h3 class="text-md font-medium text-gray-900 mb-3 pt-4">Khách hàng mới</h3>
 
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">
-                            Số điện thoại <span class="text-red-500">*</span>
-                        </label>
-                        <input
-                            v-model="newCustomer.phone"
-                            type="tel"
-                            @keypress="onlyNumber"
-                            @input="validateField('phone')"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="Nhập số điện thoại"
-                        />
-                        <span v-if="errors.phone" class="text-red-500 text-sm">{{ errors.phone }}</span>
-                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                Họ tên <span class="text-red-500">*</span>
+                            </label>
+                            <input
+                                v-model="newCustomer.fullName"
+                                type="text"
+                                @input="validateField('fullName')"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Nhập họ tên"
+                            />
+                            <span v-if="errors.fullName" class="text-red-500 text-sm">{{ errors.fullName }}</span>
+                        </div>
 
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                        <input
-                            v-model="newCustomer.email"
-                            type="email"
-                            @input="validateField('email')"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="Nhập email"
-                        />
-                        <p v-if="errors.email" class="text-red-500 text-sm">{{ errors.email }}</p>
-                    </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                Số điện thoại <span class="text-red-500">*</span>
+                            </label>
+                            <input
+                                v-model="newCustomer.phone"
+                                type="tel"
+                                @keypress="onlyNumber"
+                                @input="validateField('phone')"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Nhập số điện thoại"
+                            />
+                            <span v-if="errors.phone" class="text-red-500 text-sm">{{ errors.phone }}</span>
+                        </div>
 
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Địa chỉ</label>
-                        <input
-                            v-model="newCustomer.address"
-                            type="text"
-                            @input="validateField('address')"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="Nhập địa chỉ"
-                        />
-                        <span v-if="errors.address" class="text-red-500 text-sm">{{ errors.address }}</span>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                            <input
+                                v-model="newCustomer.email"
+                                type="email"
+                                @input="validateField('email')"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Nhập email"
+                            />
+                            <p v-if="errors.email" class="text-red-500 text-sm">{{ errors.email }}</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Địa chỉ</label>
+                            <input
+                                v-model="newCustomer.address"
+                                type="text"
+                                @input="validateField('address')"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Nhập địa chỉ"
+                            />
+                            <span v-if="errors.address" class="text-red-500 text-sm">{{ errors.address }}</span>
+                        </div>
                     </div>
                 </div>
             </div>
-
             <!-- Navigation -->
-            <div class="flex justify-end pt-6">
+            <!-- <div class="flex justify-end pt-6">
                 <button
                     @click="handleNext"
                     :disabled="!isFormValid"
@@ -91,7 +101,7 @@
                 >
                     Tiếp theo: Chọn sản phẩm
                 </button>
-            </div>
+            </div> -->
         </div>
     </div>
 </template>
@@ -105,12 +115,13 @@ import { z } from "zod";
 import type { ApiResponse } from "@/types/";
 
 const props = defineProps<{
-    customer: Customer | null;
+    customer: Customer | null | CreateCustomer;
 }>();
 
 const emit = defineEmits<{
-    (e: "update:customer", customer: CreateCustomer): void;
-    (e: "next"): void;
+    (e: "update:customer", customer: Customer | CreateCustomer): void;
+    (e: "customer-type", type: "existing" | "new"): void;
+    (e: "form-valid", isValid: boolean): void;
 }>();
 
 // State
@@ -123,6 +134,14 @@ const newCustomer = reactive<CreateCustomer>({
     address: "",
 });
 
+const isNewCustomer = ref(false);
+const showFormNewCustomer = () => {
+    isNewCustomer.value = true;
+    searchQuery.value = "";
+    searchResults.value = [];
+    emit("update:customer", newCustomer);
+    emit("customer-type", "new");
+};
 // Chỉ cho phép nhập số
 const onlyNumber = (event: KeyboardEvent) => {
     const charCode = event.which || event.keyCode;
@@ -151,8 +170,14 @@ function validateField(field: keyof CreateCustomer) {
     }
 }
 
-// Form có hợp lệ
-const isFormValid = computed(() => Object.keys(errors).length === 0 && newCustomer.fullName && newCustomer.phone);
+const isFormValid = computed(() => {
+    return Boolean(Object.keys(errors).length === 0 && newCustomer.fullName && newCustomer.phone && isNewCustomer);
+});
+
+// Watch và emit khi validation thay đổi
+watch(isFormValid, (val) => {
+    emit("form-valid", val);
+});
 
 // Hàm search API
 const handleCustomerSearch = async (query: string) => {
@@ -181,19 +206,9 @@ watch(searchQuery, (newQuery) => {
 
 const selectCustomer = (customer: Customer) => {
     emit("update:customer", customer);
+    emit("customer-type", "existing");
+    isNewCustomer.value = false;
     searchResults.value = [];
-    searchQuery.value = ""; // Clear search query
-};
-
-const handleNext = () => {
-    // Nếu đã chọn customer từ search thì emit customer đó
-    if (props.customer) {
-        emit("next");
-        return;
-    }
-
-    // Nếu tạo mới thì emit newCustomer
-    emit("update:customer", newCustomer);
-    emit("next");
+    searchQuery.value = "";
 };
 </script>
