@@ -1,16 +1,16 @@
 <template>
-  <!-- <DealerManagerLayout> -->
-    <div class="dealer-manager-dashboard">
+  <EVMStaffLayout>
+    <div class="evm-staff-dashboard">
       <!-- Header -->
       <div class="dashboard-header">
-        <h1>Dealer Management Dashboard</h1>
+        <h1>DEALER MANAGER</h1>
         <p>Welcome to Electric Vehicle Management System</p>
       </div>
 
       <!-- Statistics Cards -->
       <div class="stats-grid">
         <div class="stat-card">
-          <div class="stat-icon">🚙</div>
+          <div class="stat-icon"></div>
           <div class="stat-info">
             <h3>Tồn kho</h3>
             <p class="stat-number">247</p>
@@ -19,7 +19,7 @@
         </div>
 
         <div class="stat-card">
-          <div class="stat-icon">📦</div>
+          <div class="stat-icon"></div>
           <div class="stat-info">
             <h3>Yêu cầu điều phối xe</h3>
             <p class="stat-number">56</p>
@@ -28,7 +28,7 @@
         </div>
 
         <div class="stat-card">
-          <div class="stat-icon">🧪</div>
+          <div class="stat-icon"></div>
           <div class="stat-info">
             <h3>Test Drives</h3>
             <p class="stat-number">34</p>
@@ -37,7 +37,7 @@
         </div>
 
         <div class="stat-card">
-          <div class="stat-icon">💰</div>
+          <div class="stat-icon"></div>
           <div class="stat-info">
             <h3>Revenue</h3>
             <p class="stat-number">$1.2M</p>
@@ -51,19 +51,19 @@
         <h2>Quick Actions</h2>
         <div class="actions-grid">
           <button class="action-btn" @click="navigateTo('vehicles')">
-            <span class="action-icon">🚙</span>
+            <span class="action-icon"></span>
             <span>Manage Vehicles</span>
           </button>
           <button class="action-btn" @click="navigateTo('orders')">
-            <span class="action-icon">📦</span>
+            <span class="action-icon"></span>
             <span>Process Orders</span>
           </button>
           <button class="action-btn" @click="navigateTo('pricing')">
-            <span class="action-icon">💰</span>
+            <span class="action-icon"></span>
             <span>Update Pricing</span>
           </button>
           <button class="action-btn" @click="navigateTo('test-drive')">
-            <span class="action-icon">🧪</span>
+            <span class="action-icon"></span>
             <span>Schedule Test Drives</span>
           </button>
         </div>
@@ -97,25 +97,23 @@
         </div>
       </div>
     </div>
-  <!-- </DealerManagerLayout> -->
+  </EVMStaffLayout>
 </template>
 
 <script setup>
-
+// Thử cách này - bỏ comment và dùng trực tiếp
 definePageMeta({
   layout: 'dealer-manager-layout'
 })
 
-import { useRouter } from 'vue-router'
-const router = useRouter()
-
-const navigateTo = (route) => {
-  router.push(`/dealer_manager/${route}`)
-}
+// Hoặc thử với tên khác
+// definePageMeta({
+//   layout: 'EVMStaffLayout'
+// })
 </script>
 
 <style scoped>
-.dealer-manager-dashboard {
+.evm-staff-dashboard {
   padding: 20px 0;
 }
 
