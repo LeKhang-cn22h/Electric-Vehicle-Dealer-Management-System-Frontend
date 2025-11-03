@@ -37,7 +37,13 @@
 
         <!-- Table -->
         <div v-else class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
-            <OrderTable :fields-name="fieldsName" :orders="paginatedOrders" @print="handlePrint" />
+            <OrderTable :fields-name="fieldsName" :data="paginatedOrders" rowKey="id" basePath="user/orders" @print="handlePrint">
+                <template #orderDate="{ row }">{{ formatDate(row.orderDate) }}</template>
+                <template #totalAmount="{ row }">{{ formatCurrency(row.totalAmount) }}</template>
+                <template #status="{ row }">
+                    <OrderStatusBadge :status="row.status" />
+                </template>
+            </OrderTable>
         </div>
 
         <!-- Empty state -->
