@@ -110,7 +110,7 @@ async function onGoogle() {
               </svg>
               Mật khẩu
             </label>
-            <NuxtLink to="/forgot" class="link">Quên mật khẩu?</NuxtLink>
+            <NuxtLink to="/auth/forgot" class="link">Quên mật khẩu?</NuxtLink>
           </div>
 
           <div class="password">
