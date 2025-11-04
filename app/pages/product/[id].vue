@@ -147,84 +147,89 @@ const formattedPrice = computed(() => {
     <p>Đang tải hoặc không tìm thấy xe (id: {{ id }})…</p>
   </div>
 
-  <div class="detail-page" v-else>
-    <div class="breadcrumb-section">
-      <div class="container">
-        <nav class="breadcrumb">
-          <NuxtLink to="/">Trang chủ</NuxtLink>
-          <span class="separator">›</span>
-          <NuxtLink to="/#cars">Sản phẩm</NuxtLink>
-          <span class="separator">›</span>
-          <span class="current">{{ car.name }}</span>
+  <div class="min-h-screen bg-gray-50 font-sans pb-20" v-else>
+    <div class="bg-white border-b border-gray-200 py-4">
+      <div class="max-w-7xl mx-auto px-6">
+        <nav class="flex items-center gap-3 text-sm">
+          <NuxtLink to="/" class="text-gray-500 hover:text-indigo-500 transition-colors">Trang chủ</NuxtLink>
+          <span class="text-gray-300">›</span>
+          <NuxtLink to="/#cars" class="text-gray-500 hover:text-indigo-500 transition-colors">Sản phẩm</NuxtLink>
+          <span class="text-gray-300">›</span>
+          <span class="text-gray-800 font-semibold">{{ car.name }}</span>
         </nav>
       </div>
     </div>
 
-    <div class="container">
-      <div class="detail-content">
-        <div class="images-section">
-          <div class="main-image">
-            <img :src="car.images[selectedImage]" :alt="car.name" />
-            <div class="image-badge">{{ car.status }}</div>
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 mt-8 mb-16">
+        <div class="sticky top-6 h-fit">
+          <div class="relative w-full aspect-[16/10] rounded-2xl overflow-hidden bg-gray-900 shadow-2xl mb-4">
+            <img :src="car.images[selectedImage]" :alt="car.name" class="w-full h-full object-cover" />
+            <div class="absolute top-5 left-5 bg-emerald-500/95 text-white px-4 py-2 rounded-full font-semibold text-sm backdrop-blur-lg">
+              {{ car.status }}
+            </div>
           </div>
-          <div class="thumbnail-list">
+          <div class="grid grid-cols-5 gap-3">
             <button
               v-for="(img, i) in car.images"
               :key="i"
-              :class="['thumbnail', { active: selectedImage === i }]"
+              :class="[
+                'aspect-[16/10] rounded-xl overflow-hidden bg-gray-900 cursor-pointer transition-all border-2',
+                selectedImage === i ? 'border-indigo-500 shadow-indigo-500/10 ring-4 ring-indigo-500/10' : 'border-transparent hover:border-gray-300'
+              ]"
               @click="selectImage(i)"
             >
-              <img :src="img" :alt="`${car.name} ${i + 1}`" />
+              <img :src="img" :alt="`${car.name} ${i + 1}`" class="w-full h-full object-cover" />
             </button>
           </div>
         </div>
-        <div class="info-section">
-          <div class="car-header">
-            <h1 class="car-title">{{ car.name }}</h1>
-            <p class="car-tagline">{{ car.tagline }}</p>
+        <div class="flex flex-col gap-8">
+          <div class="pb-6 border-b-2 border-gray-200">
+            <h1 class="text-3xl font-extrabold text-gray-800 mb-2">{{ car.name }}</h1>
+            <p class="text-gray-500 font-medium">{{ car.tagline }}</p>
           </div>
 
-          <div class="price-section">
-            <div class="price-main">{{ formattedPrice }} VNĐ</div>
-            <div class="price-note">{{ car.priceNote }}</div>
+          <div class="bg-gradient-to-br from-indigo-500 to-purple-600 p-6 rounded-2xl text-white">
+            <div class="text-4xl font-extrabold mb-1">{{ formattedPrice }} VNĐ</div>
+            <div class="text-sm opacity-90">{{ car.priceNote }}</div>
           </div>
 
-          <div class="quick-specs">
-            <div class="spec-item">
-              <span class="spec-icon">📅</span>
-              <div class="spec-content">
-                <span class="spec-label">Năm</span
-                ><span class="spec-value">{{ car.year }}</span>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white p-6 rounded-2xl shadow-lg">
+            <div class="flex gap-3 items-center">
+              <span class="text-2xl">📅</span>
+              <div>
+                <span class="text-xs text-gray-500 block mb-0.5">Năm</span>
+                <span class="text-sm text-gray-800 font-semibold">{{ car.year }}</span>
               </div>
             </div>
-            <div class="spec-item">
-              <span class="spec-icon">🛣️</span>
-              <div class="spec-content">
-                <span class="spec-label">Km</span
-                ><span class="spec-value">{{ car.mileage }}</span>
+            <div class="flex gap-3 items-center">
+              <span class="text-2xl">🛣️</span>
+              <div>
+                <span class="text-xs text-gray-500 block mb-0.5">Km</span>
+                <span class="text-sm text-gray-800 font-semibold">{{ car.mileage }}</span>
               </div>
             </div>
-            <div class="spec-item">
-              <span class="spec-icon">⚙️</span>
-              <div class="spec-content">
-                <span class="spec-label">Hộp số</span
-                ><span class="spec-value">{{ car.transmission }}</span>
+            <div class="flex gap-3 items-center">
+              <span class="text-2xl">⚙️</span>
+              <div>
+                <span class="text-xs text-gray-500 block mb-0.5">Hộp số</span>
+                <span class="text-sm text-gray-800 font-semibold">{{ car.transmission }}</span>
               </div>
             </div>
-            <div class="spec-item">
-              <span class="spec-icon">⛽</span>
-              <div class="spec-content">
-                <span class="spec-label">Nhiên liệu</span
-                ><span class="spec-value">{{ car.fuelType }}</span>
+            <div class="flex gap-3 items-center">
+              <span class="text-2xl">⛽</span>
+              <div>
+                <span class="text-xs text-gray-500 block mb-0.5">Nhiên liệu</span>
+                <span class="text-sm text-gray-800 font-semibold">{{ car.fuelType }}</span>
               </div>
             </div>
           </div>
 
-          <div class="benefits-section">
-            <h3 class="benefits-title">Ưu đãi</h3>
-            <ul class="benefits-list">
-              <li v-for="b in car.benefits" :key="b">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <div class="bg-white p-6 rounded-2xl shadow-lg">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">Ưu đãi</h3>
+            <ul class="grid gap-3">
+              <li v-for="b in car.benefits" :key="b" class="flex items-center gap-3 text-gray-600 text-sm">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" class="text-emerald-500 flex-shrink-0">
                   <path
                     d="M20 6L9 17l-5-5"
                     stroke="currentColor"
@@ -238,70 +243,98 @@ const formattedPrice = computed(() => {
             </ul>
           </div>
 
-          <div class="cta-buttons">
-            <NuxtLink to="/#contact" class="btn btn-primary"
-              >Liên hệ tư vấn</NuxtLink
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <NuxtLink
+              to="/#contact"
+              class="col-span-full inline-flex items-center justify-center gap-2 py-4 px-6 rounded-xl font-semibold text-sm text-white bg-gradient-to-r from-indigo-500 to-purple-600 shadow-lg shadow-indigo-500/40 hover:-translate-y-0.5 transition-all"
             >
-            <a href="tel:1900xxxx" class="btn btn-secondary">Gọi ngay</a>
-            <button class="btn btn-outline">Lưu xe</button>
+              Liên hệ tư vấn
+            </NuxtLink>
+            <a
+              href="tel:1900xxxx"
+              class="inline-flex items-center justify-center gap-2 py-4 px-6 rounded-xl font-semibold text-sm text-white bg-emerald-500 shadow-lg shadow-emerald-500/30 hover:bg-emerald-600 hover:-translate-y-0.5 transition-all"
+            >
+              Gọi ngay
+            </a>
+            <button class="inline-flex items-center justify-center gap-2 py-4 px-6 rounded-xl font-semibold text-sm text-gray-600 bg-white border-2 border-gray-200 hover:border-indigo-500 hover:text-indigo-500 transition-all">
+              Lưu xe
+            </button>
           </div>
         </div>
       </div>
-      <div class="tabs-section">
-        <div class="tabs-header">
+
+      <div class="bg-white rounded-2xl shadow-lg overflow-hidden mb-16">
+        <div class="flex border-b-2 border-gray-100 overflow-x-auto scrollbar-hide">
           <button
-            :class="['tab-btn', { active: activeTab === 'specs' }]"
+            :class="[
+              'flex-1 py-5 px-6 text-base font-semibold transition-all relative',
+              activeTab === 'specs'
+                ? 'text-indigo-500 after:absolute after:bottom-[-2px] after:left-0 after:right-0 after:h-0.5 after:bg-gradient-to-r after:from-indigo-500 after:to-purple-600'
+                : 'text-gray-500 hover:text-indigo-500 hover:bg-gray-50'
+            ]"
             @click="activeTab = 'specs'"
           >
             Thông số
           </button>
           <button
-            :class="['tab-btn', { active: activeTab === 'features' }]"
+            :class="[
+              'flex-1 py-5 px-6 text-base font-semibold transition-all relative',
+              activeTab === 'features'
+                ? 'text-indigo-500 after:absolute after:bottom-[-2px] after:left-0 after:right-0 after:h-0.5 after:bg-gradient-to-r after:from-indigo-500 after:to-purple-600'
+                : 'text-gray-500 hover:text-indigo-500 hover:bg-gray-50'
+            ]"
             @click="activeTab = 'features'"
           >
             Trang bị
           </button>
           <button
-            :class="['tab-btn', { active: activeTab === 'description' }]"
+            :class="[
+              'flex-1 py-5 px-6 text-base font-semibold transition-all relative',
+              activeTab === 'description'
+                ? 'text-indigo-500 after:absolute after:bottom-[-2px] after:left-0 after:right-0 after:h-0.5 after:bg-gradient-to-r after:from-indigo-500 after:to-purple-600'
+                : 'text-gray-500 hover:text-indigo-500 hover:bg-gray-50'
+            ]"
             @click="activeTab = 'description'"
           >
             Mô tả
           </button>
         </div>
 
-        <div class="tabs-content">
-          <div v-show="activeTab === 'specs'" class="tab-panel">
-            <div class="specs-grid">
-              <div class="spec-row">
-                <span class="spec-label">Xuất xứ</span
-                ><span class="spec-value">{{ car.origin }}</span>
+        <div class="p-8">
+          <div v-show="activeTab === 'specs'" class="animate-fade-in">
+            <div class="divide-y divide-gray-200 rounded-xl overflow-hidden">
+              <div class="flex justify-between py-4 px-6 bg-gray-50">
+                <span class="text-gray-500 text-sm">Xuất xứ</span>
+                <span class="text-gray-800 font-semibold text-sm">{{ car.origin }}</span>
               </div>
-              <div class="spec-row">
-                <span class="spec-label">Số chỗ</span
-                ><span class="spec-value">{{ car.seats }}</span>
+              <div class="flex justify-between py-4 px-6 bg-gray-50">
+                <span class="text-gray-500 text-sm">Số chỗ</span>
+                <span class="text-gray-800 font-semibold text-sm">{{ car.seats }}</span>
               </div>
-              <div class="spec-row">
-                <span class="spec-label">Động cơ</span
-                ><span class="spec-value">{{ car.engine }}</span>
+              <div class="flex justify-between py-4 px-6 bg-gray-50">
+                <span class="text-gray-500 text-sm">Động cơ</span>
+                <span class="text-gray-800 font-semibold text-sm">{{ car.engine }}</span>
               </div>
-              <div class="spec-row">
-                <span class="spec-label">Màu</span
-                ><span class="spec-value">{{ car.color }}</span>
+              <div class="flex justify-between py-4 px-6 bg-gray-50">
+                <span class="text-gray-500 text-sm">Màu</span>
+                <span class="text-gray-800 font-semibold text-sm">{{ car.color }}</span>
               </div>
             </div>
           </div>
 
-          <div v-show="activeTab === 'features'" class="tab-panel">
-            <div class="features-grid">
+          <div v-show="activeTab === 'features'" class="animate-fade-in">
+            <div class="grid md:grid-cols-2 gap-8">
               <div
                 v-for="f in car.features"
                 :key="f.category"
-                class="feature-category"
+                class="bg-gray-50 p-6 rounded-xl"
               >
-                <h3 class="category-title">{{ f.category }}</h3>
-                <ul class="feature-list">
-                  <li v-for="it in f.items" :key="it">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <h3 class="text-lg font-bold text-gray-800 mb-4 pb-3 border-b-2 border-gray-200">
+                  {{ f.category }}
+                </h3>
+                <ul class="grid gap-3">
+                  <li v-for="it in f.items" :key="it" class="flex items-center gap-3 text-gray-600 text-sm">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" class="text-indigo-500 flex-shrink-0">
                       <path
                         d="M20 6L9 17l-5-5"
                         stroke="currentColor"
@@ -317,29 +350,30 @@ const formattedPrice = computed(() => {
             </div>
           </div>
 
-          <div v-show="activeTab === 'description'" class="tab-panel">
-            <div class="description-content">
+          <div v-show="activeTab === 'description'" class="animate-fade-in">
+            <div class="text-base leading-relaxed text-gray-600">
               <p>{{ car.description }}</p>
             </div>
           </div>
         </div>
       </div>
-      <div class="related-section">
-        <h2 class="section-title">Xe liên quan</h2>
-        <div class="related-grid">
+
+      <div class="mt-16">
+        <h2 class="text-2xl font-extrabold text-gray-800 mb-8 text-center">Xe liên quan</h2>
+        <div class="grid md:grid-cols-3 gap-6">
           <NuxtLink
             v-for="r in relatedCars"
             :key="r.id"
             :to="`/product/${r.id}`"
-            class="related-card"
+            class="bg-white rounded-2xl overflow-hidden shadow-lg transition-all hover:-translate-y-2 hover:shadow-xl"
           >
-            <div class="related-image">
-              <img :src="r.image" :alt="r.name" />
+            <div class="aspect-[16/10] overflow-hidden bg-gray-900">
+              <img :src="r.image" :alt="r.name" class="w-full h-full object-cover transition-transform hover:scale-110" />
             </div>
-            <div class="related-info">
-              <h3 class="related-name">{{ r.name }}</h3>
-              <p class="related-tagline">{{ r.tagline }}</p>
-              <div class="related-price">
+            <div class="p-5">
+              <h3 class="text-base font-bold text-gray-800 mb-1">{{ r.name }}</h3>
+              <p class="text-sm text-gray-500 mb-3">{{ r.tagline }}</p>
+              <div class="text-lg font-bold text-indigo-500">
                 {{ new Intl.NumberFormat("vi-VN").format(parseInt(r.price)) }}
                 VNĐ
               </div>
@@ -351,362 +385,7 @@ const formattedPrice = computed(() => {
   </div>
 </template>
 
-<style scoped></style>
-
 <style scoped>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-.detail-page {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background: #f8f9fa;
-  min-height: 100vh;
-  padding-bottom: 80px;
-}
-
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 24px;
-}
-
-.breadcrumb-section {
-  background: white;
-  border-bottom: 1px solid #e2e8f0;
-  padding: 16px 0;
-}
-
-.breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 14px;
-}
-
-.breadcrumb a {
-  color: #64748b;
-  text-decoration: none;
-  transition: color 0.2s;
-}
-
-.breadcrumb a:hover {
-  color: #667eea;
-}
-
-.breadcrumb .separator {
-  color: #cbd5e1;
-}
-
-.breadcrumb .current {
-  color: #1e293b;
-  font-weight: 600;
-}
-
-.detail-content {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 48px;
-  margin-top: 32px;
-  margin-bottom: 60px;
-}
-
-.images-section {
-  position: sticky;
-  top: 24px;
-  height: fit-content;
-}
-
-.main-image {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 16 / 10;
-  border-radius: 20px;
-  overflow: hidden;
-  background: #0f172a;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-  margin-bottom: 16px;
-}
-
-.main-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-.image-badge {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-  background: rgba(16, 185, 129, 0.95);
-  color: white;
-  padding: 8px 16px;
-  border-radius: 50px;
-  font-weight: 600;
-  font-size: 14px;
-  backdrop-filter: blur(10px);
-}
-
-.thumbnail-list {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 12px;
-}
-
-.thumbnail {
-  aspect-ratio: 16 / 10;
-  border-radius: 12px;
-  overflow: hidden;
-  border: 2px solid transparent;
-  cursor: pointer;
-  transition: all 0.3s;
-  background: #0f172a;
-}
-
-.thumbnail img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-.thumbnail.active {
-  border-color: #667eea;
-  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
-}
-
-.thumbnail:hover:not(.active) {
-  border-color: #cbd5e1;
-}
-
-.info-section {
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
-}
-
-.car-header {
-  padding-bottom: 24px;
-  border-bottom: 2px solid #e2e8f0;
-}
-
-.car-title {
-  font-size: 32px;
-  font-weight: 800;
-  color: #1e293b;
-  margin-bottom: 8px;
-  line-height: 1.2;
-}
-
-.car-tagline {
-  font-size: 16px;
-  color: #64748b;
-  font-weight: 500;
-}
-
-.price-section {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 24px;
-  border-radius: 16px;
-  color: white;
-}
-
-.price-main {
-  font-size: 36px;
-  font-weight: 800;
-  margin-bottom: 4px;
-}
-
-.price-note {
-  font-size: 14px;
-  opacity: 0.9;
-}
-
-.quick-specs {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-  background: white;
-  padding: 24px;
-  border-radius: 16px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
-.spec-item {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-.spec-icon {
-  font-size: 24px;
-  flex-shrink: 0;
-}
-
-.spec-content {
-  flex: 1;
-}
-
-.spec-label {
-  font-size: 13px;
-  color: #64748b;
-  display: block;
-  margin-bottom: 2px;
-}
-
-.spec-value {
-  font-size: 15px;
-  color: #1e293b;
-  font-weight: 600;
-}
-
-.benefits-section {
-  background: white;
-  padding: 24px;
-  border-radius: 16px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
-.benefits-title {
-  font-size: 18px;
-  font-weight: 700;
-  color: #1e293b;
-  margin-bottom: 16px;
-}
-
-.benefits-list {
-  list-style: none;
-  display: grid;
-  gap: 12px;
-}
-
-.benefits-list li {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 15px;
-  color: #475569;
-}
-
-.benefits-list svg {
-  color: #10b981;
-  flex-shrink: 0;
-}
-
-.cta-buttons {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 16px 24px;
-  border-radius: 12px;
-  font-weight: 600;
-  font-size: 15px;
-  text-decoration: none;
-  transition: all 0.3s;
-  border: none;
-  cursor: pointer;
-  font-family: inherit;
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
-  grid-column: 1 / -1;
-}
-
-.btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 32px rgba(102, 126, 234, 0.5);
-}
-
-.btn-secondary {
-  background: #10b981;
-  color: white;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-}
-
-.btn-secondary:hover {
-  background: #059669;
-  transform: translateY(-2px);
-}
-
-.btn-outline {
-  background: white;
-  color: #475569;
-  border: 2px solid #e2e8f0;
-}
-
-.btn-outline:hover {
-  border-color: #667eea;
-  color: #667eea;
-}
-
-/* Tabs Section */
-.tabs-section {
-  background: white;
-  border-radius: 20px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  overflow: hidden;
-  margin-bottom: 60px;
-}
-
-.tabs-header {
-  display: flex;
-  border-bottom: 2px solid #f1f5f9;
-}
-
-.tab-btn {
-  flex: 1;
-  padding: 20px 24px;
-  background: none;
-  border: none;
-  font-size: 16px;
-  font-weight: 600;
-  color: #64748b;
-  cursor: pointer;
-  transition: all 0.3s;
-  position: relative;
-  font-family: inherit;
-}
-
-.tab-btn:hover {
-  color: #667eea;
-  background: #f8f9fa;
-}
-
-.tab-btn.active {
-  color: #667eea;
-}
-
-.tab-btn.active::after {
-  content: "";
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, #667eea, #764ba2);
-}
-
-.tabs-content {
-  padding: 32px;
-}
-
-.tab-panel {
-  animation: fadeIn 0.3s ease-out;
-}
-
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -718,211 +397,14 @@ const formattedPrice = computed(() => {
   }
 }
 
-.specs-grid {
-  display: grid;
-  gap: 1px;
-  background: #e2e8f0;
-  border-radius: 12px;
-  overflow: hidden;
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
 }
 
-.spec-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 16px 24px;
-  background: white;
+.scrollbar-hide {
+  scrollbar-width: none;
 }
-
-.spec-row .spec-label {
-  color: #64748b;
-  font-size: 15px;
-}
-
-.spec-row .spec-value {
-  color: #1e293b;
-  font-weight: 600;
-  font-size: 15px;
-}
-
-.features-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 32px;
-}
-
-.feature-category {
-  background: #f8f9fa;
-  padding: 24px;
-  border-radius: 12px;
-}
-
-.category-title {
-  font-size: 18px;
-  font-weight: 700;
-  color: #1e293b;
-  margin-bottom: 16px;
-  padding-bottom: 12px;
-  border-bottom: 2px solid #e2e8f0;
-}
-
-.feature-list {
-  list-style: none;
-  display: grid;
-  gap: 12px;
-}
-
-.feature-list li {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 15px;
-  color: #475569;
-}
-
-.feature-list svg {
-  color: #667eea;
-  flex-shrink: 0;
-}
-
-.description-content {
-  font-size: 16px;
-  line-height: 1.8;
-  color: #475569;
-}
-
-/* Related Section */
-.related-section {
-  margin-top: 60px;
-}
-
-.section-title {
-  font-size: 28px;
-  font-weight: 800;
-  color: #1e293b;
-  margin-bottom: 32px;
-  text-align: center;
-}
-
-.related-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-}
-
-.related-card {
-  background: white;
-  border-radius: 16px;
-  overflow: hidden;
-  text-decoration: none;
-  transition: all 0.3s;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
-.related-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
-}
-
-.related-image {
-  aspect-ratio: 16 / 10;
-  overflow: hidden;
-  background: #0f172a;
-}
-
-.related-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.3s;
-}
-
-.related-card:hover .related-image img {
-  transform: scale(1.1);
-}
-
-.related-info {
-  padding: 20px;
-}
-
-.related-name {
-  font-size: 16px;
-  font-weight: 700;
-  color: #1e293b;
-  margin-bottom: 4px;
-}
-
-.related-tagline {
-  font-size: 14px;
-  color: #64748b;
-  margin-bottom: 12px;
-}
-
-.related-price {
-  font-size: 18px;
-  font-weight: 700;
-  color: #667eea;
-}
-
-/* Responsive */
-@media (max-width: 968px) {
-  .detail-content {
-    grid-template-columns: 1fr;
-    gap: 32px;
-  }
-
-  .images-section {
-    position: static;
-  }
-
-  .thumbnail-list {
-    grid-template-columns: repeat(4, 1fr);
-  }
-
-  .quick-specs {
-    grid-template-columns: 1fr;
-  }
-
-  .cta-buttons {
-    grid-template-columns: 1fr;
-  }
-
-  .btn-primary {
-    grid-column: 1;
-  }
-
-  .features-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .related-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 640px) {
-  .container {
-    padding: 0 16px;
-  }
-
-  .detail-content {
-    margin-top: 20px;
-    gap: 24px;
-  }
-
-  .car-title {
-    font-size: 24px;
-  }
-
-  .price-main {
-    font-size: 28px;
-  }
-
-  .tabs-header {
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-  .tabs-header::-webkit-scrollbar {
-    display: none;
-  }
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
 </style>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-
+import ProductCard from "~/components/ProductCustomer/ProductCard.vue";
 definePageMeta({ alias: ["/use/home"] });
 type User = { id: number; firstName: string; lastName: string; age: number };
 
@@ -99,6 +99,42 @@ const carShowcase = ref([
     price: "Hotline: 1900 xxxx",
   },
 ]);
+const Listcar = ref([
+  {
+    id: 1,
+    src: "/showcase/xe1.jpg",
+    name: "Mercedes-Benz S-Class",
+    isStocked: true,
+    price: '1.090.000.000₫',
+  },
+  {
+    id: 2,
+    src: "/showcase/xe2.jpg",
+    name: "BMW 7 Series",
+    isStocked: false,
+    price: '7.090.000.000₫',
+  },
+  {
+    id: 3,
+    src: "/showcase/xe3.jpg",
+    name: "Lexus LX 600",
+    isStocked: true,
+    price: '2.090.000.000₫',
+  },
+  {
+    id: 4,
+    src: "/showcase/xe4.jpg",
+    name: "Porsche Cayenne",
+    inStock: true,
+    price: '12.090.000.000₫',
+  },
+  {
+    id: 5,
+    src: "/showcase/xe5.jpg",
+    name: "Range Rover Vogue",
+    isStocked: true,
+    price: '1.090.000.000₫',
+  },]);
 </script>
 
 <template>
@@ -186,6 +222,12 @@ const carShowcase = ref([
               </div>
             </div>
           </NuxtLink>
+          
+          <ProductCard
+      v-for="car in Listcar"
+      :key="car.id"
+      :car="car"
+    />
         </div>
       </div>
     </section>
