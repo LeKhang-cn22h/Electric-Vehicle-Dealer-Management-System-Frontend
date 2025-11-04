@@ -1,9 +1,9 @@
 <template>
-    <div v-if="compareStore.selectedCars.lenght>0" 
-    class="fixed bottom-4 left-1/2 -translate-x-1/2 bg-white shadow-xl rounded-2xl p-4 flex items-center gap-4 max-w-4xl w-[90%] border border-gray-200 z-50 animate-fade-in">
+    <div v-if="compareStore.selectedCars.length>0" 
+    class="fixed bottom-4 justify-center bg-white shadow-xl rounded-2xl p-4 flex items-center gap-4 max-w-4xl w-[90%] border border-gray-200 z-50 animate-fade-in">
         <div class="flex gap-4 overflow-x-auto flex-1">
             <div v-for="car in compareStore.selectedCars" 
-            :key="Car.id"
+            :key="car.id"
             class="flex items-center gap-2 bg-gray-100 rounded-xl px-2 py-2 shrink-0">
                 <img :src="car.src" alt="car.name" class="h-16 w-24 object-cover rounded-lg" />
                 <span class="font-medium text-sm truncate max-w-[100px]">{{ car.name }}</span>

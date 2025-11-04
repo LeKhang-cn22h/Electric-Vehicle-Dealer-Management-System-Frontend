@@ -13,7 +13,7 @@ export const useCompareStore = defineStore('compare', {
     removeCar(id) {
       this.selectedCars = this.selectedCars.filter(c => c.id !== id)
     },
-    clearAll() {
+    clearAll() {    
       this.selectedCars = []
     }
   }

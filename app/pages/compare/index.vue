@@ -33,7 +33,7 @@
 </template>
 
 <script setup>
-import { useCompareStore } from '~/stores/compareStore'
+import { useCompareStore } from '@/store/compareStore'
 const compareStore = useCompareStore()
 
 const specs = [

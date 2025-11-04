@@ -8,7 +8,7 @@
       class="block"
     >
       <!-- Ảnh sản phẩm -->
-      <div class="relative w-full h-48 overflow-hidden bg-gray-100 flex justify-center items-center transition-all duration-500">
+      <div class="relative w-full h-40 overflow-hidden bg-gray-100 flex justify-center items-center transition-all duration-500">
         <img
           :src="car.src"
           :alt="car.name"
@@ -25,7 +25,7 @@
       </div>
 
       <!-- Thông tin sản phẩm -->
-      <div class="flex flex-col justify-between p-4 h-28 transition-all duration-500">
+      <div class="flex flex-col justify-between px-2 h-24 transition-all duration-500">
         <div>
           <h3 class="text-lg text-gray-800 truncate">{{ car.name }}</h3>
           <div class="text-xl font-bold mt-3">{{ car.price }}</div>
@@ -34,7 +34,7 @@
     </NuxtLink>
 
     <!-- Nút So sánh tách riêng -->
-    <div class="p-4 pt-0">
+    <div class="p-2 pt-0">
       <button
         class="w-2/4 mt-1 py-1 border border-black rounded-2xl hover:bg-gray-200 transition-colors duration-300 font-bold"
         @click="addToCompare"
@@ -50,6 +50,7 @@ import { useCompareStore } from '~/store/compareStore';
 const compareStore = useCompareStore()
 const addToCompare = () => {
   compareStore.addCar(props.car)
+  console.log('Current compare list:', compareStore.selectedCars);
 }
 const props = defineProps({
   car: {
