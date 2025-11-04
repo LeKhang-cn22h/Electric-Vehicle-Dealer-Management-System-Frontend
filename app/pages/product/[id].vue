@@ -1,39 +1,42 @@
 <script setup lang="ts">
-import { ref, computed } from "vue"
-import { useRoute, useRuntimeConfig } from "#imports"
-import {formatCurrency} from "../../utils/format"
-import { mockCars, type Car} from "@/data/mockCars"
+import { ref, computed } from "vue";
+import { useRoute, useRuntimeConfig } from "#imports";
+import { formatCurrency } from "../../utils/format";
+import { mockCars, type Car } from "@/data/mockCars";
+import { CalendarClock, Gauge, Settings, Fuel } from "lucide-vue-next";
 
-const route = useRoute()
-const config = useRuntimeConfig()
-const id = computed(() => String(route.params.id))
+const route = useRoute();
+const config = useRuntimeConfig();
+const id = computed(() => String(route.params.id));
 const formattedPrice = computed(() => {
-  if (!car.value?.price) return formatCurrency(0)
-  
-  const rawPrice = typeof car.value.price === "string" 
-    ? parseInt(car.value.price, 10) 
-    : car.value.price
-  
-  return formatCurrency(rawPrice)
-})
+  if (!car.value?.price) return formatCurrency(0);
+
+  const rawPrice =
+    typeof car.value.price === "string"
+      ? parseInt(car.value.price, 10)
+      : car.value.price;
+
+  return formatCurrency(rawPrice);
+});
 
 // --- Fetch xe từ API hoặc mock ---
 const { data: carRes } = await useFetch<Car | null>(
   () => `${config.public.apiBase ?? ""}/cars/${id.value}`,
   { server: false, default: () => null }
-)
+);
 
 const car = computed<Car | null>(() => {
-  return carRes.value ?? mockCars.find((c) => c.id === Number(id.value)) ?? null
-})
+  return (
+    carRes.value ?? mockCars.find((c) => c.id === Number(id.value)) ?? null
+  );
+});
 
-
-const selectedImage = ref(0)
+const selectedImage = ref(0);
 
 // --- Định nghĩa tab ---
-const tabs = ['specs', 'features', 'description'] as const
-type TabType = typeof tabs[number]
-const activeTab = ref<TabType>('specs')
+const tabs = ["specs", "features", "description"] as const;
+type TabType = (typeof tabs)[number];
+const activeTab = ref<TabType>("specs");
 
 // --- Danh sách xe liên quan ---
 const relatedCars = ref([
@@ -58,9 +61,9 @@ const relatedCars = ref([
     price: "6200000000",
     tagline: "Hiệu năng vượt trội",
   },
-])
+]);
 
-const selectImage = (i: number) => (selectedImage.value = i)
+const selectImage = (i: number) => (selectedImage.value = i);
 
 // const formattedPrice = computed(() => {
 //   const raw =
@@ -70,7 +73,6 @@ const selectImage = (i: number) => (selectedImage.value = i)
 //   return new Intl.NumberFormat("vi-VN").format(raw)
 // })
 </script>
-
 
 <template>
   <div class="container" v-if="!car" style="padding: 32px">
@@ -82,9 +84,17 @@ const selectImage = (i: number) => (selectedImage.value = i)
     <div class="bg-white border-b border-gray-200 py-4">
       <div class="max-w-7xl mx-auto px-6">
         <nav class="flex items-center gap-3 text-sm">
-          <NuxtLink to="/user/home" class="text-gray-500 hover:text-indigo-500 transition-colors">Trang chủ</NuxtLink>
+          <NuxtLink
+            to="/user/home"
+            class="text-gray-500 hover:text-indigo-500 transition-colors"
+            >Trang chủ</NuxtLink
+          >
           <span class="text-gray-300">›</span>
-          <NuxtLink to="/product" class="text-gray-500 hover:text-indigo-500 transition-colors">Sản phẩm</NuxtLink>
+          <NuxtLink
+            to="/product"
+            class="text-gray-500 hover:text-indigo-500 transition-colors"
+            >Sản phẩm</NuxtLink
+          >
           <span class="text-gray-300">›</span>
           <span class="text-gray-800 font-semibold">{{ car.name }}</span>
         </nav>
@@ -96,8 +106,14 @@ const selectImage = (i: number) => (selectedImage.value = i)
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 mt-8 mb-16">
         <!-- Image gallery -->
         <div class="sticky top-6 h-fit">
-          <div class="relative w-full aspect-[16/10] rounded-2xl overflow-hidden bg-gray-900 shadow-2xl mb-4">
-            <img :src="car.images[selectedImage]" :alt="car.name" class="w-full h-full object-cover" />
+          <div
+            class="relative w-full aspect-[16/10] rounded-2xl overflow-hidden bg-gray-900 shadow-2xl mb-4"
+          >
+            <img
+              :src="car.images[selectedImage]"
+              :alt="car.name"
+              class="w-full h-full object-cover"
+            />
             <div
               class="absolute top-5 left-5 bg-emerald-500/95 text-white px-4 py-2 rounded-full font-semibold text-sm backdrop-blur-lg"
             >
@@ -116,7 +132,11 @@ const selectImage = (i: number) => (selectedImage.value = i)
               ]"
               @click="selectImage(i)"
             >
-              <img :src="img" :alt="`${car.name} ${i + 1}`" class="w-full h-full object-cover" />
+              <img
+                :src="img"
+                :alt="`${car.name} ${i + 1}`"
+                class="w-full h-full object-cover"
+              />
             </button>
           </div>
         </div>
@@ -124,43 +144,59 @@ const selectImage = (i: number) => (selectedImage.value = i)
         <!-- Info -->
         <div class="flex flex-col gap-8">
           <div class="pb-6 border-b-2 border-gray-200">
-            <h1 class="text-3xl font-extrabold text-gray-800 mb-2">{{ car.name }}</h1>
+            <h1 class="text-3xl font-extrabold text-gray-800 mb-2">
+              {{ car.name }}
+            </h1>
             <p class="text-gray-500 font-medium">{{ car.tagline }}</p>
           </div>
 
-          <div class="bg-gradient-to-br from-indigo-500 to-purple-600 p-6 rounded-2xl text-white">
+          <div
+            class="bg-gradient-to-br from-indigo-500 to-purple-600 p-6 rounded-2xl text-white"
+          >
             <div class="text-4xl font-extrabold mb-1">{{ formattedPrice }}</div>
             <div class="text-sm opacity-90">{{ car.priceNote }}</div>
           </div>
 
           <!-- Specs summary -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white p-6 rounded-2xl shadow-lg">
+          <div
+            class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white p-6 rounded-2xl shadow-lg"
+          >
             <div class="flex gap-3 items-center">
-              <span class="text-2xl">📅</span>
+              <CalendarClock class="text-blue-800" />
               <div>
                 <span class="text-xs text-gray-500 block mb-0.5">Năm</span>
-                <span class="text-sm text-gray-800 font-semibold">{{ car.year }}</span>
+                <span class="text-sm text-gray-800 font-semibold">{{
+                  car.year
+                }}</span>
               </div>
             </div>
             <div class="flex gap-3 items-center">
-              <span class="text-2xl">🛣️</span>
+              <Gauge class="text-yellow-300" />
               <div>
                 <span class="text-xs text-gray-500 block mb-0.5">Km</span>
-                <span class="text-sm text-gray-800 font-semibold">{{ car.mileage }}</span>
+                <span class="text-sm text-gray-800 font-semibold">{{
+                  car.mileage
+                }}</span>
               </div>
             </div>
             <div class="flex gap-3 items-center">
-              <span class="text-2xl">⚙️</span>
+              <Settings />
               <div>
                 <span class="text-xs text-gray-500 block mb-0.5">Hộp số</span>
-                <span class="text-sm text-gray-800 font-semibold">{{ car.transmission }}</span>
+                <span class="text-sm text-gray-800 font-semibold">{{
+                  car.transmission
+                }}</span>
               </div>
             </div>
             <div class="flex gap-3 items-center">
-              <span class="text-2xl">⛽</span>
+              <Fuel class="text-red-500" />
               <div>
-                <span class="text-xs text-gray-500 block mb-0.5">Nhiên liệu</span>
-                <span class="text-sm text-gray-800 font-semibold">{{ car.fuelType }}</span>
+                <span class="text-xs text-gray-500 block mb-0.5"
+                  >Nhiên liệu</span
+                >
+                <span class="text-sm text-gray-800 font-semibold">{{
+                  car.fuelType
+                }}</span>
               </div>
             </div>
           </div>
@@ -169,8 +205,18 @@ const selectImage = (i: number) => (selectedImage.value = i)
           <div class="bg-white p-6 rounded-2xl shadow-lg">
             <h3 class="text-lg font-bold text-gray-800 mb-4">Ưu đãi</h3>
             <ul class="grid gap-3">
-              <li v-for="b in car.benefits" :key="b" class="flex items-center gap-3 text-gray-600 text-sm">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" class="text-emerald-500 flex-shrink-0">
+              <li
+                v-for="b in car.benefits"
+                :key="b"
+                class="flex items-center gap-3 text-gray-600 text-sm"
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  class="text-emerald-500 flex-shrink-0"
+                >
                   <path
                     d="M20 6L9 17l-5-5"
                     stroke="currentColor"
@@ -188,7 +234,9 @@ const selectImage = (i: number) => (selectedImage.value = i)
 
       <!-- Tabs -->
       <div class="bg-white rounded-2xl shadow-lg overflow-hidden mb-16">
-        <div class="flex border-b-2 border-gray-100 overflow-x-auto scrollbar-hide">
+        <div
+          class="flex border-b-2 border-gray-100 overflow-x-auto scrollbar-hide"
+        >
           <button
             v-for="tab in ['specs', 'features', 'description']"
             :key="tab"
@@ -200,7 +248,13 @@ const selectImage = (i: number) => (selectedImage.value = i)
             ]"
             @click="activeTab = tab as TabType"
           >
-            {{ tab === "specs" ? "Thông số" : tab === "features" ? "Trang bị" : "Mô tả" }}
+            {{
+              tab === "specs"
+                ? "Thông số"
+                : tab === "features"
+                ? "Trang bị"
+                : "Mô tả"
+            }}
           </button>
         </div>
 
@@ -210,19 +264,27 @@ const selectImage = (i: number) => (selectedImage.value = i)
             <div class="divide-y divide-gray-200 rounded-xl overflow-hidden">
               <div class="flex justify-between py-4 px-6 bg-gray-50">
                 <span class="text-gray-500 text-sm">Xuất xứ</span>
-                <span class="text-gray-800 font-semibold text-sm">{{ car.origin }}</span>
+                <span class="text-gray-800 font-semibold text-sm">{{
+                  car.origin
+                }}</span>
               </div>
               <div class="flex justify-between py-4 px-6 bg-gray-50">
                 <span class="text-gray-500 text-sm">Số chỗ</span>
-                <span class="text-gray-800 font-semibold text-sm">{{ car.seats }}</span>
+                <span class="text-gray-800 font-semibold text-sm">{{
+                  car.seats
+                }}</span>
               </div>
               <div class="flex justify-between py-4 px-6 bg-gray-50">
                 <span class="text-gray-500 text-sm">Động cơ</span>
-                <span class="text-gray-800 font-semibold text-sm">{{ car.engine }}</span>
+                <span class="text-gray-800 font-semibold text-sm">{{
+                  car.engine
+                }}</span>
               </div>
               <div class="flex justify-between py-4 px-6 bg-gray-50">
                 <span class="text-gray-500 text-sm">Màu</span>
-                <span class="text-gray-800 font-semibold text-sm">{{ car.color }}</span>
+                <span class="text-gray-800 font-semibold text-sm">{{
+                  car.color
+                }}</span>
               </div>
             </div>
           </div>
@@ -230,15 +292,29 @@ const selectImage = (i: number) => (selectedImage.value = i)
           <!-- Features -->
           <div v-show="activeTab === 'features'" class="animate-fade-in">
             <div class="grid md:grid-cols-2 gap-8">
-              <div v-for="f in car.features" :key="f.category" class="bg-gray-50 p-6 rounded-xl">
-                <h3 class="text-lg font-bold text-gray-800 mb-4 pb-3 border-b-2 border-gray-200">{{ f.category }}</h3>
+              <div
+                v-for="f in car.features"
+                :key="f.category"
+                class="bg-gray-50 p-6 rounded-xl"
+              >
+                <h3
+                  class="text-lg font-bold text-gray-800 mb-4 pb-3 border-b-2 border-gray-200"
+                >
+                  {{ f.category }}
+                </h3>
                 <ul class="grid gap-3">
                   <li
                     v-for="it in f.items"
                     :key="it"
                     class="flex items-center gap-3 text-gray-600 text-sm"
                   >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" class="text-indigo-500 flex-shrink-0">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      class="text-indigo-500 flex-shrink-0"
+                    >
                       <path
                         d="M20 6L9 17l-5-5"
                         stroke="currentColor"
@@ -263,29 +339,31 @@ const selectImage = (i: number) => (selectedImage.value = i)
         </div>
       </div>
       <!-- Related Cars -->
-<div class="max-w-7xl mx-auto px-6 mb-20">
-  <h2 class="text-2xl font-bold text-gray-800 mb-6">Sản phẩm gợi ý</h2>
-  <div class="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-    <div
-      v-for="car in relatedCars"
-      :key="car.id"
-      class="bg-white rounded-2xl shadow hover:shadow-lg transition overflow-hidden"
-    >
-      <NuxtLink :to="`/product/${car.id}`">
-        <img :src="car.image" :alt="car.name" class="w-full aspect-video object-cover" />
-        <div class="p-4">
-          <h3 class="font-bold text-gray-800 mb-1">{{ car.name }}</h3>
-          <p class="text-sm text-gray-500 mb-2">{{ car.tagline }}</p>
-          <div class="text-indigo-600 font-semibold">
-            {{ formatCurrency(Number(car.price)) }} 
-            
+      <div class="max-w-7xl mx-auto px-6 mb-20">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">Sản phẩm gợi ý</h2>
+        <div class="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div
+            v-for="car in relatedCars"
+            :key="car.id"
+            class="bg-white rounded-2xl shadow hover:shadow-lg transition overflow-hidden"
+          >
+            <NuxtLink :to="`/product/${car.id}`">
+              <img
+                :src="car.image"
+                :alt="car.name"
+                class="w-full aspect-video object-cover"
+              />
+              <div class="p-4">
+                <h3 class="font-bold text-gray-800 mb-1">{{ car.name }}</h3>
+                <p class="text-sm text-gray-500 mb-2">{{ car.tagline }}</p>
+                <div class="text-indigo-600 font-semibold">
+                  {{ formatCurrency(Number(car.price)) }}
+                </div>
+              </div>
+            </NuxtLink>
           </div>
         </div>
-      </NuxtLink>
-    </div>
-  </div>
-</div>
-
+      </div>
     </div>
   </div>
 </template>
