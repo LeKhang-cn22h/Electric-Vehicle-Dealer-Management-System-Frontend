@@ -1,112 +1,41 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed } from "vue"
+import { useRoute, useRuntimeConfig } from "#imports"
+import {formatCurrency} from "../../utils/format"
+import { mockCars, type Car} from "@/data/mockCars"
 
-const route = useRoute();
-const config = useRuntimeConfig();
-const id = computed(() => String(route.params.id));
+const route = useRoute()
+const config = useRuntimeConfig()
+const id = computed(() => String(route.params.id))
+const formattedPrice = computed(() => {
+  if (!car.value?.price) return formatCurrency(0)
+  
+  const rawPrice = typeof car.value.price === "string" 
+    ? parseInt(car.value.price, 10) 
+    : car.value.price
+  
+  return formatCurrency(rawPrice)
+})
 
-type Car = {
-  id: number;
-  name: string;
-  tagline: string;
-  price: number | string;
-  priceNote: string;
-  status: string;
-  year: number;
-  mileage: string;
-  fuelType: string;
-  transmission: string;
-  color: string;
-  engine: string;
-  seats: number;
-  origin: string;
-  images: string[];
-  description: string;
-  features: { category: string; items: string[] }[];
-  benefits: string[];
-};
-
+// --- Fetch xe từ API hoặc mock ---
 const { data: carRes } = await useFetch<Car | null>(
-  () => `${config.public.apiBase ?? "http://localhost:4000"}/cars/${id.value}`,
+  () => `${config.public.apiBase ?? ""}/cars/${id.value}`,
   { server: false, default: () => null }
-);
+)
 
-const mockById: Record<string, Car> = {
-  "1": {
-    id: 1,
-    name: "Vinfast e34",
-    tagline: "Siêu sang · Full Option",
-    price: "5500000000",
-    priceNote: "VNĐ (Có thể thương lượng)",
-    status: "Có sẵn",
-    year: 2024,
-    mileage: "5,000 km",
-    fuelType: "Xăng",
-    transmission: "Tự động",
-    color: "Đen Obsidian",
-    engine: "3.0L V6 Turbo",
-    seats: 5,
-    origin: "Đức",
-    images: [
-      "/showcase/xe1.jpg",
-      "/showcase/xe2.jpg",
-      "/showcase/xe3.jpg",
-      "/showcase/xe4.jpg",
-      "/showcase/xe5.jpg",
-    ],
-    description:
-      "Mercedes-Benz S-Class 2024 là biểu tượng của sự sang trọng...",
-    features: [
-      {
-        category: "Ngoại thất",
-        items: [
-          "Đèn LED thông minh MULTIBEAM",
-          "La-zăng AMG 20 inch",
-          "Cửa sổ trời Panorama",
-          "Gương chiếu hậu điện tự động gập",
-        ],
-      },
-      {
-        category: "Nội thất",
-        items: [
-          "Ghế da Nappa cao cấp",
-          "Âm thanh Burmester 3D",
-          'MBUX 12.8"',
-          "Điều hòa 4 vùng",
-        ],
-      },
-      {
-        category: "An toàn",
-        items: ["PRE-SAFE", "9 túi khí", "Cảnh báo điểm mù", "Camera 360"],
-      },
-      {
-        category: "Công nghệ",
-        items: [
-          "Treo khí nén AIRMATIC",
-          "Keyless",
-          "Sạc không dây",
-          "Lái chủ động",
-        ],
-      },
-    ],
-    benefits: [
-      "Bảo hành 3 năm",
-      "Bảo dưỡng 4 lần",
-      "Vay đến 80%",
-      "Tặng phụ kiện",
-      "Hỗ trợ đăng ký",
-      "Giao xe tận nơi",
-    ],
-  },
-};
+const car = computed<Car | null>(() => {
+  return carRes.value ?? mockCars.find((c) => c.id === Number(id.value)) ?? null
+})
 
-const car = computed<Car | null>(
-  () => carRes.value ?? mockById[id.value] ?? null
-);
 
-const selectedImage = ref(0);
-const activeTab = ref<"specs" | "features" | "description">("specs");
+const selectedImage = ref(0)
 
+// --- Định nghĩa tab ---
+const tabs = ['specs', 'features', 'description'] as const
+type TabType = typeof tabs[number]
+const activeTab = ref<TabType>('specs')
+
+// --- Danh sách xe liên quan ---
 const relatedCars = ref([
   {
     id: 2,
@@ -129,18 +58,19 @@ const relatedCars = ref([
     price: "6200000000",
     tagline: "Hiệu năng vượt trội",
   },
-]);
+])
 
-const selectImage = (i: number) => (selectedImage.value = i);
+const selectImage = (i: number) => (selectedImage.value = i)
 
-const formattedPrice = computed(() => {
-  const raw =
-    typeof car.value?.price === "string"
-      ? parseInt(car.value.price || "0", 10)
-      : car.value?.price ?? 0;
-  return new Intl.NumberFormat("vi-VN").format(raw);
-});
+// const formattedPrice = computed(() => {
+//   const raw =
+//     typeof car.value?.price === "string"
+//       ? parseInt(car.value.price || "0", 10)
+//       : car.value?.price ?? 0
+//   return new Intl.NumberFormat("vi-VN").format(raw)
+// })
 </script>
+
 
 <template>
   <div class="container" v-if="!car" style="padding: 32px">
@@ -148,24 +78,29 @@ const formattedPrice = computed(() => {
   </div>
 
   <div class="min-h-screen bg-gray-50 font-sans pb-20" v-else>
+    <!-- Breadcrumb -->
     <div class="bg-white border-b border-gray-200 py-4">
       <div class="max-w-7xl mx-auto px-6">
         <nav class="flex items-center gap-3 text-sm">
-          <NuxtLink to="/" class="text-gray-500 hover:text-indigo-500 transition-colors">Trang chủ</NuxtLink>
+          <NuxtLink to="/user/home" class="text-gray-500 hover:text-indigo-500 transition-colors">Trang chủ</NuxtLink>
           <span class="text-gray-300">›</span>
-          <NuxtLink to="/#cars" class="text-gray-500 hover:text-indigo-500 transition-colors">Sản phẩm</NuxtLink>
+          <NuxtLink to="/product" class="text-gray-500 hover:text-indigo-500 transition-colors">Sản phẩm</NuxtLink>
           <span class="text-gray-300">›</span>
           <span class="text-gray-800 font-semibold">{{ car.name }}</span>
         </nav>
       </div>
     </div>
 
+    <!-- Main content -->
     <div class="max-w-7xl mx-auto px-6">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 mt-8 mb-16">
+        <!-- Image gallery -->
         <div class="sticky top-6 h-fit">
           <div class="relative w-full aspect-[16/10] rounded-2xl overflow-hidden bg-gray-900 shadow-2xl mb-4">
             <img :src="car.images[selectedImage]" :alt="car.name" class="w-full h-full object-cover" />
-            <div class="absolute top-5 left-5 bg-emerald-500/95 text-white px-4 py-2 rounded-full font-semibold text-sm backdrop-blur-lg">
+            <div
+              class="absolute top-5 left-5 bg-emerald-500/95 text-white px-4 py-2 rounded-full font-semibold text-sm backdrop-blur-lg"
+            >
               {{ car.status }}
             </div>
           </div>
@@ -175,7 +110,9 @@ const formattedPrice = computed(() => {
               :key="i"
               :class="[
                 'aspect-[16/10] rounded-xl overflow-hidden bg-gray-900 cursor-pointer transition-all border-2',
-                selectedImage === i ? 'border-indigo-500 shadow-indigo-500/10 ring-4 ring-indigo-500/10' : 'border-transparent hover:border-gray-300'
+                selectedImage === i
+                  ? 'border-indigo-500 shadow-indigo-500/10 ring-4 ring-indigo-500/10'
+                  : 'border-transparent hover:border-gray-300',
               ]"
               @click="selectImage(i)"
             >
@@ -183,6 +120,8 @@ const formattedPrice = computed(() => {
             </button>
           </div>
         </div>
+
+        <!-- Info -->
         <div class="flex flex-col gap-8">
           <div class="pb-6 border-b-2 border-gray-200">
             <h1 class="text-3xl font-extrabold text-gray-800 mb-2">{{ car.name }}</h1>
@@ -190,10 +129,11 @@ const formattedPrice = computed(() => {
           </div>
 
           <div class="bg-gradient-to-br from-indigo-500 to-purple-600 p-6 rounded-2xl text-white">
-            <div class="text-4xl font-extrabold mb-1">{{ formattedPrice }} VNĐ</div>
+            <div class="text-4xl font-extrabold mb-1">{{ formattedPrice }}</div>
             <div class="text-sm opacity-90">{{ car.priceNote }}</div>
           </div>
 
+          <!-- Specs summary -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white p-6 rounded-2xl shadow-lg">
             <div class="flex gap-3 items-center">
               <span class="text-2xl">📅</span>
@@ -225,6 +165,7 @@ const formattedPrice = computed(() => {
             </div>
           </div>
 
+          <!-- Benefits -->
           <div class="bg-white p-6 rounded-2xl shadow-lg">
             <h3 class="text-lg font-bold text-gray-800 mb-4">Ưu đãi</h3>
             <ul class="grid gap-3">
@@ -242,65 +183,29 @@ const formattedPrice = computed(() => {
               </li>
             </ul>
           </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <NuxtLink
-              to="/#contact"
-              class="col-span-full inline-flex items-center justify-center gap-2 py-4 px-6 rounded-xl font-semibold text-sm text-white bg-gradient-to-r from-indigo-500 to-purple-600 shadow-lg shadow-indigo-500/40 hover:-translate-y-0.5 transition-all"
-            >
-              Liên hệ tư vấn
-            </NuxtLink>
-            <a
-              href="tel:1900xxxx"
-              class="inline-flex items-center justify-center gap-2 py-4 px-6 rounded-xl font-semibold text-sm text-white bg-emerald-500 shadow-lg shadow-emerald-500/30 hover:bg-emerald-600 hover:-translate-y-0.5 transition-all"
-            >
-              Gọi ngay
-            </a>
-            <button class="inline-flex items-center justify-center gap-2 py-4 px-6 rounded-xl font-semibold text-sm text-gray-600 bg-white border-2 border-gray-200 hover:border-indigo-500 hover:text-indigo-500 transition-all">
-              Lưu xe
-            </button>
-          </div>
         </div>
       </div>
 
+      <!-- Tabs -->
       <div class="bg-white rounded-2xl shadow-lg overflow-hidden mb-16">
         <div class="flex border-b-2 border-gray-100 overflow-x-auto scrollbar-hide">
           <button
+            v-for="tab in ['specs', 'features', 'description']"
+            :key="tab"
             :class="[
               'flex-1 py-5 px-6 text-base font-semibold transition-all relative',
-              activeTab === 'specs'
+              activeTab === tab
                 ? 'text-indigo-500 after:absolute after:bottom-[-2px] after:left-0 after:right-0 after:h-0.5 after:bg-gradient-to-r after:from-indigo-500 after:to-purple-600'
-                : 'text-gray-500 hover:text-indigo-500 hover:bg-gray-50'
+                : 'text-gray-500 hover:text-indigo-500 hover:bg-gray-50',
             ]"
-            @click="activeTab = 'specs'"
+            @click="activeTab = tab as TabType"
           >
-            Thông số
-          </button>
-          <button
-            :class="[
-              'flex-1 py-5 px-6 text-base font-semibold transition-all relative',
-              activeTab === 'features'
-                ? 'text-indigo-500 after:absolute after:bottom-[-2px] after:left-0 after:right-0 after:h-0.5 after:bg-gradient-to-r after:from-indigo-500 after:to-purple-600'
-                : 'text-gray-500 hover:text-indigo-500 hover:bg-gray-50'
-            ]"
-            @click="activeTab = 'features'"
-          >
-            Trang bị
-          </button>
-          <button
-            :class="[
-              'flex-1 py-5 px-6 text-base font-semibold transition-all relative',
-              activeTab === 'description'
-                ? 'text-indigo-500 after:absolute after:bottom-[-2px] after:left-0 after:right-0 after:h-0.5 after:bg-gradient-to-r after:from-indigo-500 after:to-purple-600'
-                : 'text-gray-500 hover:text-indigo-500 hover:bg-gray-50'
-            ]"
-            @click="activeTab = 'description'"
-          >
-            Mô tả
+            {{ tab === "specs" ? "Thông số" : tab === "features" ? "Trang bị" : "Mô tả" }}
           </button>
         </div>
 
         <div class="p-8">
+          <!-- Specs -->
           <div v-show="activeTab === 'specs'" class="animate-fade-in">
             <div class="divide-y divide-gray-200 rounded-xl overflow-hidden">
               <div class="flex justify-between py-4 px-6 bg-gray-50">
@@ -322,18 +227,17 @@ const formattedPrice = computed(() => {
             </div>
           </div>
 
+          <!-- Features -->
           <div v-show="activeTab === 'features'" class="animate-fade-in">
             <div class="grid md:grid-cols-2 gap-8">
-              <div
-                v-for="f in car.features"
-                :key="f.category"
-                class="bg-gray-50 p-6 rounded-xl"
-              >
-                <h3 class="text-lg font-bold text-gray-800 mb-4 pb-3 border-b-2 border-gray-200">
-                  {{ f.category }}
-                </h3>
+              <div v-for="f in car.features" :key="f.category" class="bg-gray-50 p-6 rounded-xl">
+                <h3 class="text-lg font-bold text-gray-800 mb-4 pb-3 border-b-2 border-gray-200">{{ f.category }}</h3>
                 <ul class="grid gap-3">
-                  <li v-for="it in f.items" :key="it" class="flex items-center gap-3 text-gray-600 text-sm">
+                  <li
+                    v-for="it in f.items"
+                    :key="it"
+                    class="flex items-center gap-3 text-gray-600 text-sm"
+                  >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" class="text-indigo-500 flex-shrink-0">
                       <path
                         d="M20 6L9 17l-5-5"
@@ -350,6 +254,7 @@ const formattedPrice = computed(() => {
             </div>
           </div>
 
+          <!-- Description -->
           <div v-show="activeTab === 'description'" class="animate-fade-in">
             <div class="text-base leading-relaxed text-gray-600">
               <p>{{ car.description }}</p>
@@ -357,30 +262,30 @@ const formattedPrice = computed(() => {
           </div>
         </div>
       </div>
-
-      <div class="mt-16">
-        <h2 class="text-2xl font-extrabold text-gray-800 mb-8 text-center">Xe liên quan</h2>
-        <div class="grid md:grid-cols-3 gap-6">
-          <NuxtLink
-            v-for="r in relatedCars"
-            :key="r.id"
-            :to="`/product/${r.id}`"
-            class="bg-white rounded-2xl overflow-hidden shadow-lg transition-all hover:-translate-y-2 hover:shadow-xl"
-          >
-            <div class="aspect-[16/10] overflow-hidden bg-gray-900">
-              <img :src="r.image" :alt="r.name" class="w-full h-full object-cover transition-transform hover:scale-110" />
-            </div>
-            <div class="p-5">
-              <h3 class="text-base font-bold text-gray-800 mb-1">{{ r.name }}</h3>
-              <p class="text-sm text-gray-500 mb-3">{{ r.tagline }}</p>
-              <div class="text-lg font-bold text-indigo-500">
-                {{ new Intl.NumberFormat("vi-VN").format(parseInt(r.price)) }}
-                VNĐ
-              </div>
-            </div>
-          </NuxtLink>
+      <!-- Related Cars -->
+<div class="max-w-7xl mx-auto px-6 mb-20">
+  <h2 class="text-2xl font-bold text-gray-800 mb-6">Sản phẩm gợi ý</h2>
+  <div class="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+    <div
+      v-for="car in relatedCars"
+      :key="car.id"
+      class="bg-white rounded-2xl shadow hover:shadow-lg transition overflow-hidden"
+    >
+      <NuxtLink :to="`/product/${car.id}`">
+        <img :src="car.image" :alt="car.name" class="w-full aspect-video object-cover" />
+        <div class="p-4">
+          <h3 class="font-bold text-gray-800 mb-1">{{ car.name }}</h3>
+          <p class="text-sm text-gray-500 mb-2">{{ car.tagline }}</p>
+          <div class="text-indigo-600 font-semibold">
+            {{ formatCurrency(Number(car.price)) }} 
+            
+          </div>
         </div>
-      </div>
+      </NuxtLink>
+    </div>
+  </div>
+</div>
+
     </div>
   </div>
 </template>
@@ -396,11 +301,9 @@ const formattedPrice = computed(() => {
     transform: translateY(0);
   }
 }
-
 .animate-fade-in {
   animation: fadeIn 0.3s ease-out;
 }
-
 .scrollbar-hide {
   scrollbar-width: none;
 }

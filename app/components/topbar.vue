@@ -30,7 +30,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKeydown));
 const commonMenu = [
     // { label: "EVM Staff", to: "/EVM_staff" },
     { label: "Trang chủ", to: "/user/home" },
-    { label: "Danh mục xe", to: "/catalog" },
+    { label: "Danh mục xe", to: "/product" },
     { label: "So sánh xe", to: "/compare" },
     { label: "Khuyến mãi", to: "/promotions" },
     { label: "Danh sách đơn hàng", to: "/user/orders" }, 

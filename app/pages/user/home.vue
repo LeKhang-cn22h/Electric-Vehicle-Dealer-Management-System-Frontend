@@ -200,28 +200,7 @@ const Listcar = ref([
         </div>
 
         <div class="cars-grid">
-          <NuxtLink
-            v-for="car in carShowcase"
-            :key="car.id"
-            :to="`/product/${car.id}`"
-            class="car-card"
-          >
-            <div class="car-image">
-              <img :src="car.src" :alt="car.name" draggable="false" />
-              <span class="quick-view">Xem Chi Tiết</span>
-            </div>
-            <div class="car-info">
-              <div class="car-top-row">
-                <div class="car-name">{{ car.name }}</div>
-                <div class="badge-status">Có sẵn</div>
-              </div>
-              <div class="car-tagline">{{ car.tagline }}</div>
-              <div class="car-bottom-row">
-                <div class="car-price">{{ car.price }}</div>
-                <span class="car-action">Tư vấn</span>
-              </div>
-            </div>
-          </NuxtLink>
+          
           
           <ProductCard
       v-for="car in Listcar"
