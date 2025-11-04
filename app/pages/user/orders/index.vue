@@ -43,6 +43,7 @@
                 <template #status="{ row }">
                     <OrderStatusBadge :status="row.status" />
                 </template>
+                <template #quantity="{ row }"> x{{ row.quantity }} </template>
             </OrderTable>
         </div>
 
@@ -83,6 +84,8 @@ const pending = ref(false);
 const fieldsName = [
     { label: "Mã đơn hàng", key: "orderCode" },
     { label: "Khách hàng", key: "customerName" },
+    { label: "Sản phẩm", key: "productName" },
+    { label: "Số lượng", key: "quantity" },
     { label: "Ngày đặt", key: "orderDate" },
     { label: "Tổng tiền", key: "totalAmount" },
     { label: "Trạng thái", key: "status" },

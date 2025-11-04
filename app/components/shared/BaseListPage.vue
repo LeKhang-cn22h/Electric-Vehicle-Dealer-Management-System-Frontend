@@ -27,7 +27,14 @@
 
         <!-- Table -->
         <div v-else class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
-            <component :is="tableComponent" :fields-name="fieldsName" :data="paginatedItems" row-key="id" @print="onPrint">
+            <component
+                :is="tableComponent"
+                :fields-name="fieldsName"
+                :basePath="convertLink(createLink)"
+                :data="paginatedItems"
+                row-key="id"
+                @print="onPrint"
+            >
                 <!-- Forward toàn bộ slot xuống component con -->
                 <template v-for="(_, name) in $slots" #[name]="slotProps">
                     <slot :name="name" v-bind="slotProps" />
@@ -99,6 +106,12 @@ const totalPages = computed(() => {
     const total = props.filterFunction ? items.value.filter(props.filterFunction).length : items.value.length;
     return Math.ceil(total / pageSize);
 });
+
+function convertLink(path: string): string {
+    const parts = path.split("/").filter(Boolean); // tách và bỏ phần rỗng
+    //   if (parts.length <= 1) return parts.join("/"); // nếu chỉ có 1 phần thì trả về nguyên
+    return parts.slice(0, -1).join("/"); // bỏ phần cuối
+}
 
 const changePage = (page: number) => (currentPage.value = page);
 

@@ -5,8 +5,8 @@
             <header class="mb-8">
                 <div class="flex justify-between items-center">
                     <div>
-                        <h1 class="text-2xl font-semibold text-gray-900">Chi tiết đơn hàng #{{ orderId }}</h1>
-                        <p class="text-gray-600 mt-1">Thông tin chi tiết của đơn hàng</p>
+                        <h1 class="text-2xl font-semibold text-gray-900">Chi tiết báo giá #{{ quoteId }}</h1>
+                        <p class="text-gray-600 mt-1">Thông tin chi tiết của báo giá</p>
                     </div>
 
                     <button @click="goBack" class="text-gray-600 hover:text-gray-900 flex items-center gap-2">
@@ -21,14 +21,13 @@
             </div>
 
             <!-- Nội dung chi tiết -->
-            <div v-else-if="order" class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 space-y-8">
+            <div v-else-if="quote" class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 space-y-8">
                 <!-- Thông tin khách hàng -->
                 <section>
                     <h2 class="text-lg font-semibold text-gray-800 mb-3">Khách hàng</h2>
-                    <p><strong>Tên:</strong> {{ order.customer.fullName }}</p>
-                    <p><strong>Số điện thoại:</strong> {{ order.customer.phone }}</p>
-                    <p><strong>Email:</strong> {{ order.customer.email }}</p>
-                    <p><strong>Địa chỉ:</strong> {{ order.customer.address }}</p>
+                    <p><strong>Tên:</strong> {{ quote.customer.fullName }}</p>
+                    <p><strong>Số điện thoại:</strong> {{ quote.customer.phone }}</p>
+                    <p><strong>Email:</strong> {{ quote.customer.email }}</p>
                 </section>
 
                 <!-- Sản phẩm -->
@@ -44,7 +43,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="item in order.items" :key="item.id" class="border-t">
+                            <tr v-for="item in quote.items" :key="item.id" class="border-t">
                                 <td class="px-4 py-2">{{ item.productName }}</td>
                                 <td class="px-4 py-2">{{ item.quantity }}</td>
                                 <td class="px-4 py-2">{{ formatCurrency(item.unitPrice) }}</td>
@@ -55,37 +54,26 @@
                 </section>
 
                 <!-- Khuyến mãi -->
-                <section v-if="order.promotions?.length">
+                <section v-if="quote.promotions?.length">
                     <h2 class="text-lg font-semibold text-gray-800 mb-3">Khuyến mãi</h2>
                     <ul class="list-disc list-inside text-gray-700">
-                        <li v-for="promo in order.promotions" :key="promo.promo_id">
+                        <li v-for="promo in quote.promotions" :key="promo.promo_id">
                             {{ promo.name }} — Giảm {{ formatCurrency(promo.discountAmount) }}
                         </li>
                     </ul>
-                </section>
-
-                <!-- Thanh toán -->
-                <section>
-                    <h2 class="text-lg font-semibold text-gray-800 mb-3">Thanh toán</h2>
-                    <p><strong>Phương thức:</strong> {{ order.payment.method === "cash" ? "Tiền mặt" : "Trả góp" }}</p>
-                    <p v-if="order.payment.method === 'installment'">
-                        <strong>Đối tác ngân hàng:</strong> {{ order.payment.bankPartner }}
-                    </p>
-                    <p><strong>Trả trước:</strong> {{ formatCurrency(order.payment.downPayment) }}</p>
-                    <p><strong>Kỳ hạn:</strong> {{ order.payment.tenor }} tháng</p>
                 </section>
 
                 <!-- Tổng kết -->
                 <section class="border-t pt-4">
                     <div class="flex justify-between items-center">
                         <span class="text-lg font-semibold text-gray-700">Tổng tiền:</span>
-                        <span class="text-2xl font-bold text-blue-600">{{ formatCurrency(order.totalAmount) }}</span>
+                        <span class="text-2xl font-bold text-blue-600">{{ formatCurrency(quote.totalAmount) }}</span>
                     </div>
                 </section>
             </div>
 
             <!-- Không có dữ liệu -->
-            <div v-else class="text-center py-16 text-gray-500">Không tìm thấy đơn hàng nào 📭</div>
+            <div v-else class="text-center py-16 text-gray-500">Không tìm thấy báo giá nào 📭</div>
         </div>
     </div>
 </template>
@@ -93,14 +81,14 @@
 <script setup lang="ts">
 import { formatCurrency } from "@/utils/format";
 import type { ApiResponse } from "@/types";
-import type { OrderDetail } from "@/schemas"; // bạn có thể định nghĩa kiểu này theo project
+import type { QuoteDetail } from "@/schemas"; // bạn có thể định nghĩa kiểu này theo project
 
 const route = useRoute();
 const router = useRouter();
-const orderId = route.params.id;
+const quoteId = route.params.id;
 
 // Trạng thái
-const order = ref<OrderDetail | null>(null);
+const quote = ref<QuoteDetail | null>(null);
 const pending = ref(true);
 
 // Lấy dữ liệu từ API
@@ -113,7 +101,7 @@ onMounted(async () => {
     // } finally {
     //     pending.value = false;
     // }
-    const mockOrderDetail: OrderDetail = {
+    const mockQuoteDetail: QuoteDetail = {
         id: 1,
         customer: {
             id: 1001,
@@ -153,15 +141,9 @@ onMounted(async () => {
                 valid_to: new Date("2024-12-31T23:59:59Z"),
             },
         ],
-        payment: {
-            method: "installment",
-            bankPartner: "TPBank",
-            downPayment: 10000000,
-            tenor: 12,
-        },
         totalAmount: 44000000, // 45.000.000 + (2 * 500.000) - 2.000.000
     };
-    order.value = mockOrderDetail;
+    quote.value = mockQuoteDetail;
     pending.value = false;
 });
 
