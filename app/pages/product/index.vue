@@ -12,8 +12,8 @@
         v-for="car in filteredCars"
         :key="car.id"
         :car="car"
-        @click.stop
-        @add-compare="toggleCompare(car)"
+        @compare="addToCompare"
+
       />
     </div>
 
@@ -118,11 +118,8 @@ const filteredCars = computed(() => {
   })
 })
 
-const toggleCompare = (car) => {
-  const exists = compareList.value.find(c => c.id === car.id)
-  if (exists) {
-    compareList.value = compareList.value.filter(c => c.id !== car.id)
-  } else {
+const addToCompare = (car) => {
+  if (!compareList.value.find(c => c.id === car.id)) {
     compareList.value.push(car)
   }
   showCompare.value = true
