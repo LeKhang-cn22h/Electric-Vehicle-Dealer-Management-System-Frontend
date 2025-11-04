@@ -33,12 +33,16 @@ const commonMenu = [
     { label: "Danh mục xe", to: "/product" },
     { label: "So sánh xe", to: "/compare" },
     { label: "Khuyến mãi", to: "/promotions" },
-    { label: "Danh sách đơn hàng", to: "/user/orders" }, 
-    {label:"Khiếu nại", to: "/Customer/Feedback" },
+    { label: "Danh sách đơn hàng", to: "/user/orders" },
+    { label: "Báo giá", to: "/user/quotations" },
+    { label: "Khiếu nại", to: "/Customer/Feedback" },
 ];
 const topLeftLinks = computed(() => commonMenu);
 
-const cta = computed(() => ({ label: "Đăng ký lái thử", to: "/user/test-driver" }));
+const cta = computed(() => ({
+    label: "Đăng ký lái thử",
+    to: "/user/test-driver",
+}));
 
 function go(to) {
     router.push(to);
@@ -89,6 +93,7 @@ function go(to) {
     top: 0;
     z-index: 60;
     display: flex;
+    gap: 12px;
     align-items: center;
     justify-content: space-between;
     background: rgba(255, 255, 255, 0.75);
@@ -124,7 +129,7 @@ function go(to) {
 .menu-right {
     display: flex;
     align-items: center;
-    gap: 18px;
+    gap: 12px;
     list-style: none;
     margin: 0;
     padding: 0;

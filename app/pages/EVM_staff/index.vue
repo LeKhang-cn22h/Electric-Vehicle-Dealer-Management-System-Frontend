@@ -1,5 +1,5 @@
 <template>
-  <EVMStaffLayout>
+  <!-- <EVMStaffLayout> -->
     <div class="evm-staff-dashboard">
       <!-- Header -->
       <div class="dashboard-header">
@@ -10,7 +10,7 @@
       <!-- Statistics Cards -->
       <div class="stats-grid">
         <div class="stat-card">
-          <div class="stat-icon"></div>
+          <div class="stat-icon">🚙</div>
           <div class="stat-info">
             <h3>Tồn kho</h3>
             <p class="stat-number">247</p>
@@ -19,7 +19,7 @@
         </div>
 
         <div class="stat-card">
-          <div class="stat-icon"></div>
+          <div class="stat-icon">📦</div>
           <div class="stat-info">
             <h3>Yêu cầu điều phối xe</h3>
             <p class="stat-number">56</p>
@@ -28,7 +28,7 @@
         </div>
 
         <div class="stat-card">
-          <div class="stat-icon"></div>
+          <div class="stat-icon">🧪</div>
           <div class="stat-info">
             <h3>Test Drives</h3>
             <p class="stat-number">34</p>
@@ -37,7 +37,7 @@
         </div>
 
         <div class="stat-card">
-          <div class="stat-icon"></div>
+          <div class="stat-icon">💰</div>
           <div class="stat-info">
             <h3>Revenue</h3>
             <p class="stat-number">$1.2M</p>
@@ -51,19 +51,19 @@
         <h2>Quick Actions</h2>
         <div class="actions-grid">
           <button class="action-btn" @click="navigateTo('vehicles')">
-            <span class="action-icon"></span>
+            <span class="action-icon">🚙</span>
             <span>Manage Vehicles</span>
           </button>
           <button class="action-btn" @click="navigateTo('orders')">
-            <span class="action-icon"></span>
+            <span class="action-icon">📦</span>
             <span>Process Orders</span>
           </button>
           <button class="action-btn" @click="navigateTo('pricing')">
-            <span class="action-icon"></span>
+            <span class="action-icon">💰</span>
             <span>Update Pricing</span>
           </button>
           <button class="action-btn" @click="navigateTo('test-drive')">
-            <span class="action-icon"></span>
+            <span class="action-icon">🧪</span>
             <span>Schedule Test Drives</span>
           </button>
         </div>
@@ -97,21 +97,33 @@
         </div>
       </div>
     </div>
-  </EVMStaffLayout>
+  <!-- </EVMStaffLayout> -->
 </template>
 
+<!-- <script setup>
+// IMPORT layout component
+import EVMStaffLayout from '@/layouts/EVMStaffLayout.vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
+const navigateTo = (route) => {
+  router.push(`/dealer_staff/EVM_staff/${route}`)
+}
+</script> -->
 <script setup>
-// Thử cách này - bỏ comment và dùng trực tiếp
+
 definePageMeta({
   layout: 'evm-staff-layout'
 })
 
-// Hoặc thử với tên khác
-// definePageMeta({
-//   layout: 'EVMStaffLayout'
-// })
-</script>
+import { useRouter } from 'vue-router'
+const router = useRouter()
 
+const navigateTo = (route) => {
+  router.push(`/EVM_staff/${route}`)
+}
+</script>
 <style scoped>
 .evm-staff-dashboard {
   padding: 20px 0;
