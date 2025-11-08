@@ -3,7 +3,7 @@ import SettingsMenu from "~/components/SettingsMenu.vue";
 import Notification from "~/components/common/Notification.vue";
 import { useNotification } from "~/composables/useNotification";
 import SiteFooter from "~/components/SiteFooter.vue";
-import CompareBar from '~/components/compare/CompareBar.vue'
+import CompareBar from "~/components/compare/CompareBar.vue";
 
 const { notification } = useNotification();
 </script>
@@ -17,7 +17,6 @@ const { notification } = useNotification();
       </div>
 
       <div class="content">
-
         <slot />
         <Notification
           v-if="notification.message"
