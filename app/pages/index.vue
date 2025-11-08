@@ -5,7 +5,12 @@
     </main>
   </div>
 </template>
-<script setup></script>
+<script setup lang="ts">
+definePageMeta({
+  middleware: ["redirect-home"],
+});
+</script>
+
 <style scoped>
 .landing {
   background: #009ee3;

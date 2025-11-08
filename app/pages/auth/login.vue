@@ -35,12 +35,40 @@ async function onSubmit() {
   serverError.value = null;
   serverSuccess.value = null;
   if (!isValid.value) return;
+
   try {
     isSubmitting.value = true;
-    await new Promise((r) => setTimeout(r, 800));
+
+    const res = await fetch("http://localhost:4000/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        email: form.value.email,
+        password: form.value.password,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || "Đăng nhập thất bại");
+    }
+
+    if (data.access_token) {
+      localStorage.setItem("access_token", data.access_token);
+      console.log("Token saved to localStorage");
+    } else {
+      throw new Error("No access_token in response");
+    }
     serverSuccess.value = "Đăng nhập thành công! Đang chuyển hướng...";
+    setTimeout(() => {
+      window.location.href = "/user/home";
+    }, 1000);
   } catch (err: any) {
-    serverError.value = err?.message || "Đăng nhập thất bại. Vui lòng thử lại.";
+    serverError.value = err?.message || "Lỗi kết nối đến máy chủ.";
   } finally {
     isSubmitting.value = false;
   }
@@ -394,8 +422,8 @@ body {
   padding: 12px 16px;
   border: 0;
   border-radius: 12px;
-  background: var(--primary);
-  color: #fff;
+  background: #4f46e5;
+  color: black;
   font-weight: 600;
   font-size: 15px;
   cursor: pointer;

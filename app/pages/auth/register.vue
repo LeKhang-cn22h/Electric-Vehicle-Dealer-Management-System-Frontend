@@ -64,14 +64,38 @@ async function onSubmit() {
   serverError.value = null;
   serverSuccess.value = null;
   if (!isValid.value) return;
+  isSubmitting.value = true;
+
   try {
-    isSubmitting.value = true;
-    // Gọi API thật tại đây nếu có
-    await new Promise((r) => setTimeout(r, 800));
-    serverSuccess.value = "Tạo tài khoản thành công! Đang chuyển hướng...";
-    // navigateTo('/login')
+    const res = await fetch("http://localhost:4000/auth/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: form.value.email,
+        password: form.value.password,
+        full_name: form.value.fullName,
+        role: "customer",
+        username: form.value.email.split("@")[0],
+        dealer_id: "",
+        phone: "",
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data?.message || "Đăng ký thất bại.");
+    }
+
+    // localStorage.setItem("access_token", data.access_token); // 👈 Lưu token
+    serverSuccess.value = "Đăng ký thành công! Đang chuyển hướng...";
+    setTimeout(() => {
+      navigateTo(
+        `/auth/verify-email?email=${encodeURIComponent(form.value.email)}`
+      );
+    }, 1000);
   } catch (err: any) {
-    serverError.value = err?.message || "Đăng ký thất bại. Vui lòng thử lại.";
+    serverError.value = err.message || "Có lỗi xảy ra.";
   } finally {
     isSubmitting.value = false;
   }
@@ -645,7 +669,7 @@ body {
 }
 .auth-btn:hover:not(:disabled) {
   filter: brightness(0.97);
-  background: var(--primary-2);
+  background: #4f46e5;
 }
 .auth-btn:active:not(:disabled) {
   transform: translateY(1px);

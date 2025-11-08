@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import ProductCard from "~/components/ProductCustomer/ProductCard.vue";
+import { useMe } from "~/composables/useMe";
 definePageMeta({ alias: ["/use/home"] });
 type User = { id: number; firstName: string; lastName: string; age: number };
 
@@ -18,6 +19,8 @@ const stats = [
   { number: "10+", label: "Mẫu Xe Đa Dạng" },
   { number: "24/7", label: "Hỗ Trợ Khách Hàng" },
 ];
+
+const { me, pending: meLoading, error: meError } = useMe();
 
 const features = [
   {
@@ -105,36 +108,37 @@ const Listcar = ref([
     src: "/showcase/xe1.jpg",
     name: "Mercedes-Benz S-Class",
     isStocked: true,
-    price: '1.090.000.000₫',
+    price: "1.090.000.000₫",
   },
   {
     id: 2,
     src: "/showcase/xe2.jpg",
     name: "BMW 7 Series",
     isStocked: false,
-    price: '7.090.000.000₫',
+    price: "7.090.000.000₫",
   },
   {
     id: 3,
     src: "/showcase/xe3.jpg",
     name: "Lexus LX 600",
     isStocked: true,
-    price: '2.090.000.000₫',
+    price: "2.090.000.000₫",
   },
   {
     id: 4,
     src: "/showcase/xe4.jpg",
     name: "Porsche Cayenne",
     inStock: true,
-    price: '12.090.000.000₫',
+    price: "12.090.000.000₫",
   },
   {
     id: 5,
     src: "/showcase/xe5.jpg",
     name: "Range Rover Vogue",
     isStocked: true,
-    price: '1.090.000.000₫',
-  },]);
+    price: "1.090.000.000₫",
+  },
+]);
 </script>
 
 <template>
@@ -156,8 +160,9 @@ const Listcar = ref([
           <a href="#cars" class="btn btn-primary">Xem Bộ Sưu Tập</a>
           <a href="#contact" class="btn btn-secondary">Liên Hệ Ngay</a>
           <a href="/EVM_staff" class="btn btn-primary">Trang EVM_staff</a>
-          <a href="/dealer_manager" class="btn btn-secondary">Trang Dealer Manager</a>
-        
+          <a href="/dealer_manager" class="btn btn-secondary"
+            >Trang Dealer Manager</a
+          >
         </div>
       </div>
 
@@ -201,13 +206,7 @@ const Listcar = ref([
         </div>
 
         <div class="cars-grid">
-          
-          
-          <ProductCard
-      v-for="car in Listcar"
-      :key="car.id"
-      :car="car"
-    />
+          <ProductCard v-for="car in Listcar" :key="car.id" :car="car" />
         </div>
       </div>
     </section>
