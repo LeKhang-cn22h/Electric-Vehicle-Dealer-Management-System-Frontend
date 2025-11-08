@@ -1,8 +1,98 @@
 <template>
-    <div class="min-h-screen bg-white p-6">
-        <!-- Header -->
-        <header class="flex justify-between items-center mb-6">
-            <h1 class="text-2xl font-semibold text-gray-900">Danh sách khuyến mãi</h1>
-        </header>
-    </div>
+    <BaseListPage
+        title="Danh sách khuyến mãi"
+        :icon="ScrollText"
+        create-link="/user/promotions/create"
+        create-label="Tạo khuyến mãi mới"
+        :fields-name="fieldsName"
+        :table-component="OrderTable"
+        :data="promotes"
+        :filter-function="filterPromotes"
+        @print="handlePrint"
+    >
+        <template #toolbar>
+            <OrderToolbar
+                :search-query="filters.searchQuery"
+                :status-filter="filters.status"
+                @update:search-query="filters.searchQuery = $event"
+                @update:status-filter="filters.status = $event"
+            />
+        </template>
+        <!-- custom cột trong bảng -->
+        <template #orderDate="{ row }">{{ formatDate(row.orderDate) }}</template>
+        <template #totalAmount="{ row }">{{ formatCurrency(row.totalAmount) }}</template>
+        <template #status="{ row }">
+            <OrderStatusBadge :status="row.status" />
+        </template>
+        <template #quantity="{ row }"> x{{ row.quantity }} </template>
+    </BaseListPage>
 </template>
+
+<script setup lang="ts">
+import BaseListPage from "@/components/shared/BaseListPage.vue";
+import OrderTable from "@/components/orders/OrderTable.vue";
+import OrderToolbar from "@/components/orders/OrderToolbar.vue";
+import { ScrollText } from "lucide-vue-next";
+import { reactive } from "vue";
+import OrderStatusBadge from "@/components/orders/OrderStatusBadge.vue";
+import { formatCurrency, formatDate } from "@/utils/format";
+
+const filters = reactive({
+    searchQuery: "",
+    status: "",
+});
+const fieldsName = [
+    { label: "Mã đơn hàng", key: "orderCode" },
+    { label: "Khách hàng", key: "customerName" },
+    { label: "Sản phẩm", key: "productName" },
+    { label: "Số lượng", key: "quantity" },
+    { label: "Ngày đặt", key: "orderDate" },
+    { label: "Tổng tiền", key: "totalAmount" },
+    { label: "Trạng thái", key: "status" },
+    { label: "Thao tác", key: "actions" },
+];
+const promotes = [
+    {
+        id: 19,
+        orderCode: "#ORD-002",
+        customerName: "Trần Thị B",
+        orderDate: "2024-10-22",
+        productName: "EV Model Y - Trắng",
+        quantity: 1,
+        totalAmount: 720000000,
+        status: "pending",
+    },
+    {
+        id: 20,
+        orderCode: "#ORD-002",
+        customerName: "Trần Thị B",
+        orderDate: "2024-10-22",
+        productName: "EV Model Y - Trắng",
+        quantity: 1,
+        totalAmount: 720000000,
+        status: "pending",
+    },
+    {
+        id: 21,
+        orderCode: "#ORD-002",
+        customerName: "Trần Thị B",
+        orderDate: "2024-10-22",
+        productName: "EV Model Y - Trắng",
+        quantity: 1,
+        totalAmount: 720000000,
+        status: "pending",
+    },
+];
+
+const filterPromotes = (order: any) => {
+    const query = filters.searchQuery.toLowerCase();
+    const matchesSearch =
+        !query || order.customerName.toLowerCase().includes(query) || order.orderCode.toLowerCase().includes(query);
+    const matchesStatus = !filters.status || order.status === filters.status;
+    return matchesSearch && matchesStatus;
+};
+
+const handlePrint = (order: any) => {
+    console.log("In đơn hàng:", order);
+};
+</script>
