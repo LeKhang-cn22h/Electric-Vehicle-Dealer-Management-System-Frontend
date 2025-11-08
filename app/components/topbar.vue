@@ -31,7 +31,7 @@ const commonMenu = [
     // { label: "EVM Staff", to: "/EVM_staff" },
     { label: "Trang chủ", to: "/user/home" },
     { label: "Danh mục xe", to: "/product" },
-    { label: "Khuyến mãi", to: "user/promotions" },
+    { label: "Khuyến mãi", to: "/user/promotions" },
     { label: "Danh sách đơn hàng", to: "/user/orders" },
     { label: "Báo giá", to: "/user/quotations" },
     { label: "Khiếu nại", to: "/Customer/Feedback" },
