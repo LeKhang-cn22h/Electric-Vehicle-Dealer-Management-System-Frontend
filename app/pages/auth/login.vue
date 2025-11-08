@@ -57,6 +57,12 @@ async function onSubmit() {
       throw new Error(data.message || "Đăng nhập thất bại");
     }
 
+    if (data.access_token) {
+      localStorage.setItem("access_token", data.access_token);
+      console.log("Token saved to localStorage");
+    } else {
+      throw new Error("No access_token in response");
+    }
     serverSuccess.value = "Đăng nhập thành công! Đang chuyển hướng...";
     setTimeout(() => {
       window.location.href = "/user/home";

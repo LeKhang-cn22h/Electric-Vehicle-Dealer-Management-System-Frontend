@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, nextTick, watchEffect } from "vue";
+import { ref, onMounted, onBeforeUnmount } from "vue";
 import { Cog6ToothIcon } from "@heroicons/vue/24/outline";
+import { useMe } from "~/composables/useMe";
 
 type Align = "right" | "left";
 const props = defineProps<{ align?: Align }>();
@@ -9,6 +10,9 @@ const align: Align = props.align ?? "right";
 const open = ref(false);
 const menuRef = ref<HTMLElement | null>(null);
 const btnRef = ref<HTMLButtonElement | null>(null);
+
+// Lấy thông tin user và hàm logout
+const { me, logout: logoutUser } = useMe();
 
 function toggle() {
   open.value = !open.value;
@@ -25,8 +29,18 @@ function onGlobalClick(e: MouseEvent) {
 function onKeydown(e: KeyboardEvent) {
   if (e.key === "Escape") close();
 }
+
 async function handleLogout() {
-  navigateTo("/auth/login");
+  close(); // Đóng menu trước
+
+  // Xóa token và reset state
+  logoutUser();
+
+  // Navigate đến trang login
+  await navigateTo("/auth/login");
+
+  // Force reload để đảm bảo UI cập nhật
+  window.location.reload();
 }
 
 onMounted(() => {
@@ -56,6 +70,25 @@ onBeforeUnmount(() => {
     <transition name="pop">
       <div v-if="open" ref="menuRef" class="menu" role="menu" @click.stop>
         <div class="caret" aria-hidden="true"></div>
+
+        <!-- Thông tin user -->
+        <div v-if="me" class="user-info">
+          <div class="user-avatar">
+            {{
+              (me.user_metadata?.full_name ||
+                me.full_name ||
+                me.email)?.[0]?.toUpperCase()
+            }}
+          </div>
+          <div class="user-details">
+            <p class="user-name">
+              {{ me.user_metadata?.full_name || me.full_name || "User" }}
+            </p>
+            <p class="user-email">{{ me.email }}</p>
+          </div>
+        </div>
+
+        <div v-if="me" class="divider"></div>
 
         <NuxtLink class="item" role="menuitem" to="/ProfilePage" @click="close">
           <svg
@@ -104,9 +137,6 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-.item-logout {
-  color: red;
-}
 .icon {
   width: 1.25rem;
   height: 1.25rem;
@@ -146,15 +176,11 @@ onBeforeUnmount(() => {
 .btn-setting:active {
   transform: scale(0.97);
 }
-.icon {
-  width: 20px;
-  height: 20px;
-}
 
 .menu {
   position: absolute;
   top: calc(100% + 10px);
-  min-width: 190px;
+  min-width: 240px;
   padding: 6px;
   background: #fff;
   color: #111827;
@@ -179,10 +205,52 @@ onBeforeUnmount(() => {
   left: 14px;
   right: auto;
 }
-.drop-up .caret {
-  top: auto;
-  bottom: -6px;
-  transform: rotate(225deg);
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  margin-bottom: 4px;
+}
+
+.user-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+  flex-shrink: 0;
+  text-transform: uppercase;
+}
+
+.user-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.user-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 2px 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-email {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .item,
@@ -209,12 +277,26 @@ onBeforeUnmount(() => {
 .item:active {
   transform: translateY(1px);
 }
+
+.item-logout {
+  color: #ef4444;
+}
+
+.item-logout:hover {
+  background: #fee2e2;
+}
+
 .item-icon {
   width: 18px;
   height: 18px;
   color: #6b7280;
   flex-shrink: 0;
 }
+
+.item-logout .item-icon {
+  color: #ef4444;
+}
+
 .divider {
   height: 1px;
   margin: 4px 6px;

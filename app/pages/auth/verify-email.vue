@@ -88,7 +88,7 @@ const error = ref("");
 const loading = ref(false);
 const countdown = ref(0);
 
-let countdownTimer: number | null = null;
+let countdownTimer: ReturnType<typeof setInterval> | null = null;
 
 onMounted(() => {
   email.value = (route.query.email as string) || "";

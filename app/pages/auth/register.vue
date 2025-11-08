@@ -87,6 +87,7 @@ async function onSubmit() {
       throw new Error(data?.message || "Đăng ký thất bại.");
     }
 
+    // localStorage.setItem("access_token", data.access_token); // 👈 Lưu token
     serverSuccess.value = "Đăng ký thành công! Đang chuyển hướng...";
     setTimeout(() => {
       navigateTo(
