@@ -2,6 +2,8 @@
 import { ref, onMounted, onBeforeUnmount } from "vue";
 import { Cog6ToothIcon } from "@heroicons/vue/24/outline";
 import { useMe } from "~/composables/useMe";
+import { User } from "lucide-vue-next";
+import { LogOut } from "lucide-vue-next";
 
 type Align = "right" | "left";
 const props = defineProps<{ align?: Align }>();
@@ -31,15 +33,9 @@ function onKeydown(e: KeyboardEvent) {
 }
 
 async function handleLogout() {
-  close(); // Đóng menu trước
-
-  // Xóa token và reset state
+  close();
   logoutUser();
-
-  // Navigate đến trang login
   await navigateTo("/auth/login");
-
-  // Force reload để đảm bảo UI cập nhật
   window.location.reload();
 }
 
@@ -91,19 +87,7 @@ onBeforeUnmount(() => {
         <div v-if="me" class="divider"></div>
 
         <NuxtLink class="item" role="menuitem" to="/ProfilePage" @click="close">
-          <svg
-            class="item-icon"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-            <circle cx="12" cy="7" r="4" />
-          </svg>
+          <User />
           Trang cá nhân
         </NuxtLink>
 
@@ -115,20 +99,7 @@ onBeforeUnmount(() => {
           type="button"
           @click="handleLogout"
         >
-          <svg
-            class="item-icon"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-            <polyline points="16 17 21 12 16 7" />
-            <line x1="21" y1="12" x2="9" y2="12" />
-          </svg>
+          <LogOut />
           Đăng xuất
         </button>
       </div>
@@ -206,6 +177,7 @@ onBeforeUnmount(() => {
   right: auto;
 }
 
+/* User info styles */
 .user-info {
   display: flex;
   align-items: center;
