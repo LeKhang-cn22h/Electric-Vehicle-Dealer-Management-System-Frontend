@@ -10,6 +10,7 @@ export type UserMe = {
     username?: string;
     phone?: string;
     role?: string;
+    avatar_url?: string;
   };
   [key: string]: any;
 };

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
+import { useMe } from "~/composables/useMe";
 
-/* ====== Types ====== */
 type Profile = {
   fullName: string;
   email: string;
@@ -10,15 +10,16 @@ type Profile = {
 };
 type PasswordForm = { current: string; next: string; confirm: string };
 
-/* ====== State ====== */
+const { me, refreshMe } = useMe();
 const isSubmitting = ref(false);
+const isLoading = ref(true);
 const msg = ref<string | null>(null);
 const err = ref<string | null>(null);
 
 const profile = ref<Profile>({
-  fullName: "Bùi Trọng Vũ",
-  email: "you@example.com",
-  phone: "0901234567",
+  fullName: "",
+  email: "",
+  phone: "",
   avatarUrl: null,
 });
 
@@ -27,7 +28,27 @@ const pwd = ref<PasswordForm>({ current: "", next: "", confirm: "" });
 const avatarFile = ref<File | null>(null);
 const avatarPreview = ref<string | null>(null);
 
-/* ====== Helpers ====== */
+onMounted(async () => {
+  isLoading.value = true;
+
+  // Đợi useMe fetch xong
+  if (!me.value) {
+    await refreshMe();
+  }
+
+  // Load dữ liệu user vào form
+  if (me.value) {
+    profile.value = {
+      fullName: me.value.user_metadata?.full_name || me.value.full_name || "",
+      email: me.value.email || "",
+      phone: me.value.user_metadata?.phone || me.value.phone || "",
+      avatarUrl: me.value.user_metadata?.avatar_url || null,
+    };
+  }
+
+  isLoading.value = false;
+});
+
 function flash(ok: boolean, text: string, timeout = 3500) {
   err.value = null;
   msg.value = null;
@@ -62,7 +83,6 @@ const pwdErrors = computed(() => {
 });
 const canChangePwd = computed(() => Object.keys(pwdErrors.value).length === 0);
 
-/* ====== Avatar ====== */
 const MAX_AVATAR_SIZE = 2 * 1024 * 1024;
 const ALLOWED_MIME = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
 
@@ -93,38 +113,94 @@ function removeAvatar() {
   profile.value.avatarUrl = null;
 }
 
-/* ====== Actions (mock) ====== */
-const sleep = (ms = 700) => new Promise((r) => setTimeout(r, ms));
-
 async function saveProfile() {
   if (!canSaveProfile.value) return;
+
+  const token = localStorage.getItem("access_token");
+  if (!token) {
+    flash(false, "Vui lòng đăng nhập lại");
+    return;
+  }
+
   try {
     isSubmitting.value = true;
-    // TODO: gọi API update profile + upload avatarFile nếu có
-    await sleep();
+
+    // Prepare update data
+    const updateData = {
+      full_name: profile.value.fullName,
+      phone: profile.value.phone,
+      // avatar_url sẽ được update sau khi upload file
+    };
+
+    // Update user profile
+    const res = await fetch("http://localhost:4000/users/profile", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(updateData),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || "Lưu hồ sơ thất bại");
+    }
+    await refreshMe();
+
     avatarFile.value = null;
-    flash(true, "Đã lưu hồ sơ.");
+    avatarPreview.value = null;
+
+    flash(true, "Đã lưu hồ sơ thành công!");
   } catch (e: any) {
+    console.error("Save profile error:", e);
     flash(false, e?.message || "Lưu hồ sơ thất bại.");
   } finally {
     isSubmitting.value = false;
   }
 }
-
 async function changePassword() {
   if (!canChangePwd.value) return;
+
+  const token = localStorage.getItem("access_token");
+  if (!token) {
+    flash(false, "Vui lòng đăng nhập lại");
+    return;
+  }
+
   try {
     isSubmitting.value = true;
-    await sleep();
+
+    const res = await fetch("http://localhost:4000/auth/change-password", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        token,
+        currentPassword: pwd.value.current,
+        newPassword: pwd.value.next,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || "Đổi mật khẩu thất bại");
+    }
+
     pwd.value = { current: "", next: "", confirm: "" };
-    flash(true, "Đổi mật khẩu thành công.");
+    flash(true, "Đổi mật khẩu thành công!");
   } catch (e: any) {
+    console.error("Change password error:", e);
     flash(false, e?.message || "Đổi mật khẩu thất bại.");
   } finally {
     isSubmitting.value = false;
   }
 }
 </script>
+
 <template>
   <div class="page">
     <div class="container">
@@ -135,168 +211,181 @@ async function changePassword() {
         <p class="muted">Quản lý thông tin cơ bản & bảo mật tài khoản.</p>
       </header>
 
-      <div v-if="err" class="alert error" role="alert">{{ err }}</div>
-      <div v-if="msg" class="alert success" role="status">{{ msg }}</div>
-
-      <div class="grid">
-        <section class="card">
-          <h2 class="title">Thông tin tài khoản</h2>
-          <div
-            class="avatar-zone"
-            @dragover="onDragOver"
-            @drop="onDrop"
-            :class="{ empty: !avatarPreview && !profile.avatarUrl }"
-          >
-            <img
-              v-if="avatarPreview || profile.avatarUrl"
-              :src="avatarPreview || profile.avatarUrl!"
-              class="avatar"
-              alt="Avatar"
-            />
-            <div v-else class="placeholder">PNG/JPG/WebP &lt; 2MB</div>
-
-            <div class="actions-row">
-              <label class="btn secondary">
-                <input
-                  class="file"
-                  type="file"
-                  accept="image/png,image/jpeg,image/jpg,image/webp"
-                  @change="onPick"
-                />
-                Chọn ảnh
-              </label>
-              <button
-                class="btn ghost"
-                type="button"
-                @click="removeAvatar"
-                :disabled="isSubmitting"
-              >
-                Xoá ảnh
-              </button>
-            </div>
-          </div>
-
-          <form class="form" @submit.prevent="saveProfile" novalidate>
-            <div class="row">
-              <div class="field">
-                <label for="fullName">Họ và tên</label>
-                <input
-                  id="fullName"
-                  v-model.trim="profile.fullName"
-                  :class="{ 'is-error': !!profileErrors.fullName }"
-                  placeholder="Nguyễn Văn A"
-                />
-                <small v-if="profileErrors.fullName" class="msg">{{
-                  profileErrors.fullName
-                }}</small>
-              </div>
-
-              <div class="field">
-                <label for="email">Email</label>
-                <input
-                  id="email"
-                  v-model.trim="profile.email"
-                  type="email"
-                  :class="{ 'is-error': !!profileErrors.email }"
-                  placeholder="you@example.com"
-                />
-                <small v-if="profileErrors.email" class="msg">{{
-                  profileErrors.email
-                }}</small>
-              </div>
-            </div>
-
-            <div class="row">
-              <div class="field">
-                <label for="phone">Số điện thoại</label>
-                <input
-                  id="phone"
-                  v-model.trim="profile.phone"
-                  inputmode="tel"
-                  :class="{ 'is-error': !!profileErrors.phone }"
-                  placeholder="+84 901 234 567"
-                />
-                <small v-if="profileErrors.phone" class="msg">{{
-                  profileErrors.phone
-                }}</small>
-              </div>
-              <div class="field"></div>
-            </div>
-
-            <div class="actions-end">
-              <button
-                class="btn primary"
-                type="submit"
-                :disabled="!canSaveProfile || isSubmitting"
-              >
-                <span v-if="!isSubmitting">Lưu hồ sơ</span>
-                <span v-else class="loading"
-                  ><span class="spinner"></span>Đang lưu…</span
-                >
-              </button>
-            </div>
-          </form>
-        </section>
-
-        <section class="card">
-          <h2 class="title">Bảo mật</h2>
-
-          <form class="form" @submit.prevent="changePassword" novalidate>
-            <div class="field">
-              <label for="pwd-current">Mật khẩu hiện tại</label>
-              <input
-                id="pwd-current"
-                v-model.trim="pwd.current"
-                type="password"
-                :class="{ 'is-error': !!pwdErrors.current }"
-              />
-              <small v-if="pwdErrors.current" class="msg">{{
-                pwdErrors.current
-              }}</small>
-            </div>
-
-            <div class="row">
-              <div class="field">
-                <label for="pwd-next">Mật khẩu mới</label>
-                <input
-                  id="pwd-next"
-                  v-model.trim="pwd.next"
-                  type="password"
-                  :class="{ 'is-error': !!pwdErrors.next }"
-                />
-                <small v-if="pwdErrors.next" class="msg">{{
-                  pwdErrors.next
-                }}</small>
-              </div>
-              <div class="field">
-                <label for="pwd-confirm">Xác nhận mật khẩu</label>
-                <input
-                  id="pwd-confirm"
-                  v-model.trim="pwd.confirm"
-                  type="password"
-                  :class="{ 'is-error': !!pwdErrors.confirm }"
-                />
-                <small v-if="pwdErrors.confirm" class="msg">{{
-                  pwdErrors.confirm
-                }}</small>
-              </div>
-            </div>
-
-            <div class="actions-end">
-              <button
-                class="btn primary"
-                type="submit"
-                :disabled="!canChangePwd || isSubmitting"
-              >
-                <span v-if="!isSubmitting">Đổi mật khẩu</span>
-                <span v-else class="loading"
-                  ><span class="spinner"></span>Đang đổi…</span
-                >
-              </button>
-            </div>
-          </form>
-        </section>
+      <!-- Loading state -->
+      <div v-if="isLoading" class="loading-container">
+        <div class="spinner-large"></div>
+        <p>Đang tải thông tin...</p>
       </div>
+
+      <template v-else>
+        <div v-if="err" class="alert error" role="alert">{{ err }}</div>
+        <div v-if="msg" class="alert success" role="status">{{ msg }}</div>
+
+        <div class="grid">
+          <section class="card">
+            <h2 class="title">Thông tin tài khoản</h2>
+            <div
+              class="avatar-zone"
+              @dragover="onDragOver"
+              @drop="onDrop"
+              :class="{ empty: !avatarPreview && !profile.avatarUrl }"
+            >
+              <img
+                v-if="avatarPreview || profile.avatarUrl"
+                :src="avatarPreview || profile.avatarUrl!"
+                class="avatar"
+                alt="Avatar"
+              />
+              <div v-else class="placeholder">
+                <div class="placeholder-avatar">
+                  {{ profile.fullName?.[0]?.toUpperCase() || "?" }}
+                </div>
+                <p>PNG/JPG/WebP &lt; 2MB</p>
+              </div>
+
+              <div class="actions-row">
+                <label class="btn secondary">
+                  <input
+                    class="file"
+                    type="file"
+                    accept="image/png,image/jpeg,image/jpg,image/webp"
+                    @change="onPick"
+                  />
+                  Chọn ảnh
+                </label>
+                <button
+                  class="btn ghost"
+                  type="button"
+                  @click="removeAvatar"
+                  :disabled="isSubmitting"
+                >
+                  Xoá ảnh
+                </button>
+              </div>
+            </div>
+
+            <form class="form" @submit.prevent="saveProfile" novalidate>
+              <div class="row">
+                <div class="field">
+                  <label for="fullName">Họ và tên</label>
+                  <input
+                    id="fullName"
+                    v-model.trim="profile.fullName"
+                    :class="{ 'is-error': !!profileErrors.fullName }"
+                    placeholder="Nguyễn Văn A"
+                  />
+                  <small v-if="profileErrors.fullName" class="msg">{{
+                    profileErrors.fullName
+                  }}</small>
+                </div>
+
+                <div class="field">
+                  <label for="email">Email</label>
+                  <input
+                    id="email"
+                    v-model.trim="profile.email"
+                    type="email"
+                    :class="{ 'is-error': !!profileErrors.email }"
+                    placeholder="you@example.com"
+                    disabled
+                    title="Email không thể thay đổi"
+                  />
+                  <small class="msg info">Email không thể thay đổi</small>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="field">
+                  <label for="phone">Số điện thoại</label>
+                  <input
+                    id="phone"
+                    v-model.trim="profile.phone"
+                    inputmode="tel"
+                    :class="{ 'is-error': !!profileErrors.phone }"
+                    placeholder="+84 901 234 567"
+                  />
+                  <small v-if="profileErrors.phone" class="msg">{{
+                    profileErrors.phone
+                  }}</small>
+                </div>
+                <div class="field"></div>
+              </div>
+
+              <div class="actions-end">
+                <button
+                  class="btn primary"
+                  type="submit"
+                  :disabled="!canSaveProfile || isSubmitting"
+                >
+                  <span v-if="!isSubmitting">Lưu hồ sơ</span>
+                  <span v-else class="loading"
+                    ><span class="spinner"></span>Đang lưu…</span
+                  >
+                </button>
+              </div>
+            </form>
+          </section>
+
+          <section class="card">
+            <h2 class="title">Bảo mật</h2>
+
+            <form class="form" @submit.prevent="changePassword" novalidate>
+              <div class="field">
+                <label for="pwd-current">Mật khẩu hiện tại</label>
+                <input
+                  id="pwd-current"
+                  v-model.trim="pwd.current"
+                  type="password"
+                  :class="{ 'is-error': !!pwdErrors.current }"
+                />
+                <small v-if="pwdErrors.current" class="msg">{{
+                  pwdErrors.current
+                }}</small>
+              </div>
+
+              <div class="row">
+                <div class="field">
+                  <label for="pwd-next">Mật khẩu mới</label>
+                  <input
+                    id="pwd-next"
+                    v-model.trim="pwd.next"
+                    type="password"
+                    :class="{ 'is-error': !!pwdErrors.next }"
+                  />
+                  <small v-if="pwdErrors.next" class="msg">{{
+                    pwdErrors.next
+                  }}</small>
+                </div>
+                <div class="field">
+                  <label for="pwd-confirm">Xác nhận mật khẩu</label>
+                  <input
+                    id="pwd-confirm"
+                    v-model.trim="pwd.confirm"
+                    type="password"
+                    :class="{ 'is-error': !!pwdErrors.confirm }"
+                  />
+                  <small v-if="pwdErrors.confirm" class="msg">{{
+                    pwdErrors.confirm
+                  }}</small>
+                </div>
+              </div>
+
+              <div class="actions-end">
+                <button
+                  class="btn primary"
+                  type="submit"
+                  :disabled="!canChangePwd || isSubmitting"
+                >
+                  <span v-if="!isSubmitting">Đổi mật khẩu</span>
+                  <span v-else class="loading"
+                    ><span class="spinner"></span>Đang đổi…</span
+                  >
+                </button>
+              </div>
+            </form>
+          </section>
+        </div>
+      </template>
     </div>
   </div>
 </template>
@@ -312,6 +401,7 @@ async function changePassword() {
   --focus: rgba(79, 70, 229, 0.18);
   --error: #dc2626;
   --success: #059669;
+  --info: #3b82f6;
 }
 
 .page {
@@ -331,6 +421,24 @@ async function changePassword() {
 
 .muted {
   color: var(--text2);
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  gap: 16px;
+}
+
+.spinner-large {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 4px solid var(--border);
+  border-top-color: var(--primary);
+  animation: spin 0.8s linear infinite;
 }
 
 .alert {
@@ -402,9 +510,28 @@ async function changePassword() {
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
 }
 .placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 0;
+}
+.placeholder-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  font-weight: 700;
+}
+.placeholder p {
   font-size: 13px;
   color: var(--text2);
-  padding: 26px 0;
+  margin: 0;
 }
 .actions-row {
   display: flex;
@@ -448,7 +575,12 @@ async function changePassword() {
   font-size: 15px;
   transition: border-color 0.15s, box-shadow 0.15s;
 }
-.field input:hover {
+.field input:disabled {
+  background: #f3f4f6;
+  color: var(--text2);
+  cursor: not-allowed;
+}
+.field input:hover:not(:disabled) {
   border-color: #d3dae5;
 }
 .field input:focus-visible {
@@ -462,6 +594,9 @@ async function changePassword() {
 .msg {
   color: var(--error);
   font-size: 12px;
+}
+.msg.info {
+  color: var(--text2);
 }
 
 .actions-end {
@@ -492,10 +627,10 @@ async function changePassword() {
   color: #fff;
   background: linear-gradient(135deg, #667eea 0%, #4f46e5 100%);
 }
-.btn.primary:hover {
+.btn.primary:hover:not(:disabled) {
   filter: brightness(1.05);
 }
-.btn.primary:active {
+.btn.primary:active:not(:disabled) {
   transform: translateY(1px);
 }
 .btn.primary:disabled {
