@@ -13,7 +13,7 @@
     <table class="w-full bg-white shadow rounded-xl border-collapse">
   <thead class="bg-gray-100 text-left">
     <tr>
-      <th class="px-4 py-2">STT</th>
+      <th class="px-4 py-2">ID</th>
       <th class="px-4 py-2">Tiêu đề</th>
       <th class="px-4 py-2">Ngày gửi</th>
       <th class="px-4 py-2">Trạng thái</th>

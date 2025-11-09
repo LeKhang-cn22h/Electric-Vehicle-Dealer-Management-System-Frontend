@@ -8,9 +8,10 @@ export function formatCurrency(value: number): string {
     }).format(value);
 }
 
-export function formatDate(dateString: string): string {
-    return new Date(dateString).toLocaleDateString("vi-VN");
+export function formatDate(date: Date | string): string {
+  return new Date(date).toLocaleDateString("vi-VN");
 }
+
 
 export function toProductItem(product: CatalogProduct): ProductItem {
     return {
