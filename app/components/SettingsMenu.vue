@@ -23,6 +23,11 @@ function close() {
   open.value = false;
 }
 
+function handleAvatarError(event: Event) {
+  const img = event.target as HTMLImageElement;
+  img.style.display = "none";
+}
+
 function onGlobalClick(e: MouseEvent) {
   const t = e.target as Node;
   if (!menuRef.value || !btnRef.value) return;
@@ -70,12 +75,22 @@ onBeforeUnmount(() => {
         <!-- Thông tin user -->
         <div v-if="me" class="user-info">
           <div class="user-avatar">
-            {{
-              (me.user_metadata?.full_name ||
-                me.full_name ||
-                me.email)?.[0]?.toUpperCase()
-            }}
+            <img
+              v-if="me.user_metadata?.avatar_url"
+              :src="me.user_metadata.avatar_url"
+              alt="Avatar"
+              class="avatar-img"
+              @error="handleAvatarError"
+            />
+            <span v-else>
+              {{
+                (me.user_metadata?.full_name ||
+                  me.full_name ||
+                  me.email)?.[0]?.toUpperCase()
+              }}
+            </span>
           </div>
+
           <div class="user-details">
             <p class="user-name">
               {{ me.user_metadata?.full_name || me.full_name || "User" }}
@@ -186,10 +201,17 @@ onBeforeUnmount(() => {
   margin-bottom: 4px;
 }
 
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
 .user-avatar {
   width: 44px;
   height: 44px;
-  border-radius: 50%;
+  border-radius: 999px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   display: flex;
@@ -198,7 +220,8 @@ onBeforeUnmount(() => {
   font-size: 18px;
   font-weight: 700;
   flex-shrink: 0;
-  text-transform: uppercase;
+  overflow: hidden;
+  position: relative;
 }
 
 .user-details {
