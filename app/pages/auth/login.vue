@@ -14,11 +14,8 @@ const form = ref<FormState>({
 });
 
 const showPwd = ref(false);
-const isSubmitting = ref(false);
-const serverError = ref<string | null>(null);
-const serverSuccess = ref<string | null>(null);
-
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const { login, isSubmitting, serverError, serverSuccess } = useAuth();
 
 const errors = computed(() => {
   const e: Partial<Record<keyof FormState, string>> = {};
@@ -32,45 +29,10 @@ const errors = computed(() => {
 const isValid = computed(() => Object.keys(errors.value).length === 0);
 
 async function onSubmit() {
-  serverError.value = null;
-  serverSuccess.value = null;
   if (!isValid.value) return;
-
-  try {
-    isSubmitting.value = true;
-
-    const res = await fetch("http://localhost:4000/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify({
-        email: form.value.email,
-        password: form.value.password,
-      }),
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      throw new Error(data.message || "Đăng nhập thất bại");
-    }
-
-    if (data.access_token) {
-      localStorage.setItem("access_token", data.access_token);
-      console.log("Token saved to localStorage");
-    } else {
-      throw new Error("No access_token in response");
-    }
-    serverSuccess.value = "Đăng nhập thành công! Đang chuyển hướng...";
-    setTimeout(() => {
-      window.location.href = "/user/home";
-    }, 1000);
-  } catch (err: any) {
-    serverError.value = err?.message || "Lỗi kết nối đến máy chủ.";
-  } finally {
-    isSubmitting.value = false;
+  const result = await login(form.value.email, form.value.password);
+  if (result.success) {
+    setTimeout(() => (window.location.href = "/user/home"), 1000);
   }
 }
 
