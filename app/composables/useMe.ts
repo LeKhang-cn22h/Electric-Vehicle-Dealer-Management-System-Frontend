@@ -1,12 +1,11 @@
 import { onMounted, ref } from "vue";
 
 import type { UserMe } from "~/types/user";
+const me = ref<UserMe | null>(null);
+const error = ref<string | null>(null);
+const pending = ref(false);
 
 export function useMe() {
-  const me = ref<UserMe | null>(null);
-  const error = ref<string | null>(null);
-  const pending = ref(false);
-
   async function fetchMe() {
     // Kiểm tra nếu đang ở server-side
     if (typeof window === "undefined" || typeof localStorage === "undefined") {
@@ -65,7 +64,7 @@ export function useMe() {
       }
     } finally {
       pending.value = false;
-      console.log("🏁 Fetch completed. pending:", pending.value);
+      console.log("Fetch completed. pending:", pending.value);
     }
   }
 
@@ -77,7 +76,6 @@ export function useMe() {
 
   // Logout
   function logout() {
-    console.log("Logging out...");
     if (typeof localStorage !== "undefined") {
       localStorage.removeItem("access_token");
       localStorage.removeItem("refresh_token");
@@ -87,7 +85,6 @@ export function useMe() {
   }
 
   onMounted(() => {
-    console.log("useMe mounted, fetching user data...");
     fetchMe();
   });
 
