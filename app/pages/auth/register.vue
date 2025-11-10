@@ -19,9 +19,7 @@ const form = ref<FormState>({
 
 const showPwd = ref(false);
 const showPwd2 = ref(false);
-const isSubmitting = ref(false);
-const serverError = ref<string | null>(null);
-const serverSuccess = ref<string | null>(null);
+const { register, isSubmitting, serverError, serverSuccess } = useAuth();
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const pwdStrength = computed(() => {
@@ -61,43 +59,18 @@ const errors = computed(() => {
 const isValid = computed(() => Object.keys(errors.value).length === 0);
 
 async function onSubmit() {
-  serverError.value = null;
-  serverSuccess.value = null;
   if (!isValid.value) return;
-  isSubmitting.value = true;
-
-  try {
-    const res = await fetch("http://localhost:4000/auth/signup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email: form.value.email,
-        password: form.value.password,
-        full_name: form.value.fullName,
-        role: "customer",
-        username: form.value.email.split("@")[0],
-        dealer_id: "",
-        phone: "",
-      }),
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      throw new Error(data?.message || "Đăng ký thất bại.");
-    }
-
-    // localStorage.setItem("access_token", data.access_token); // 👈 Lưu token
-    serverSuccess.value = "Đăng ký thành công! Đang chuyển hướng...";
+  const result = await register(
+    form.value.fullName,
+    form.value.email,
+    form.value.password
+  );
+  if (result.success) {
     setTimeout(() => {
       navigateTo(
         `/auth/verify-email?email=${encodeURIComponent(form.value.email)}`
       );
     }, 1000);
-  } catch (err: any) {
-    serverError.value = err.message || "Có lỗi xảy ra.";
-  } finally {
-    isSubmitting.value = false;
   }
 }
 </script>
