@@ -1,13 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import { useMe } from "~/composables/useMe";
+import type { Profile } from "~/types/profile";
 
-type Profile = {
-  fullName: string;
-  email: string;
-  phone?: string;
-  avatarUrl?: string | null;
-};
 type PasswordForm = { current: string; next: string; confirm: string };
 
 const { me, refreshMe } = useMe();
@@ -36,7 +31,6 @@ onMounted(async () => {
     await refreshMe();
   }
 
-  // Load dữ liệu user vào form
   if (me.value) {
     profile.value = {
       fullName: me.value.user_metadata?.full_name || me.value.full_name || "",
@@ -44,6 +38,10 @@ onMounted(async () => {
       phone: me.value.user_metadata?.phone || me.value.phone || "",
       avatarUrl: me.value.user_metadata?.avatar_url || null,
     };
+
+    if (profile.value.avatarUrl) {
+      avatarPreview.value = profile.value.avatarUrl;
+    }
   }
 
   isLoading.value = false;
@@ -115,86 +113,54 @@ function removeAvatar() {
 
 async function saveProfile() {
   if (!canSaveProfile.value) return;
-
   const token = localStorage.getItem("access_token");
-  if (!token) {
-    flash(false, "Vui lòng đăng nhập lại");
-    return;
-  }
+  if (!token) return flash(false, "Vui lòng đăng nhập lại");
 
   try {
     isSubmitting.value = true;
 
-    // Prepare update data
-    const updateData = {
-      full_name: profile.value.fullName,
-      phone: profile.value.phone,
-      // avatar_url sẽ được update sau khi upload file
-    };
+    const form = new FormData();
+    form.append("full_name", profile.value.fullName);
+    form.append("phone", profile.value.phone || "");
+    if (avatarFile.value) form.append("avatar", avatarFile.value);
 
-    // Update user profile
-    const res = await fetch("http://localhost:4000/users/profile", {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(updateData),
-    });
+    await updateUserProfile(form, token);
 
-    const data = await res.json();
-
-    if (!res.ok) {
-      throw new Error(data.message || "Lưu hồ sơ thất bại");
-    }
     await refreshMe();
 
-    avatarFile.value = null;
-    avatarPreview.value = null;
+    if (me.value) {
+      profile.value.fullName =
+        me.value.user_metadata?.full_name || me.value.full_name || "";
+      profile.value.phone =
+        me.value.user_metadata?.phone || me.value.phone || "";
+      profile.value.avatarUrl = me.value.user_metadata?.avatar_url || null;
 
+      avatarPreview.value = profile.value.avatarUrl;
+    }
+
+    avatarFile.value = null;
     flash(true, "Đã lưu hồ sơ thành công!");
   } catch (e: any) {
-    console.error("Save profile error:", e);
-    flash(false, e?.message || "Lưu hồ sơ thất bại.");
+    flash(false, e.message);
   } finally {
     isSubmitting.value = false;
   }
 }
+
 async function changePassword() {
   if (!canChangePwd.value) return;
-
   const token = localStorage.getItem("access_token");
-  if (!token) {
-    flash(false, "Vui lòng đăng nhập lại");
-    return;
-  }
+  if (!token) return flash(false, "Vui lòng đăng nhập lại");
 
   try {
     isSubmitting.value = true;
 
-    const res = await fetch("http://localhost:4000/auth/change-password", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        token,
-        currentPassword: pwd.value.current,
-        newPassword: pwd.value.next,
-      }),
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      throw new Error(data.message || "Đổi mật khẩu thất bại");
-    }
+    await changePasswordApi(token, pwd.value.current, pwd.value.next);
 
     pwd.value = { current: "", next: "", confirm: "" };
     flash(true, "Đổi mật khẩu thành công!");
   } catch (e: any) {
-    console.error("Change password error:", e);
-    flash(false, e?.message || "Đổi mật khẩu thất bại.");
+    flash(false, e.message);
   } finally {
     isSubmitting.value = false;
   }
