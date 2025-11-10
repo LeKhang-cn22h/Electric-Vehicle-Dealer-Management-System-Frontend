@@ -79,11 +79,41 @@ export function useAuth() {
     }
   };
 
+  const forgotPassword = async (email: string) => {
+    isSubmitting.value = true;
+    serverError.value = null;
+    serverSuccess.value = null;
+
+    try {
+      const res = await fetch("http://localhost:4000/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Gửi email thất bại.");
+      }
+
+      serverSuccess.value =
+        data.message || "Đã gửi link đặt lại mật khẩu đến email của bạn!";
+      return { success: true };
+    } catch (err: any) {
+      serverError.value =
+        err?.message || "Gửi email thất bại. Vui lòng thử lại.";
+      return { success: false };
+    } finally {
+      isSubmitting.value = false;
+    }
+  };
   return {
     isSubmitting,
     serverError,
     serverSuccess,
     login,
     register,
+    forgotPassword,
   };
 }

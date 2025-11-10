@@ -1,52 +1,33 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
+const config = useRuntimeConfig();
 
-type FormState = {
-  email: string;
-};
+type FormState = { email: string };
 
-const form = ref<FormState>({
-  email: "",
-});
-
-const isSubmitting = ref(false);
-const serverError = ref<string | null>(null);
-const serverSuccess = ref<string | null>(null);
+const form = ref<FormState>({ email: "" });
 const emailSent = ref(false);
-
+const { forgotPassword, serverError, serverSuccess, isSubmitting } = useAuth();
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 const errors = computed(() => {
   const e: Partial<Record<keyof FormState, string>> = {};
-
   if (!form.value.email.trim()) e.email = "Vui lòng nhập email.";
   else if (!emailRegex.test(form.value.email)) e.email = "Email không hợp lệ.";
-
   return e;
 });
 
 const isValid = computed(() => Object.keys(errors.value).length === 0);
-
 async function onSubmit() {
-  serverError.value = null;
-  serverSuccess.value = null;
   if (!isValid.value) return;
-  try {
-    isSubmitting.value = true;
-    await new Promise((r) => setTimeout(r, 1200));
+
+  const res = await forgotPassword(form.value.email);
+  if (res.success) {
     emailSent.value = true;
-    serverSuccess.value = "Đã gửi link đặt lại mật khẩu đến email của bạn!";
-  } catch (err: any) {
-    serverError.value = err?.message || "Gửi email thất bại. Vui lòng thử lại.";
-  } finally {
-    isSubmitting.value = false;
   }
 }
-
-function resendEmail() {
-  emailSent.value = false;
-  serverSuccess.value = null;
-  onSubmit();
+async function resendEmail() {
+  if (isSubmitting.value) return;
+  await onSubmit();
 }
 </script>
 
@@ -293,7 +274,6 @@ body {
   border-color: #bbefd9;
 }
 
-/* ===== Form ===== */
 .form {
   display: grid;
   gap: 16px;
