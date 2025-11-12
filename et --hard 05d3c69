@@ -1,0 +1,91 @@
+[33m05d3c69[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/KAN-115-create-screen-detail-feedback-and-reply[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mKAN-115-create-screen-detail-feedback-and-reply[m[33m)[m KAN-115 create screen detail feedback and reply
+[33mfc94451[m Merge branch 'KAN-114-create-screen-manage-list-feedback'
+[33m71f1460[m[33m ([m[1;31morigin/KAN-114-create-screen-manage-list-feedback[m[33m, [m[1;32mKAN-114-create-screen-manage-list-feedback[m[33m)[m KAN-114 create screen manage list feedback
+[33m70da936[m Merge pull request #21 from LeKhang-cn22h/FE_to_BE_IAM
+[33mf99b4e3[m[33m ([m[1;31morigin/FE_to_BE_IAM[m[33m)[m merge
+[33m9ccdc4f[m take user infor in profilepage
+[33m9807b01[m Merge pull request #20 from LeKhang-cn22h/FE_to_BE_IAM
+[33m5fe4622[m Merge branch 'main' into FE_to_BE_IAM
+[33m40450f9[m fix icon
+[33m25e667b[m take user infor
+[33me15ffde[m add Maddleware to replace default routes
+[33maee0ebf[m connect UI to BE login Signup Resful API
+[33m2bb47d9[m Merge pull request #19 from LeKhang-cn22h/KAN-124-create-promotion-screen
+[33me468fe7[m[33m ([m[1;31morigin/KAN-124-create-promotion-screen[m[33m)[m create promotion screen
+[33maf143aa[m Merge pull request #18 from LeKhang-cn22h/KAN-123-create-list-promotion
+[33ma25e0b2[m[33m ([m[1;31morigin/KAN-123-create-list-promotion[m[33m)[m list promotion screen
+[33mab703a8[m Merge pull request #17 from LeKhang-cn22h/KAN-97-create-srceen-compare-product
+[33m72ee980[m[33m ([m[1;32mKAN-97-create-srceen-compare-product[m[33m)[m KAN-97 Create srceen compare Product
+[33mc127667[m create compare page and components
+[33m10f4add[m manage compare car logic
+[33mae0beac[m Merge pull request #16 from LeKhang-cn22h/KAN-98-profile-page
+[33me095023[m[33m ([m[1;31morigin/KAN-98-profile-page[m[33m)[m fix icon lucide
+[33mb9229f4[m Merge branch 'KAN-93-Create-order-screen'
+[33m16f1c39[m[33m ([m[1;31morigin/KAN-93-Create-order-screen[m[33m)[m fix create order screen
+[33m75d78a4[m[33m ([m[1;31morigin/KAN-97-Create-srceen-compare-Product[m[33m, [m[1;32mKAN-96-create-screen-list-product[m[33m)[m Merge branch 'main' into KAN-96-create-screen-list-product
+[33m065fd41[m KAN-96 Create screen List Product
+[33md16b52a[m[33m ([m[1;31morigin/KAN-100-Create-quatation-screen[m[33m)[m Merge branch 'main' of https://github.com/LeKhang-cn22h/Electric-Vehicle-Dealer-Management-System-Frontend into KAN-100-Create-quatation-screen
+[33m76a3004[m Detail quotation screen
+[33ma803893[m refactoring product card and detail card
+[33m347b78a[m Merge pull request #15 from LeKhang-cn22h/KAN-98-profile-page
+[33me1bf145[m KAN-98 profile page
+[33mc4f3c42[m add settingpage in topbar
+[33m2c67041[m fix layout topbar
+[33mac2dfc5[m fix topbar
+[33m2a0eb82[m Merge pull request #14 from LeKhang-cn22h/KAN-99-forget-password-page
+[33m9deedf4[m[33m ([m[1;31morigin/KAN-99-forget-password-page[m[33m)[m fix css forgot
+[33m3d4e06c[m add forgot page
+[33mebb1812[m Merge branch 'KAN-93-Create-order-screen' into KAN-100-Create-quatation-screen
+[33m178d225[m fix route
+[33m3460cb0[m Merge branch 'KAN-100-Create-quatation-screen' into KAN-93-Create-order-screen
+[33mef7c3ef[m Detail order screen
+[33m3c10c05[m List Quotes Screen
+[33m5b81196[m Merge pull request #13 from LeKhang-cn22h/KAN-94-create-a-coordination-management-screen
+[33ma1546d7[m[33m ([m[1;31morigin/KAN-94-create-a-coordination-management-screen[m[33m)[m KAN-94 create a coordination management screen
+[33m94393c8[m  conflict resolution
+[33m8ba085e[m Merge branch 'main' of https://github.com/LeKhang-cn22h/Electric-Vehicle-Dealer-Management-System-Frontend git commit -m "Resolve merge conflicts"
+[33mfa34236[m create quote screen
+[33m47b3532[m[33m ([m[1;31morigin/KAN-96-Create-screen-List-Product[m[33m)[m Merge pull request #12 from LeKhang-cn22h/KAN-95-create-a-dealer-manager-screen
+[33m77ffe63[m[33m ([m[1;31morigin/KAN-95-create-a-dealer-manager-screen[m[33m)[m KAN-95 create a dealer manager screen
+[33m14ff713[m Merge branch 'main' of https://github.com/LeKhang-cn22h/Electric-Vehicle-Dealer-Management-System-Frontend
+[33m85fe6d7[m create screen dealer manager
+[33m76f4a2d[m Merge pull request #11 from LeKhang-cn22h/KAN-93-Create-order-screen
+[33m44e9c3b[m Merge branch 'main' of https://github.com/LeKhang-cn22h/Electric-Vehicle-Dealer-Management-System-Frontend into KAN-93-Create-order-screen
+[33m9e2cb61[m Merge pull request #10 from LeKhang-cn22h/KAN-92-create-detail-product-screen
+[33me1931f9[m[33m ([m[1;31morigin/KAN-92-create-detail-product-screen[m[33m)[m add detail product page
+[33m069557b[m[33m ([m[1;32mKAN-85-Create-Screen-feedback[m[33m)[m fix detail
+[33mb6ea54b[m Merge branch 'main' of https://github.com/LeKhang-cn22h/Electric-Vehicle-Dealer-Management-System-Frontend into KAN-85-Create-Screen-feedback
+[33m6981ab2[m fix router
+[33m954db5b[m[33m ([m[1;31morigin/KAN-85-Create-Screen-feedback[m[33m)[m screen detail feedback
+[33m2d902e8[m Merge pull request #9 from LeKhang-cn22h/vu
+[33m92102e8[m[33m ([m[1;31morigin/vu[m[33m)[m test API
+[33m7395d9b[m Merge pull request #8 from LeKhang-cn22h/KAN-90-create-EVM-Staff
+[33m3741452[m[33m ([m[1;31morigin/KAN-90-create-EVM-Staff[m[33m)[m push screen EVM Staff
+[33m7ac37d6[m done screen list feedback
+[33m1e5b676[m Merge branch 'Create-Order' into KAN-93-Create-order-screen
+[33ma04e32a[m[33m ([m[1;31morigin/Create-Order[m[33m)[m to chuc lai cac file schemas va types
+[33m97f6169[m create notification global
+[33m3516183[m Merge pull request #7 from LeKhang-cn22h/KAN-85-Create-Screen-feedback
+[33m3b75f4b[m KAN-85 Create Screen feedback for customer done subtask
+[33m5f60f60[m add zod, validate cho form customer, fix create order
+[33mbef9caa[m[33m ([m[1;32mFeedback[m[33m)[m Merge pull request #6 from LeKhang-cn22h/Create-Order
+[33m761a68a[m fix route
+[33m2960d78[m Merge pull request #5 from LeKhang-cn22h/Create-Order
+[33m9a85495[m Trang Tao don hang
+[33ma80f167[m Merge pull request #4 from LeKhang-cn22h/dang-ky-lai-thu
+[33md7ca48b[m[33m ([m[1;31morigin/dang-ky-lai-thu[m[33m)[m Merge branch 'main' into dang-ky-lai-thu
+[33m720d6bb[m Merge pull request #3 from LeKhang-cn22h/vu
+[33mbab8156[m dang ky lai thu
+[33m17f2b22[m add homepage UI
+[33mfaa01c9[m add UI login
+[33mf6f5d71[m add UI register
+[33mb1465df[m after merge order
+[33m42f28b5[m merge
+[33m2717a21[m Merge pull request #2 from LeKhang-cn22h/FE_List_Orders
+[33m48af385[m[33m ([m[1;31morigin/FE_List_Orders[m[33m)[m FE Danh sach don hang
+[33m1a2d6c5[m Merge pull request #1 from LeKhang-cn22h/vu
+[33mb997ad7[m  update bg
+[33md229806[m add topbar+ footer
+[33m00955ac[m add topbar
+[33m94230c6[m docs: update README
+[33m0c85782[m Initial commit
