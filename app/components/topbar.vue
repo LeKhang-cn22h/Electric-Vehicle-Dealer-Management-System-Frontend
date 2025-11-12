@@ -42,7 +42,7 @@ const topLeftLinks = computed(() => commonMenu);
 
 const cta = computed(() => ({
   label: "Đăng ký lái thử",
-  to: "/user/test-driver",
+  to: "/testDriver",
 }));
 const userName = computed(() => {
   if (!me.value) return null;
