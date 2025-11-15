@@ -8,6 +8,7 @@ export function useAuth() {
   const login = async (email: string, password: string) => {
     isSubmitting.value = true;
     serverError.value = null;
+    
     serverSuccess.value = null;
 
     try {
