@@ -25,7 +25,7 @@ export function useMe() {
     error.value = null;
 
     try {
-      console.log("📡 Fetching user data...");
+      console.log("Fetching user data...");
 
       const res = await fetch("http://localhost:4000/auth/me", {
         method: "POST",
@@ -58,7 +58,7 @@ export function useMe() {
         err.message.includes("token") ||
         err.message.includes("401")
       ) {
-        console.log("🗑️ Removing invalid token");
+        console.log("Removing invalid token");
         localStorage.removeItem("access_token");
         localStorage.removeItem("refresh_token");
       }

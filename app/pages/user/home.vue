@@ -163,6 +163,7 @@ const Listcar = ref([
           <a href="/dealer_manager" class="btn btn-secondary"
             >Trang Dealer Manager</a
           >
+          <a href="/admin/dashboard" class="btn btn-secondary">ADMIN</a>
         </div>
       </div>
 
