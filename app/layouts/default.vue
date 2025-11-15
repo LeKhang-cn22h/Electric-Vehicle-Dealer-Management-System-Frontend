@@ -4,6 +4,9 @@ import Notification from "~/components/common/Notification.vue";
 import { useNotification } from "~/composables/useNotification";
 import SiteFooter from "~/components/SiteFooter.vue";
 import CompareBar from "~/components/compare/CompareBar.vue";
+import { useMe } from "~/composables/useMe";
+
+const { me, pending, error } = useMe();
 
 const { notification } = useNotification();
 </script>

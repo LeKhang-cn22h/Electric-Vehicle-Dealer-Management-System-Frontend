@@ -10,7 +10,7 @@
       <!-- Ảnh sản phẩm -->
       <div class="relative w-full h-40 overflow-hidden bg-gray-100 flex justify-center items-center transition-all duration-500">
         <img
-          :src="car.src"
+          :src="car.imageUrl"
           :alt="car.name"
           draggable="false"
           class="w-full h-full object-cover transition-transform duration-500"
@@ -47,17 +47,19 @@
 
 <script setup>
 import { useCompareStore } from '~/store/compareStore';
-const compareStore = useCompareStore()
-const addToCompare = () => {
-  compareStore.addCar(props.car)
-  console.log('Current compare list:', compareStore.selectedCars);
-}
 const props = defineProps({
   car: {
     type: Object,
     required: true
   }
 });
+const compareStore = useCompareStore()
+const addToCompare = () => {
+  compareStore.addCar(props.car)
+  console.log('Current compare list:', compareStore.selectedCars);
+}
+
+
 </script>
 
 
