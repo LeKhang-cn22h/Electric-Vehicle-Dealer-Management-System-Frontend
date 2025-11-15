@@ -1,57 +1,63 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import SearchBar from '@/components/ProductCustomer/SearchBar.vue'
-import FilterBar from '@/components/ProductCustomer/FilterBar.vue'
-import ProductCard from '@/components/ProductCustomer/ProductCard.vue'
-import CompareModal from '@/components/ProductCustomer/CompareModal.vue'
-import { useVehicle } from '~/composables/useVehicle'
+import { ref, computed, onMounted } from 'vue';
+import SearchBar from '@/components/ProductCustomer/SearchBar.vue';
+import FilterBar from '@/components/ProductCustomer/FilterBar.vue';
+import ProductCard from '@/components/ProductCustomer/ProductCard.vue';
+import CompareModal from '@/components/ProductCustomer/CompareModal.vue';
+import { useVehicle } from '~/composables/useVehicle';
 
 // Lấy data từ composable
-const { vehicles, loading, error, fetchAll } = useVehicle()
+const { vehicles, loading, error, fetchAll } = useVehicle();
 
-onMounted(() => {
-  fetchAll()
-})
+onMounted(async () => {
+  await fetchAll();
+  console.log('Vehicles loaded:', vehicles.value);
+});
 
 // State tìm kiếm + lọc + so sánh
-const keyword = ref('')
-const filters = ref({})
-const showCompare = ref(false)
-const compareList = ref([])
+const keyword = ref('');
+const filters = ref({});
+const showCompare = ref(false);
+const compareList = ref([]);
 
 // Hàm nhận dữ liệu từ SearchBar
 const onSearch = (val) => {
-  keyword.value = val
-}
+  keyword.value = val;
+};
 
 // Hàm nhận dữ liệu từ FilterBar
 const onFilterChange = (val) => {
-  filters.value = val
-}
+  filters.value = val;
+};
 
 // Computed filter dựa trên vehicles
 const filteredCars = computed(() => {
-  return vehicles.value.filter(car => {
-    const matchesSearch =
-      car.name?.toLowerCase().includes(keyword.value.toLowerCase())
+  if (!vehicles.value?.data) return [];
 
-    const matchesMake =
-      !filters.value.make || car.make === filters.value.make
+  return vehicles.value.data.filter(car => {
+    // Search by name
+    const matchesSearch = !keyword.value || 
+      car.name?.toLowerCase().includes(keyword.value.toLowerCase());
 
-    const matchesModel =
-      !filters.value.model || car.model === filters.value.model
+    // Filter by make (nếu có)
+    const matchesMake = !filters.value.make || 
+      car.make === filters.value.make;
 
-    return matchesSearch && matchesMake && matchesModel
-  })
-})
+    // Filter by model (nếu có)
+    const matchesModel = !filters.value.model || 
+      car.model === filters.value.model;
+
+    return matchesSearch && matchesMake && matchesModel;
+  });
+});
 
 // Add xe vào danh sách so sánh
 const addToCompare = (car) => {
   if (!compareList.value.find(c => c.id === car.id)) {
-    compareList.value.push(car)
+    compareList.value.push(car);
   }
-  showCompare.value = true
-}
+  showCompare.value = true;
+};
 </script>
 
 <template>
@@ -62,12 +68,37 @@ const addToCompare = (car) => {
       <FilterBar @filter-change="onFilterChange" />
     </div>
 
+    <!-- Loading State -->
+    <div v-if="loading" class="text-center py-12">
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+      <p class="mt-4 text-gray-600">Đang tải...</p>
+    </div>
+
+    <!-- Error State -->
+    <div v-else-if="error" class="text-center py-12">
+      <p class="text-red-600">❌ {{ error }}</p>
+      <button 
+        @click="fetchAll" 
+        class="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+      >
+        Thử lại
+      </button>
+    </div>
+
+    <!-- Empty State -->
+    <div v-else-if="filteredCars.length === 0" class="text-center py-12">
+      <p class="text-gray-600">Không tìm thấy xe nào</p>
+    </div>
+
     <!-- Danh sách xe (filteredCars) -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
+    <div 
+      v-else
+      class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6"
+    >
       <ProductCard
-        v-for="item in filteredCars"
-        :key="item.id"
-        :item="item"
+        v-for="car in filteredCars"
+        :key="car.id"
+        :car="car"
         @compare="addToCompare"
       />
     </div>

@@ -6,34 +6,36 @@ const api = axios.create({
 
 // Interceptor để tự động thêm token vào mọi request
 api.interceptors.request.use((config) => {
-    const token = localStorage.getItem('access_token'); 
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
+    // CHỈ thêm token nếu KHÔNG PHẢI là GET /vehicle
+    const isPublicGetVehicle = config.method === 'get' && config.url?.startsWith('/vehicle');
+    
+    if (!isPublicGetVehicle) {
+        const token = localStorage.getItem('access_token'); 
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
     }
+    
     return config;
 });
 
 export const VehicleService = {
-    // GET ALL - Giữ nguyên
+    // ✅ GET ALL - Không gửi token
     async getAll() {
         const res = await api.get('/vehicle');
         return res.data;
     },
 
-    //  GET ONE - Fix template literal (thiếu dấu `)
+    // ✅ GET ONE - Không gửi token
     async getOne(id: number) {
-        const res = await api.get(`/vehicle/${id}`); 
+        const res = await api.get(`/vehicle/${id}`);
         return res.data;
     },
 
-    //  CREATE - Sửa để gửi multipart/form-data
+    // 🔒 CREATE - Có token
     async create(vehicleData: any, images: File[]) {
         const formData = new FormData();
-
-        // Append vehicle JSON
         formData.append('vehicle', JSON.stringify(vehicleData));
-
-        // Append images
         images.forEach((file) => {
             formData.append('images', file);
         });
@@ -47,21 +49,18 @@ export const VehicleService = {
         return res.data;
     },
 
-    // UPDATE - Sửa để gửi multipart/form-data
+    // 🔒 UPDATE - Có token
     async update(id: number, vehicleData: any, images?: File[]) {
         const formData = new FormData();
-
-        // append vehicle JSON
         formData.append('vehicle', JSON.stringify(vehicleData));
 
-        // Append images 
         if (images && images.length > 0) {
             images.forEach((file) => {
                 formData.append('images', file);
             });
         }
 
-        const res = await api.put(`/vehicle/${id}`, formData, { 
+        const res = await api.put(`/vehicle/${id}`, formData, {
             headers: {
                 'Content-Type': 'multipart/form-data',
             },
@@ -70,7 +69,7 @@ export const VehicleService = {
         return res.data;
     },
 
-    //DELETE 
+    // 🔒 DELETE - Có token
     async remove(id: number) {
         const res = await api.delete(`/vehicle/${id}`);
         return res.data;
