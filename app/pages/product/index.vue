@@ -1,7 +1,8 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import SearchBar from '@/components/ProductCustomer/SearchBar.vue';
-import FilterBar from '@/components/ProductCustomer/FilterBar.vue';
+import ModelFilter from '@/components/ProductCustomer/ModelFilter.vue';
+import PriceFilter from '@/components/ProductCustomer/PriceFilter.vue';
 import ProductCard from '@/components/ProductCustomer/ProductCard.vue';
 import CompareModal from '@/components/ProductCustomer/CompareModal.vue';
 import { useVehicle } from '~/composables/useVehicle';
@@ -25,9 +26,21 @@ const onSearch = (val) => {
   keyword.value = val;
 };
 
-// Hàm nhận dữ liệu từ FilterBar
-const onFilterChange = (val) => {
-  filters.value = val;
+// Hàm nhận dữ liệu từ ModelFilter
+const onModelFilterChange = (filterData) => {
+  filters.value = {
+    ...filters.value,
+    model: filterData.model
+  };
+};
+
+// Hàm nhận dữ liệu từ PriceFilter
+const onPriceFilterChange = (filterData) => {
+  filters.value = {
+    ...filters.value,
+    minPrice: filterData.minPrice,
+    maxPrice: filterData.maxPrice
+  };
 };
 
 // Computed filter dựa trên vehicles
@@ -39,15 +52,16 @@ const filteredCars = computed(() => {
     const matchesSearch = !keyword.value || 
       car.name?.toLowerCase().includes(keyword.value.toLowerCase());
 
-    // Filter by make (nếu có)
-    const matchesMake = !filters.value.make || 
-      car.make === filters.value.make;
-
     // Filter by model (nếu có)
     const matchesModel = !filters.value.model || 
-      car.model === filters.value.model;
+      car.model?.toLowerCase().includes(filters.value.model.toLowerCase());
 
-    return matchesSearch && matchesMake && matchesModel;
+    // Filter by price (nếu có)
+    const carPrice = car.price || 0;
+    const matchesMinPrice = !filters.value.minPrice || carPrice >= filters.value.minPrice;
+    const matchesMaxPrice = !filters.value.maxPrice || carPrice <= filters.value.maxPrice;
+
+    return matchesSearch && matchesModel && matchesMinPrice && matchesMaxPrice;
   });
 });
 
@@ -61,11 +75,20 @@ const addToCompare = (car) => {
 </script>
 
 <template>
-  <div class="p-6">
-    <!-- Search + Filter -->
-    <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
-      <SearchBar @update:search="onSearch" />
-      <FilterBar @filter-change="onFilterChange" />
+        <div class="p-6">
+          <!-- Search + Filter -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- Cột: Search + Model (xếp dọc) -->
+        <div class="flex flex-col gap-14">
+          <SearchBar @update:search="onSearch" />
+          <ModelFilter @filter-change="onModelFilterChange" />
+        </div>
+
+        <!-- Cột: PriceFilter -->
+        <PriceFilter @filter-change="onPriceFilterChange" />
+
+
     </div>
 
     <!-- Loading State -->
@@ -88,6 +111,12 @@ const addToCompare = (car) => {
     <!-- Empty State -->
     <div v-else-if="filteredCars.length === 0" class="text-center py-12">
       <p class="text-gray-600">Không tìm thấy xe nào</p>
+      <button 
+        @click="() => { keyword = ''; filters = {}; }" 
+        class="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+      >
+        Xóa bộ lọc
+      </button>
     </div>
 
     <!-- Danh sách xe (filteredCars) -->
