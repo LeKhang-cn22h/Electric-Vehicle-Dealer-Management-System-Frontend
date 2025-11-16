@@ -6,72 +6,105 @@ const api = axios.create({
 
 // Interceptor để tự động thêm token vào mọi request
 api.interceptors.request.use((config) => {
-    // CHỈ thêm token nếu KHÔNG PHẢI là GET /vehicle
+    // Chỉ GET /vehicle mới không cần token
     const isPublicGetVehicle = config.method === 'get' && config.url?.startsWith('/vehicle');
-    
+
     if (!isPublicGetVehicle) {
-        const token = localStorage.getItem('access_token'); 
+        const token = localStorage.getItem('access_token');
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
     }
-    
+
     return config;
 });
 
 export const VehicleService = {
-    // ✅ GET ALL - Không gửi token
-    async getAll() {
-        const res = await api.get('/vehicle');
+
+    // ===============================
+    // 📌 GET ALL (Public)
+    // ===============================
+    async findAll(filters?: any) {
+        const res = await api.get('/vehicle', {
+            params: filters,   // keyword, model, status, minPrice, maxPrice, cursor, limit
+        });
         return res.data;
     },
 
-    // ✅ GET ONE - Không gửi token
+    // ===============================
+    // 📌 SEARCH ALL (Public)
+    // ===============================
+    async searchAll(keyword: string, cursor?: number, limit: number = 20) {
+        const res = await api.get('/vehicle/search', {
+            params: { keyword, cursor, limit }
+        });
+        return res.data;
+    },
+
+    // ===============================
+    // 📌 FILTER BY MODEL (Public)
+    // ===============================
+    async filterByModel(model: string, cursor?: number, limit: number = 20) {
+        const res = await api.get('/vehicle/filter/model', {
+            params: { model, cursor, limit }
+        });
+        return res.data;
+    },
+
+    // ===============================
+    // 📌 GET ALL MODELS (Public)
+    // ===============================
+    async getAllModels() {
+        const res = await api.get('/vehicle/models');
+        return res.data;
+    },
+
+    // ===============================
+    // 📌 GET ONE (Public)
+    // ===============================
     async getOne(id: number) {
         const res = await api.get(`/vehicle/${id}`);
         return res.data;
     },
 
-    // 🔒 CREATE - Có token
+    // ===============================
+    // 🔒 CREATE (Auth)
+    // ===============================
     async create(vehicleData: any, images: File[]) {
         const formData = new FormData();
         formData.append('vehicle', JSON.stringify(vehicleData));
-        images.forEach((file) => {
-            formData.append('images', file);
-        });
+        images.forEach((file) => formData.append('images', file));
 
         const res = await api.post('/vehicle', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
+            headers: { 'Content-Type': 'multipart/form-data' },
         });
 
         return res.data;
     },
 
-    // 🔒 UPDATE - Có token
+    // ===============================
+    // 🔒 UPDATE (Auth)
+    // ===============================
     async update(id: number, vehicleData: any, images?: File[]) {
         const formData = new FormData();
         formData.append('vehicle', JSON.stringify(vehicleData));
 
         if (images && images.length > 0) {
-            images.forEach((file) => {
-                formData.append('images', file);
-            });
+            images.forEach((file) => formData.append('images', file));
         }
 
         const res = await api.put(`/vehicle/${id}`, formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
+            headers: { 'Content-Type': 'multipart/form-data' },
         });
 
         return res.data;
     },
 
-    // 🔒 DELETE - Có token
+    // ===============================
+    // 🔒 DELETE (Auth)
+    // ===============================
     async remove(id: number) {
         const res = await api.delete(`/vehicle/${id}`);
         return res.data;
-    }
+    },
 };
