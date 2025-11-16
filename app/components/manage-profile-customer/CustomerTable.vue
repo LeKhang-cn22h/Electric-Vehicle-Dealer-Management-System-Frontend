@@ -22,7 +22,13 @@
           <td class="px-4 py-2 text-sm text-gray-600">{{ customer.email }}</td>
           <td class="px-4 py-2 text-sm text-gray-600">{{ customer.phone }}</td>
           <td class="px-4 py-2 text-sm">
-            <button class="text-blue-500 hover:underline">Chi tiết</button>
+            <!-- Dùng router để chuyển hướng -->
+            <button
+              @click="goToDetail(customer.id)"
+              class="text-blue-500 hover:underline"
+            >
+              Chi tiết
+            </button>
           </td>
         </tr>
       </tbody>
@@ -31,7 +37,15 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{
+import { useRouter } from 'vue-router'
+
+const props = defineProps<{
   customers: any[]
 }>()
+
+const router = useRouter()
+
+const goToDetail = (id: string | number) => {
+  router.push(`/manage_profile_customer/${id}`)
+}
 </script>
