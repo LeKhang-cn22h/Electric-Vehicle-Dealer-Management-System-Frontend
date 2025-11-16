@@ -1,9 +1,10 @@
 import { ref } from 'vue';
 import { VehicleService } from '~/services/vehicle.service';
+import type { Vehicle } from '~/types/vehicle';
 
 export function useVehicle() {
     const vehicles = ref([]);
-    const vehicle = ref(null); 
+    const vehicle = ref<Vehicle | null>(null); // Thêm type Vehicle
     const loading = ref(false);
     const error = ref<string | null>(null);
 
@@ -24,7 +25,7 @@ export function useVehicle() {
         loading.value = true;
         error.value = null;
         try {
-            vehicle.value = await VehicleService.getOne(id); // lưu vào vehicle, không phải vehicles
+            vehicle.value = await VehicleService.getOne(id) as Vehicle; // lưu vào vehicle, không phải vehicles
         } catch (e: any) {
             error.value = e.message || 'Error fetching vehicle';
             console.error('[useVehicle] fetchOne error:', e);
