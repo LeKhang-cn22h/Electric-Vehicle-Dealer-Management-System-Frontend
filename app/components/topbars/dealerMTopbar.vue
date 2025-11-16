@@ -14,6 +14,7 @@
         <router-link to="/dealer_staff/EVM_staff/pricing" class="nav-item">Quản lý khuyến mãi</router-link>
         <router-link to="/dealer_staff/EVM_staff/test-drive" class="nav-item">Quản lý công nợ</router-link>
         <router-link to="/manage_testDriver" class="nav-item">Quản lý lịch lái</router-link>
+        <router-link to="/manage_profile_customer" class="nav-item">QUản lý hồ sơ</router-link>
       </div>
 
       <div class="user-section">
