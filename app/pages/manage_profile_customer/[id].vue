@@ -6,49 +6,58 @@
       ← Quay lại danh sách
     </button>
 
-    <!-- Header -->
+    <!-- Header + Nút hiển thị/ẩn Activity Log -->
     <div class="flex items-center justify-between mb-6">
       <h1 class="text-3xl font-bold">Chi tiết khách hàng</h1>
 
-      <!-- Nút Edit / Lưu / Hủy / Khóa -->
-      <div class="flex gap-3">
+      <button
+        @click="showActivity = !showActivity"
+        class="bg-gray-200 px-3 py-1 rounded hover:bg-gray-300 text-sm"
+      >
+        {{ showActivity ? 'Ẩn nhật ký hoạt động' : 'Hiển thị nhật ký hoạt động' }}
+      </button>
+    </div>
 
-        <!-- Nút khóa/mở -->
-        <button
-          class="px-4 py-2 rounded text-white"
-          :class="customer.status ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'"
-          @click="confirmToggleStatus"
-        >
-          {{ customer.status ? 'Khóa' : 'Mở khóa' }}
-        </button>
+    <!-- Activity Log -->
+    <ActivityLog v-if="showActivity" :logs="activityLogs" class="mb-6" />
 
-        <!-- Nút chỉnh sửa -->
-        <button 
-          v-if="!isEditing"
-          @click="startEdit"
-          class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-        >
-          Chỉnh sửa
-        </button>
+    <!-- Nút Edit / Lưu / Hủy / Khóa -->
+    <div class="flex gap-3 mb-6">
+      <!-- Nút khóa/mở -->
+      <button
+        class="px-4 py-2 rounded text-white"
+        :class="customer.status ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'"
+        @click="confirmToggleStatus"
+      >
+        {{ customer.status ? 'Khóa' : 'Mở khóa' }}
+      </button>
 
-        <!-- Lưu -->
-        <button 
-          v-if="isEditing"
-          @click="saveEdit"
-          class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-        >
-          Lưu
-        </button>
+      <!-- Nút chỉnh sửa -->
+      <button 
+        v-if="!isEditing"
+        @click="startEdit"
+        class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+      >
+        Chỉnh sửa
+      </button>
 
-        <!-- Hủy -->
-        <button 
-          v-if="isEditing"
-          @click="cancelEdit"
-          class="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
-        >
-          Hủy
-        </button>
-      </div>
+      <!-- Lưu -->
+      <button 
+        v-if="isEditing"
+        @click="saveEdit"
+        class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+      >
+        Lưu
+      </button>
+
+      <!-- Hủy -->
+      <button 
+        v-if="isEditing"
+        @click="cancelEdit"
+        class="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
+      >
+        Hủy
+      </button>
     </div>
 
     <!-- Thông tin khách hàng -->
@@ -123,7 +132,7 @@
 
     </div>
 
-    <!-- Popup xác nhận -->
+    <!-- Popup xác nhận khóa/mở -->
     <div 
       v-if="showConfirm"
       class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center"
@@ -150,9 +159,11 @@
 
   </div>
 </template>
+
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import ActivityLog from '~/components/manage-profile-customer/ActivityLog.vue'
 
 // Router
 const route = useRoute()
@@ -208,7 +219,31 @@ const confirmToggleStatus = () => {
 const toggleStatus = () => {
   customer.value.status = !customer.value.status
   showConfirm.value = false
-
   console.log("Trạng thái mới:", customer.value.status)
 }
+
+// ======================
+// Activity Log
+// ======================
+const showActivity = ref(false)
+
+const activityLogs = ref([
+  {
+    action: "Chỉnh sửa thông tin khách hàng",
+    user: "Admin",
+    time: "2025-11-15T10:22:00",
+    description: "Cập nhật số điện thoại và địa chỉ."
+  },
+  {
+    action: "Khóa hồ sơ",
+    user: "Quản lý",
+    time: "2025-11-10T08:12:00",
+    description: "Khách hàng yêu cầu tạm khóa."
+  },
+  {
+    action: "Tạo hồ sơ",
+    user: "Admin",
+    time: "2025-11-01T14:55:00"
+  }
+])
 </script>
