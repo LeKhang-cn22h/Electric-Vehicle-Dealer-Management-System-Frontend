@@ -4,7 +4,6 @@ export function useAuth() {
   const isSubmitting = ref(false);
   const serverError = ref<string | null>(null);
   const serverSuccess = ref<string | null>(null);
-
   const login = async (email: string, password: string) => {
     isSubmitting.value = true;
     serverError.value = null;
@@ -24,15 +23,15 @@ export function useAuth() {
         throw new Error(data.message || "Đăng nhập thất bại");
       }
 
-      if (data.access_token) {
-        localStorage.setItem("access_token", data.access_token);
-        serverSuccess.value = "Đăng nhập thành công! Đang chuyển hướng...";
-        return { success: true, data };
-      }
+      const user = data.user;
+      const role = user?.user_metadata?.role;
 
-      throw new Error("Không tìm thấy access_token trong phản hồi");
+      localStorage.setItem("access_token", data.access_token);
+      localStorage.setItem("role", role);
+
+      return { success: true, role, user };
     } catch (err: any) {
-      serverError.value = err.message || "Lỗi kết nối đến máy chủ";
+      serverError.value = err.message;
       return { success: false };
     } finally {
       isSubmitting.value = false;
