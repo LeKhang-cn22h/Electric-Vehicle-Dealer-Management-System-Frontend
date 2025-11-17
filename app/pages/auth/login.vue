@@ -30,9 +30,20 @@ const isValid = computed(() => Object.keys(errors.value).length === 0);
 
 async function onSubmit() {
   if (!isValid.value) return;
+
   const result = await login(form.value.email, form.value.password);
+
   if (result.success) {
-    setTimeout(() => (window.location.href = "/user/home"), 1000);
+    // Lấy role từ Auth
+    const role = result.role;
+
+    if (role === "admin") {
+      window.location.href = "/admin/dashboard";
+    } else if (role === "dealer_manager" || role === "dealer_staff") {
+      window.location.href = "/EVM_staff";
+    } else {
+      window.location.href = "/user/home";
+    }
   }
 }
 
