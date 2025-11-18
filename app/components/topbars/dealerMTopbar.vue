@@ -8,13 +8,34 @@
       </div>
 
       <div class="nav-section">
-        <router-link to="/dealer_staff/EVM_staff" class="nav-item">Trang chủ</router-link>
-        <router-link to="/dealer_staff/EVM_staff/vehicles" class="nav-item">Quản lý chiết khấu</router-link>
-        <router-link to="/dealer_staff/EVM_staff/orders" class="nav-item">Quản lý giá sỉ</router-link>
-        <router-link to="/dealer_staff/EVM_staff/pricing" class="nav-item">Quản lý khuyến mãi</router-link>
-        <router-link to="/dealer_staff/EVM_staff/test-drive" class="nav-item">Quản lý công nợ</router-link>
-        <router-link to="/manage_testDriver" class="nav-item">Quản lý lịch lái</router-link>
-        <router-link to="/manage_profile_customer" class="nav-item">QUản lý hồ sơ</router-link>
+        <router-link to="/dealer_staff/EVM_staff" class="nav-item"
+          >Trang chủ</router-link
+        >
+        <router-link to="/dealer_staff/EVM_staff/vehicles" class="nav-item"
+          >Quản lý chiết khấu</router-link
+        >
+        <router-link to="/dealer_staff/EVM_staff/orders" class="nav-item"
+          >Quản lý giá sỉ</router-link
+        >
+        <router-link to="/dealer_staff/EVM_staff/pricing" class="nav-item"
+          >Quản lý khuyến mãi</router-link
+        >
+        <router-link to="/dealer_staff/EVM_staff/test-drive" class="nav-item"
+          >Quản lý công nợ</router-link
+        >
+        <router-link to="/manage_testDriver" class="nav-item"
+          >Quản lý lịch lái</router-link
+        >
+        <router-link to="/manage_profile_customer" class="nav-item"
+          >QUản lý hồ sơ</router-link
+        >
+        <router-link
+          v-if="isDealerManager"
+          to="/dealer_manager/ManageDealerStaff"
+          class="nav-item"
+        >
+          Quản lý Dealer Staff
+        </router-link>
       </div>
 
       <div class="user-section">
@@ -26,13 +47,19 @@
 </template>
 
 <script setup>
-import { useRouter } from 'vue-router'
+import { useRouter } from "vue-router";
 
-const router = useRouter()
+const router = useRouter();
+// Lấy role từ Cookie
+const userRole = useCookie("role");
 
+//  kiểm tra dealer_manager
+const isDealerManager = computed(() => {
+  return userRole.value === "dealer_manager";
+});
 const switchToUser = () => {
-  router.push('/')
-}
+  router.push("/");
+};
 </script>
 
 <style scoped>
@@ -40,8 +67,7 @@ const switchToUser = () => {
   background: linear-gradient(135deg, #7587dc 0%, #6ba0e0 100%);
   color: white;
   padding: 0 20px;
-  box-shadow: 0 2px 20px rgba(0,0,0,0.1);
-  /* border-bottom: 3px solid #5d69e6; */
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
 }
 
 .topbar-content {
@@ -57,7 +83,7 @@ const switchToUser = () => {
   color: white;
   margin: 0;
   font-size: 1.4rem;
-  background: rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.1);
   padding: 8px 15px;
   border-radius: 8px;
 }
@@ -79,11 +105,11 @@ const switchToUser = () => {
   border-radius: 6px;
   transition: all 0.3s;
   font-weight: 600;
-  background: rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .nav-item:hover {
-  background: rgba(255,255,255,0.2);
+  background: rgba(255, 255, 255, 0.2);
   transform: translateY(-2px);
 }
 
@@ -99,7 +125,7 @@ const switchToUser = () => {
 }
 
 .user-role {
-  background: rgba(255,255,255,0.2);
+  background: rgba(255, 255, 255, 0.2);
   padding: 8px 15px;
   border-radius: 20px;
   font-weight: bold;

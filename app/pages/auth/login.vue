@@ -40,7 +40,7 @@ async function onSubmit() {
     if (role === "admin") {
       window.location.href = "/admin/dashboard";
     } else if (role === "dealer_manager" || role === "dealer_staff") {
-      window.location.href = "/EVM_staff";
+      window.location.href = "/dealer_manager";
     } else {
       window.location.href = "/user/home";
     }

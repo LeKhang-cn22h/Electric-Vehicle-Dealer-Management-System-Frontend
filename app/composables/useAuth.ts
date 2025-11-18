@@ -7,7 +7,7 @@ export function useAuth() {
   const login = async (email: string, password: string) => {
     isSubmitting.value = true;
     serverError.value = null;
-    
+
     serverSuccess.value = null;
 
     try {
@@ -26,9 +26,15 @@ export function useAuth() {
 
       const user = data.user;
       const role = user?.user_metadata?.role;
+      const tokenCookie = useCookie("access_token", {
+        maxAge: 60 * 60 * 24 * 7, // Lưu 7 ngày
+        path: "/",
+      });
+      tokenCookie.value = data.access_token;
 
-      localStorage.setItem("access_token", data.access_token);
-      localStorage.setItem("role", role);
+      const roleCookie = useCookie("role");
+      roleCookie.value = data.user?.user_metadata?.role;
+      return { success: true, role: roleCookie.value, user: data.user };
 
       return { success: true, role, user };
     } catch (err: any) {
