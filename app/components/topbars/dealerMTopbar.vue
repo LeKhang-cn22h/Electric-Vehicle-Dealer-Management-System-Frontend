@@ -40,7 +40,6 @@
 
       <div class="user-section">
         <span class="user-role">DEALER MANAGER</span>
-        <button @click="switchToUser" class="switch-btn">Switch to User</button>
       </div>
     </div>
   </nav>
