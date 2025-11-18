@@ -5,7 +5,7 @@
       v-model="searchText"
       @input="applyFilter"
       type="text"
-      placeholder="Tìm kiếm theo tên hoặc email"
+      placeholder="Tìm kiếm ..."
       class="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
     />
 
