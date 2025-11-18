@@ -30,6 +30,10 @@
         <span v-if="sidebarOpen" class="nav-text">Đại lý</span>
       </NuxtLink>
 
+      <NuxtLink to="/admin/evm-staff" class="nav-item" active-class="active">
+        <Building2 :size="20" class="nav-icon" />
+        <span v-if="sidebarOpen" class="nav-text">EVM Staff</span>
+      </NuxtLink>
       <NuxtLink to="/admin/reports" class="nav-item" active-class="active">
         <FileText :size="20" class="nav-icon" />
         <span v-if="sidebarOpen" class="nav-text">Báo cáo</span>
@@ -72,7 +76,6 @@ function toggle() {
 </script>
 
 <style scoped>
-/* SIDEBAR */
 .sidebar {
   width: 260px;
   background: #1f2937;
