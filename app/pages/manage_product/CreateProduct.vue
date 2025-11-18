@@ -84,19 +84,7 @@
             <p v-if="errors.year" class="text-red-500 text-sm mt-1">{{ errors.year }}</p>
           </div>
 
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-              Trạng thái
-            </label>
-            <select
-              v-model="form.status"
-              class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="Còn hàng">Còn hàng</option>
-              <option value="Hết hàng">Hết hàng</option>
-              <option value="Sắp về">Sắp về</option>
-            </select>
-          </div>
+          
         </div>
       </div>
 
