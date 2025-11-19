@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import ProductCard from "~/components/ProductCustomer/ProductCard.vue";
 import { useMe } from "~/composables/useMe";
+import { VehicleService } from "~/services/vehicle.service";
 definePageMeta({ alias: ["/use/home"] });
+import ProductCard from "~/components/ProductCustomer/ProductCard.vue";
 type User = { id: number; firstName: string; lastName: string; age: number };
 
 const {
@@ -63,82 +64,24 @@ const services = [
     image: "/loans.png",
   },
 ];
+type Vehicle = {
+  id: number;
+  name: string;
+  model: string;
+  version: string;
+  imageUrl: string;
+};
+const newVehicles = ref<Vehicle[]>([]);
 
-// Cars showcase
-const carShowcase = ref([
-  {
-    id: 1,
-    src: "/showcase/xe1.jpg",
-    name: "Mercedes-Benz S-Class",
-    tagline: "Siêu sang · Full Option",
-    price: "Giá tốt • Liên hệ",
-  },
-  {
-    id: 2,
-    src: "/showcase/xe2.jpg",
-    name: "BMW 7 Series",
-    tagline: "Phong cách doanh nhân",
-    price: "Trả góp 0% lãi suất",
-  },
-  {
-    id: 3,
-    src: "/showcase/xe3.jpg",
-    name: "Lexus LX 600",
-    tagline: "SUV đẳng cấp hạng sang",
-    price: "Giao xe ngay",
-  },
-  {
-    id: 4,
-    src: "/showcase/xe4.jpg",
-    name: "Porsche Cayenne",
-    tagline: "Hiệu năng & sang trọng",
-    price: "Có xe trưng bày",
-  },
-  {
-    id: 5,
-    src: "/showcase/xe5.jpg",
-    name: "Range Rover Vogue",
-    tagline: "Biểu tượng quyền lực",
-    price: "Hotline: 1900 xxxx",
-  },
-]);
-const Listcar = ref([
-  {
-    id: 1,
-    src: "/showcase/xe1.jpg",
-    name: "Mercedes-Benz S-Class",
-    isStocked: true,
-    price: "1.090.000.000₫",
-  },
-  {
-    id: 2,
-    src: "/showcase/xe2.jpg",
-    name: "BMW 7 Series",
-    isStocked: false,
-    price: "7.090.000.000₫",
-  },
-  {
-    id: 3,
-    src: "/showcase/xe3.jpg",
-    name: "Lexus LX 600",
-    isStocked: true,
-    price: "2.090.000.000₫",
-  },
-  {
-    id: 4,
-    src: "/showcase/xe4.jpg",
-    name: "Porsche Cayenne",
-    inStock: true,
-    price: "12.090.000.000₫",
-  },
-  {
-    id: 5,
-    src: "/showcase/xe5.jpg",
-    name: "Range Rover Vogue",
-    isStocked: true,
-    price: "1.090.000.000₫",
-  },
-]);
+onMounted(async () => {
+  try {
+    const res = await VehicleService.getNewArrivals(8);
+    console.log("New arrivals FE:", res);
+    newVehicles.value = res;
+  } catch (e) {
+    console.error("Lỗi khi tải xe mới:", e);
+  }
+});
 </script>
 
 <template>
@@ -198,16 +141,23 @@ const Listcar = ref([
               Xe sang – tình trạng mới, giấy tờ rõ ràng, hỗ trợ vay và giao tận
               nơi
             </p>
-            <ul v-if="users">
+
+            <!-- debug users từ /users BE (nếu cần) -->
+            <ul v-if="users && users.length">
               <li v-for="u in users" :key="u.id">
                 {{ u.firstName }} {{ u.lastName }} ({{ u.age }})
               </li>
             </ul>
           </div>
         </div>
+        <div class="cars-list">
+          <div v-if="!newVehicles.length" class="empty-state">
+            Hiện chưa có xe nổi bật hoặc đang tải dữ liệu...
+          </div>
 
-        <div class="cars-grid">
-          <ProductCard v-for="car in Listcar" :key="car.id" :car="car" />
+          <div v-else class="cars-grid">
+            <ProductCard v-for="v in newVehicles" :key="v.id" :car="v" />
+          </div>
         </div>
       </div>
     </section>
