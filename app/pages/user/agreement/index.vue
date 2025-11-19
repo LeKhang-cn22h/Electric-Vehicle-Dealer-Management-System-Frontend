@@ -284,13 +284,12 @@ export default {
         // Hiển thị thông báo thành công
         successMessage.value = result.message || 'Yêu cầu hợp đồng đã được gửi thành công'
 
-        // Reset form sau khi gửi thành công
         Object.keys(formData).forEach(key => {
           formData[key] = ''
         })
 
       } catch (error) {
-        console.error('❌ Lỗi khi gửi yêu cầu:', error)
+        console.error('Lỗi khi gửi yêu cầu:', error)
         errorMessage.value = error.message || 'Có lỗi xảy ra khi gửi yêu cầu. Vui lòng thử lại sau.'
       } finally {
         loading.value = false
