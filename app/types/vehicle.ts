@@ -41,6 +41,7 @@ export interface Vehicle {
     features?: VehicleFeature[];
     created_at?: string;
     updated_at?: string;
+    price?:number;
 }
 
 export interface VehicleListResponse {
@@ -51,4 +52,12 @@ export interface VehicleListResponse {
         imageUrl: string;
     }>;
     nextCursor: number | null;
+}
+export interface CompareCar {
+  id: number;
+  name: string;
+  src: string;
+  model?: string;
+  price?: number;
+  year?: number;
 }

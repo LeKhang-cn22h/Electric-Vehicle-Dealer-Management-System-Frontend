@@ -1,10 +1,17 @@
-// file vehicle.service.ts
 import axios from "axios";
+import { ofetch } from "ofetch";
 
 const api = axios.create({
     baseURL: "http://localhost:4000/api",
 });
 
+export type VehicleSummary = {
+    id: number;
+    name: string;
+    model: string;
+    version: string;
+    imageUrl: string;
+};
 // Interceptor để tự động thêm token vào mọi request
 api.interceptors.request.use((config) => {
     // Chỉ GET /vehicle mới không cần token
@@ -105,6 +112,49 @@ export const VehicleService = {
     // ===============================
     async remove(id: number) {
         const res = await api.delete(`/vehicle/${id}`);
+        return res.data;
+    },
+
+    // ===============================
+    // 📌 RECOMMEND SIMILAR (Public)
+    // ===============================
+    async recommendSimilar(model: string, limit: number = 6) {
+        const res = await api.get("/vehicle/recommend/similar", {
+            params: { model, limit },
+        });
+        return res.data;
+    },
+
+    // ===============================
+    // 📌 RECOMMEND BY PRICE RANGE (Public)
+    // ===============================
+    async recommendByPrice(min: number, max: number, limit: number = 6) {
+        const res = await api.get("/vehicle/recommend/price-range", {
+            params: { min, max, limit },
+        });
+        return res.data;
+    },
+
+    // ===============================
+    // 📌 COMPARE VEHICLES (Public)
+    // ===============================
+    async compare(ids: number[]) {
+        const res = await api.post("/vehicle/compare", { vehicleIds: ids });
+        return res.data;
+    },
+
+    async getNewArrivals(limit = 8): Promise<VehicleSummary[]> {
+        const res = await api.get<VehicleSummary[]>("/vehicle/new-arrivals", {
+            params: { limit },
+        });
+
+        return res.data;
+    },
+
+    async getSimilarVehicles(id: string, limit: number = 10) {
+        const res = await api.get(`/vehicle/${id}/similar`, {
+            params: { limit },
+        });
         return res.data;
     },
 };
