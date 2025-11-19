@@ -2,7 +2,7 @@
     <BaseListPage
         title="Danh sách khuyến mãi"
         :icon="ScrollText"
-        create-link="/user/promotions/create"
+        create-link="/admin/promotions/create"
         create-label="Tạo khuyến mãi mới"
         :fields-name="fieldsName"
         :table-component="OrderTable"
@@ -36,6 +36,10 @@ import { ScrollText } from "lucide-vue-next";
 import { reactive } from "vue";
 import OrderStatusBadge from "@/components/orders/OrderStatusBadge.vue";
 import { formatCurrency, formatDate } from "@/utils/format";
+
+definePageMeta({
+    layout: "admin",
+});
 
 const filters = reactive({
     searchQuery: "",

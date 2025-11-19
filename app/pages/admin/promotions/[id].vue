@@ -83,6 +83,10 @@ import { formatCurrency } from "@/utils/format";
 import type { ApiResponse } from "@/types";
 import type { QuoteDetail } from "@/schemas"; // bạn có thể định nghĩa kiểu này theo project
 
+definePageMeta({
+    layout: "admin",
+});
+
 const route = useRoute();
 const router = useRouter();
 const quoteId = route.params.id;

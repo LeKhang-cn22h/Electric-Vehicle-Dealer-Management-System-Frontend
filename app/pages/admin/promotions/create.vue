@@ -88,6 +88,10 @@
 <script setup>
 import { ref } from "vue";
 
+definePageMeta({
+    layout: "admin",
+});
+
 const promotion = ref({
     name: "",
     code: "",
