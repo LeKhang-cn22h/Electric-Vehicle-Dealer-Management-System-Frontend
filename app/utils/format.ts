@@ -8,10 +8,19 @@ export function formatCurrency(value: number): string {
     }).format(value);
 }
 
-export function formatDate(date: Date | string): string {
-  return new Date(date).toLocaleDateString("vi-VN");
-}
+export function formatDate(date: Date | string | null | undefined): string {
+    console.log(date);
+    if (!date) return "Không xác định";
 
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return "Không xác định"; // kiểm tra xem có phải date hợp lệ không
+
+    const day = d.getUTCDate().toString().padStart(2, "0");
+    const month = (d.getUTCMonth() + 1).toString().padStart(2, "0");
+    const year = d.getUTCFullYear();
+
+    return `${day}/${month}/${year}`;
+}
 
 export function toProductItem(product: CatalogProduct): ProductItem {
     return {
