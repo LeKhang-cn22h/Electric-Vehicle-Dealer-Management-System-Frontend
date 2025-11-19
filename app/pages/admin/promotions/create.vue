@@ -20,7 +20,7 @@
             <label class="font-medium">Loại khuyến mãi</label>
             <div class="flex gap-4 mt-2">
                 <label class="flex items-center gap-2 cursor-pointer">
-                    <input type="radio" value="%" v-model="promotion.discountType" class="text-blue-600" />
+                    <input type="radio" value="percent" v-model="promotion.discountType" class="text-blue-600" />
                     <span>Giảm theo phần trăm (%)</span>
                 </label>
 
@@ -36,7 +36,7 @@
             <div>
                 <label class="font-medium">
                     Giá trị khuyến mãi
-                    <span v-if="promotion.discountType === '%'">(%)</span>
+                    <span v-if="promotion.discountType === 'percent'">(%)</span>
                     <span v-else>(VNĐ)</span>
                 </label>
                 <input type="number" min="0" v-model.number="promotion.value" class="input" placeholder="VD: 20 hoặc 50000" />
@@ -80,14 +80,31 @@
         <!-- Nút hành động -->
         <div class="flex justify-end gap-4">
             <button @click="resetForm" class="btn-outline">Hủy</button>
-            <button @click="savePromotion" class="btn-primary">Lưu khuyến mãi</button>
+            <button @click="handleSubmit" class="btn-primary">Lưu khuyến mãi</button>
         </div>
     </div>
+    <ConfirmModal
+        v-model:show="showModal"
+        title="Xác nhận tạo khuyến mãi"
+        message="Bạn có chắc chắn muốn <b>tạo</b> khuyến mãi mới này không?"
+        confirmText="Xác nhận"
+        cancelText="Hủy"
+        @confirm="handleConfirm"
+    />
+    <StatusModal
+        :visible="visible"
+        :loading="loading"
+        :error="error"
+        @update:visible="(val) => (visible.value = val)"
+        @update:loading="(val) => (loading.value = val)"
+        @update:error="(val) => (error.value = val)"
+    />
 </template>
 
 <script setup>
 import { ref } from "vue";
-
+import ConfirmModal from "~/components/shared/ConfirmModal.vue";
+import StatusModal from "~/components/shared/StatusModal.vue";
 definePageMeta({
     layout: "admin",
 });
@@ -95,7 +112,7 @@ definePageMeta({
 const promotion = ref({
     name: "",
     code: "",
-    discountType: "%",
+    discountType: "percent",
     value: "",
     maxDiscount: "",
     startDate: "",
@@ -104,12 +121,14 @@ const promotion = ref({
     isActive: true,
 });
 
+const { create, loading, error } = usePromotions();
+
 // Reset form
 const resetForm = () => {
     promotion.value = {
         name: "",
         code: "",
-        discountType: "%",
+        discountType: "percent",
         value: "",
         maxDiscount: "",
         startDate: "",
@@ -120,10 +139,45 @@ const resetForm = () => {
 };
 
 // Giả lập lưu (sau này gọi API)
-const savePromotion = () => {
+const savePromotion = async () => {
+    const payload = mapToBackendDto(promotion.value);
+
+    console.log("Dữ liệu khuyến mãi:", payload);
+    const res = await create(payload);
     console.log("Dữ liệu khuyến mãi:", promotion.value);
-    alert("Đã lưu khuyến mãi!");
+    console.log("Dữ liệu khuyến mãi trên database:", res);
 };
+
+const mapToBackendDto = (promotion) => ({
+    code: promotion.code,
+    description: promotion.description || "",
+    discountType: promotion.discountType,
+    discountValue: Number(promotion.value),
+    minOrderValue: promotion.condition ? Number(promotion.condition) : undefined,
+    startDate: promotion.startDate || undefined,
+    endDate: promotion.endDate || undefined,
+    isActive: promotion.isActive,
+});
+
+const showModal = ref(false);
+
+const handleSubmit = () => {
+    showModal.value = true;
+};
+
+const handleConfirm = () => {
+    console.log("Người dùng xác nhận hành động!");
+    // Gọi API hoặc thực hiện action ở đây
+    showModal.value = false; // đóng modal sau khi xác nhận
+    savePromotion();
+};
+
+// State của modal
+const visible = ref(false);
+
+watch(loading, () => {
+    if (loading.value) visible.value = true;
+});
 </script>
 
 <style scoped>

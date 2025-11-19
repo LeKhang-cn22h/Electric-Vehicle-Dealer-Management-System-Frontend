@@ -1,12 +1,12 @@
 <template>
     <div class="min-h-screen bg-gray-50 p-6">
-        <div class="max-w-4xl mx-auto">
+        <div class="max-w-3xl mx-auto">
             <!-- Header -->
             <header class="mb-8">
                 <div class="flex justify-between items-center">
                     <div>
-                        <h1 class="text-2xl font-semibold text-gray-900">Chi tiết báo giá #{{ quoteId }}</h1>
-                        <p class="text-gray-600 mt-1">Thông tin chi tiết của báo giá</p>
+                        <h1 class="text-2xl font-semibold text-gray-900">Khuyến mãi: {{ promotion?.code }}</h1>
+                        <p class="text-gray-600 mt-1">Thông tin chi tiết chương trình khuyến mãi</p>
                     </div>
 
                     <button @click="goBack" class="text-gray-600 hover:text-gray-900 flex items-center gap-2">
@@ -20,68 +20,76 @@
                 <div class="h-10 w-10 border-4 border-gray-300 border-t-black rounded-full animate-spin"></div>
             </div>
 
-            <!-- Nội dung chi tiết -->
-            <div v-else-if="quote" class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 space-y-8">
-                <!-- Thông tin khách hàng -->
+            <!-- Detail content -->
+            <div v-else-if="promotion" class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 space-y-8">
+                <!-- Basic Info -->
                 <section>
-                    <h2 class="text-lg font-semibold text-gray-800 mb-3">Khách hàng</h2>
-                    <p><strong>Tên:</strong> {{ quote.customer.fullName }}</p>
-                    <p><strong>Số điện thoại:</strong> {{ quote.customer.phone }}</p>
-                    <p><strong>Email:</strong> {{ quote.customer.email }}</p>
-                </section>
+                    <h2 class="text-lg font-semibold text-gray-800 mb-3">Thông tin chung</h2>
 
-                <!-- Sản phẩm -->
-                <section>
-                    <h2 class="text-lg font-semibold text-gray-800 mb-3">Sản phẩm</h2>
-                    <table class="w-full border border-gray-200 rounded-lg">
-                        <thead class="bg-gray-100">
-                            <tr>
-                                <th class="text-left px-4 py-2">Tên sản phẩm</th>
-                                <th class="text-left px-4 py-2">Số lượng</th>
-                                <th class="text-left px-4 py-2">Đơn giá</th>
-                                <th class="text-left px-4 py-2">Thành tiền</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="item in quote.items" :key="item.id" class="border-t">
-                                <td class="px-4 py-2">{{ item.productName }}</td>
-                                <td class="px-4 py-2">{{ item.quantity }}</td>
-                                <td class="px-4 py-2">{{ formatCurrency(item.unitPrice) }}</td>
-                                <td class="px-4 py-2">{{ formatCurrency(item.quantity * item.unitPrice) }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </section>
+                    <div class="space-y-2">
+                        <p><strong>Mã khuyến mãi:</strong> {{ promotion.code }}</p>
 
-                <!-- Khuyến mãi -->
-                <section v-if="quote.promotions?.length">
-                    <h2 class="text-lg font-semibold text-gray-800 mb-3">Khuyến mãi</h2>
-                    <ul class="list-disc list-inside text-gray-700">
-                        <li v-for="promo in quote.promotions" :key="promo.promo_id">
-                            {{ promo.name }} — Giảm {{ formatCurrency(promo.discountAmount) }}
-                        </li>
-                    </ul>
-                </section>
+                        <p v-if="promotion.description"><strong>Mô tả:</strong> {{ promotion.description }}</p>
 
-                <!-- Tổng kết -->
-                <section class="border-t pt-4">
-                    <div class="flex justify-between items-center">
-                        <span class="text-lg font-semibold text-gray-700">Tổng tiền:</span>
-                        <span class="text-2xl font-bold text-blue-600">{{ formatCurrency(quote.totalAmount) }}</span>
+                        <p>
+                            <strong>Loại giảm:</strong>
+                            <span class="font-medium">
+                                <span v-if="promotion.discountType === 'percent'"> Giảm {{ promotion.discountValue }}% </span>
+                                <span v-else> Giảm {{ formatCurrency(promotion.discountValue) }} </span>
+                            </span>
+                        </p>
+
+                        <p v-if="promotion.minOrderValue">
+                            <strong>Đơn hàng tối thiểu:</strong>
+                            {{ formatCurrency(promotion.minOrderValue) }}
+                        </p>
+
+                        <p v-if="promotion.minQuantity"><strong>Số lượng tối thiểu:</strong> {{ promotion.minQuantity }}</p>
                     </div>
+                </section>
+
+                <!-- Date Range -->
+                <section>
+                    <h2 class="text-lg font-semibold text-gray-800 mb-3">Thời gian áp dụng</h2>
+                    <p><strong>Từ:</strong> {{ formatDate(promotion.startDate) }}</p>
+                    <p>
+                        <strong>Đến:</strong>
+                        <span v-if="promotion.endDate">
+                            {{ formatDate(promotion.endDate) }}
+                        </span>
+                        <span v-else>Không giới hạn</span>
+                    </p>
+                </section>
+
+                <!-- Status -->
+                <section>
+                    <h2 class="text-lg font-semibold text-gray-800 mb-3">Trạng thái</h2>
+                    <p>
+                        <span
+                            class="px-3 py-1 rounded-full text-sm font-medium"
+                            :class="promotion.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'"
+                        >
+                            {{ promotion.isActive ? "Đang hoạt động" : "Không hoạt động" }}
+                        </span>
+                    </p>
+                </section>
+
+                <!-- Created / Updated -->
+                <section class="border-t pt-4 text-gray-600 text-sm">
+                    <p>Ngày tạo: {{ formatDate(promotion.createdAt) }}</p>
+                    <p>Cập nhật lần cuối: {{ formatDate(promotion.updatedAt) }}</p>
                 </section>
             </div>
 
-            <!-- Không có dữ liệu -->
-            <div v-else class="text-center py-16 text-gray-500">Không tìm thấy báo giá nào 📭</div>
+            <!-- Empty -->
+            <div v-else class="text-center py-16 text-gray-500">Không tìm thấy khuyến mãi 📭</div>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
-import { formatCurrency } from "@/utils/format";
-import type { ApiResponse } from "@/types";
-import type { QuoteDetail } from "@/schemas"; // bạn có thể định nghĩa kiểu này theo project
+import { ref, onMounted } from "vue";
+import { formatCurrency, formatDate } from "@/utils/format";
 
 definePageMeta({
     layout: "admin",
@@ -89,65 +97,32 @@ definePageMeta({
 
 const route = useRoute();
 const router = useRouter();
-const quoteId = route.params.id;
+const promotionId = route.params.id;
 
-// Trạng thái
-const quote = ref<QuoteDetail | null>(null);
+const promotion = ref<any | null>(null);
 const pending = ref(true);
 
-// Lấy dữ liệu từ API
+// Mock API data
 onMounted(async () => {
-    // try {
-    //     const response = await $fetch<ApiResponse<OrderDetail>>(`/api/orders/${orderId}`);
-    //     order.value = response.data;
-    // } catch (error) {
-    //     console.error("Lỗi khi tải đơn hàng:", error);
-    // } finally {
-    //     pending.value = false;
-    // }
-    const mockQuoteDetail: QuoteDetail = {
-        id: 1,
-        customer: {
-            id: 1001,
-            fullName: "Nguyễn Văn A",
-            phone: "0912345678",
-            email: "vana@example.com",
-            address: "123 Đường Lê Lợi, Quận 1, TP.HCM",
-            createdAt: new Date("2024-01-01T10:00:00Z"),
-            updatedAt: new Date("2024-06-01T10:00:00Z"),
-        },
-        items: [
-            {
-                id: 501,
-                productName: "Xe điện VinFast Vento",
-                skuCode: "VF-VNT01",
-                color: "Trắng ngọc trai",
-                unitPrice: 45000000,
-                quantity: 1,
-            },
-            {
-                id: 502,
-                productName: "Mũ bảo hiểm VinFast",
-                skuCode: "VF-HELM01",
-                color: "Đen bóng",
-                unitPrice: 500000,
-                quantity: 2,
-            },
-        ],
-        promotions: [
-            {
-                promo_id: 301,
-                name: "Giảm giá khai trương",
-                promo_type: "discount",
-                conditions: "Áp dụng cho đơn hàng trên 40 triệu",
-                discountAmount: 2000000,
-                valid_from: new Date("2024-01-01T00:00:00Z"),
-                valid_to: new Date("2024-12-31T23:59:59Z"),
-            },
-        ],
-        totalAmount: 44000000, // 45.000.000 + (2 * 500.000) - 2.000.000
+    // Sau này thay bằng API thật:
+    // const resp = await $fetch(`/api/promotions/${promotionId}`);
+
+    const mockPromotion = {
+        id: "1",
+        code: "SUMMER10",
+        description: "Giảm giá mùa hè",
+        discountType: "percent",
+        discountValue: 10,
+        minOrderValue: 2000000,
+        minQuantity: null,
+        startDate: "2024-09-01",
+        endDate: "2024-10-01",
+        isActive: true,
+        createdAt: "2024-08-20T10:00:00Z",
+        updatedAt: "2024-09-01T10:00:00Z",
     };
-    quote.value = mockQuoteDetail;
+
+    promotion.value = mockPromotion;
     pending.value = false;
 });
 
