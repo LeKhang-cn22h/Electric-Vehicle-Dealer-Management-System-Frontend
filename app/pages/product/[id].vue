@@ -16,9 +16,11 @@ onMounted(async () => {
 
 const car = computed(() => vehicle.value);
 
-const FIXED_PRICE = 0;
 const formattedPrice = computed(() => {
-  return FIXED_PRICE > 0 ? formatCurrency(FIXED_PRICE) : "Liên hệ";
+  if (!car.value) return "Liên hệ";
+  return car.value.price && car.value.price > 0
+    ? formatCurrency(car.value.price)
+    : "Liên hệ";
 });
 
 // ✅ selectedImage là index của ảnh được chọn

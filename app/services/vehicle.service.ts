@@ -107,4 +107,33 @@ export const VehicleService = {
         const res = await api.delete(`/vehicle/${id}`);
         return res.data;
     },
+
+        // ===============================
+    // 📌 RECOMMEND SIMILAR (Public)
+    // ===============================
+    async recommendSimilar(model: string, limit: number = 6) {
+        const res = await api.get('/vehicle/recommend/similar', {
+            params: { model, limit }
+        });
+        return res.data;
+    },
+
+    // ===============================
+    // 📌 RECOMMEND BY PRICE RANGE (Public)
+    // ===============================
+    async recommendByPrice(min: number, max: number, limit: number = 6) {
+        const res = await api.get('/vehicle/recommend/price-range', {
+            params: { min, max, limit }
+        });
+        return res.data;
+    },
+
+    // ===============================
+    // 📌 COMPARE VEHICLES (Public)
+    // ===============================
+    async compare(ids: number[]) {
+        const res = await api.post('/vehicle/compare', { vehicleIds: ids });
+        return res.data;
+    }
+
 };

@@ -159,6 +159,50 @@ export function useVehicle() {
         error.value = null;
         models.value = [];
     };
+    // ⭐ GỢI Ý THEO MODEL
+    const recommendSimilar = async (model: string, limit = 6) => {
+        loading.value = true;
+        error.value = null;
+        try {
+            const res = await VehicleService.recommendSimilar(model, limit);
+            return res.data ?? res;
+        } catch (e: any) {
+            error.value = e.message || "Error recommending similar vehicles";
+            throw e;
+        } finally {
+            loading.value = false;
+        }
+    };
+
+    // ⭐ GỢI Ý THEO GIÁ
+    const recommendByPrice = async (min: number, max: number, limit = 6) => {
+        loading.value = true;
+        error.value = null;
+        try {
+            const res = await VehicleService.recommendByPrice(min, max, limit);
+            return res.data ?? res;
+        } catch (e: any) {
+            error.value = e.message || "Error recommending by price";
+            throw e;
+        } finally {
+            loading.value = false;
+        }
+    };
+
+    // ⭐ SO SÁNH XE
+    const compareVehicles = async (ids: number[]) => {
+        loading.value = true;
+        error.value = null;
+        try {
+            const res = await VehicleService.compare(ids);
+            return res.data ?? res;
+        } catch (e: any) {
+            error.value = e.message || "Error comparing vehicles";
+            throw e;
+        } finally {
+            loading.value = false;
+        }
+    };
 
     return {
         // State
@@ -178,5 +222,8 @@ export function useVehicle() {
         update,
         remove,
         reset,
+        recommendByPrice,
+        recommendSimilar,
+        compareVehicles
     };
 }
