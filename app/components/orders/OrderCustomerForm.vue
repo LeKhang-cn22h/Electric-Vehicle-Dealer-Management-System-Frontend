@@ -118,6 +118,8 @@ const props = defineProps<{
     customer: Customer | null | CreateCustomer;
 }>();
 
+const { error, loading, customers, fetchCustomers } = useCustomers();
+
 const emit = defineEmits<{
     (e: "update:customer", customer: Customer | CreateCustomer): void;
     (e: "customer-type", type: "existing" | "new"): void;
@@ -181,16 +183,19 @@ watch(isFormValid, (val) => {
 
 // Hàm search API
 const handleCustomerSearch = async (query: string) => {
+    console.log(query.trim());
     if (!query || query.trim().length < 2) {
         searchResults.value = [];
         return;
     }
 
     try {
-        const response = await $fetch<ApiResponse<Customer[]>>("/api/customers/search", {
-            params: { q: query.trim() },
-        });
-        searchResults.value = response.data;
+        const response = await fetchCustomers({ search: query.trim() });
+        if (error) {
+            console.log(error);
+            return;
+        }
+        searchResults.value = customers.value;
     } catch (err) {
         console.error("Error searching customers:", err);
         searchResults.value = [];
@@ -203,7 +208,31 @@ const debouncedSearch = useDebounceFn(handleCustomerSearch, 300);
 watch(searchQuery, (newQuery) => {
     debouncedSearch(newQuery);
 });
-
+onMounted(() => {
+    searchResults.value = [
+        {
+            id: "c1c8fd3b-5f9c-4b0a-bc71-a928a6ff1d11",
+            fullName: "Nguyễn Văn A",
+            phone: "0905123456",
+            email: "vana@example.com",
+            address: "12 Nguyễn Trãi, Hà Nội",
+        },
+        {
+            id: "d2faab6f-234e-43d0-b33b-1234abcd5678",
+            fullName: "Trần Thị B",
+            phone: "0987456123",
+            email: "thib@example.com",
+            address: "45 Lê Lợi, TP.HCM",
+        },
+        {
+            id: "b4c2d8af-9f13-41f2-8fcd-22991efcd002",
+            fullName: "Lê Hoàng C",
+            phone: "0912345678",
+            email: "hoangc@example.com",
+            address: "88 Hai Bà Trưng, Đà Nẵng",
+        },
+    ];
+});
 const selectCustomer = (customer: Customer) => {
     emit("update:customer", customer);
     emit("customer-type", "existing");
