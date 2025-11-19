@@ -1,48 +1,111 @@
 <template>
-  <nav class="dealer-manager-topbar">
+  <nav class="dealer-topbar">
     <div class="topbar-content">
       <div class="brand-section">
-        <router-link to="/dealer_staff/EVM_staff" class="brand-link">
-          <h2>DEALER MANAGER</h2>
-        </router-link>
+        <NuxtLink :to="homePath" class="brand-link">
+          <h2>{{ roleLabel }}</h2>
+        </NuxtLink>
       </div>
 
       <div class="nav-section">
-        <router-link to="/dealer_staff/EVM_staff" class="nav-item">Trang chủ</router-link>
-        <router-link to="/dealer_staff/EVM_staff/vehicles" class="nav-item">Chiết khấu</router-link>
-        <router-link to="/dealer_staff/EVM_staff/orders" class="nav-item">Giá sỉ</router-link>
-        <router-link to="/dealer_staff/EVM_staff/pricing" class="nav-item">Khuyến mãi</router-link>
-        <router-link to="/dealer_staff/EVM_staff/test-drive" class="nav-item">Công nợ</router-link>
-        <router-link to="/manage_testDriver" class="nav-item">Lịch lái</router-link>
-        <router-link to="/manage_profile_customer" class="nav-item">Hồ sơ</router-link>
-        <router-link to="/manage_product" class="nav-item">Sản phẩm</router-link>
+        <NuxtLink :to="homePath" class="nav-item"> Trang chủ </NuxtLink>
+        <template v-if="isDealerStaff">
+          <NuxtLink to="/user/orders/create" class="nav-item">
+            Tạo đơn hàng
+          </NuxtLink>
+
+          <NuxtLink to="/dealer_staff/orders" class="nav-item">
+            Đơn hàng của tôi
+          </NuxtLink>
+
+          <NuxtLink to="/dealer_staff/payments/vnpay-demo" class="nav-item">
+            Thanh toán VNPay
+          </NuxtLink>
+
+          <NuxtLink to="/dealer_staff/test-drives" class="nav-item">
+            Lịch lái thử
+          </NuxtLink>
+
+          <NuxtLink to="/dealer_staff/customers" class="nav-item">
+            Hồ sơ khách hàng
+          </NuxtLink>
+        </template>
+
+        <template v-if="isDealerManager">
+          <NuxtLink to="/dealer_manager/discounts" class="nav-item">
+            Quản lý chiết khấu
+          </NuxtLink>
+
+          <NuxtLink to="/dealer_manager/wholesale-pricing" class="nav-item">
+            Quản lý giá sỉ
+          </NuxtLink>
+
+          <NuxtLink to="/dealer_manager/promotions" class="nav-item">
+            Quản lý khuyến mãi
+          </NuxtLink>
+
+          <NuxtLink to="/dealer_manager/receivables" class="nav-item">
+            Quản lý công nợ
+          </NuxtLink>
+
+          <NuxtLink to="/manage_testDriver" class="nav-item">
+            Quản lý lịch lái
+          </NuxtLink>
+
+          <NuxtLink to="/manage_profile_customer" class="nav-item">
+            Quản lý hồ sơ
+          </NuxtLink>
+
+          <NuxtLink to="/dealer_manager/ManageDealerStaff" class="nav-item">
+            Quản lý Dealer Staff
+          </NuxtLink>
+        </template>
       </div>
 
       <div class="user-section">
-        <span class="user-role">DEALER MANAGER</span>
-        <button @click="switchToUser" class="switch-btn">Switch to User</button>
+        <span class="user-role">{{ roleLabel }}</span>
       </div>
     </div>
   </nav>
 </template>
 
-<script setup>
-import { useRouter } from 'vue-router'
+<script setup lang="ts">
+import { computed } from "vue";
+import { useRouter } from "vue-router";
+import { useCookie } from "#app";
 
-const router = useRouter()
+const router = useRouter();
+const userRole = useCookie<string>("role");
+
+// flags
+const isDealerManager = computed(() => userRole.value === "dealer_manager");
+const isDealerStaff = computed(() => userRole.value === "dealer_staff");
+
+// label hiển thị
+const roleLabel = computed(() => {
+  if (isDealerManager.value) return "DEALER MANAGER";
+  if (isDealerStaff.value) return "DEALER STAFF";
+  return "DEALER PORTAL";
+});
+
+// trang chủ theo từng role
+const homePath = computed(() => {
+  if (isDealerManager.value) return "/dealer_manager/dashboard";
+  if (isDealerStaff.value) return "/dealer_staff/dashboard";
+  return "/";
+});
 
 const switchToUser = () => {
-  router.push('/')
-}
+  router.push("/");
+};
 </script>
 
 <style scoped>
-.dealer-manager-topbar {
+.dealer-topbar {
   background: linear-gradient(135deg, #7587dc 0%, #6ba0e0 100%);
   color: white;
   padding: 0 20px;
-  box-shadow: 0 2px 20px rgba(0,0,0,0.1);
-  /* border-bottom: 3px solid #5d69e6; */
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
 }
 
 .topbar-content {
@@ -58,7 +121,7 @@ const switchToUser = () => {
   color: white;
   margin: 0;
   font-size: 1.4rem;
-  background: rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.1);
   padding: 8px 15px;
   border-radius: 8px;
 }
@@ -80,11 +143,11 @@ const switchToUser = () => {
   border-radius: 6px;
   transition: all 0.3s;
   font-weight: 600;
-  background: rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .nav-item:hover {
-  background: rgba(255,255,255,0.2);
+  background: rgba(255, 255, 255, 0.2);
   transform: translateY(-2px);
 }
 
@@ -100,7 +163,7 @@ const switchToUser = () => {
 }
 
 .user-role {
-  background: rgba(255,255,255,0.2);
+  background: rgba(255, 255, 255, 0.2);
   padding: 8px 15px;
   border-radius: 20px;
   font-weight: bold;
