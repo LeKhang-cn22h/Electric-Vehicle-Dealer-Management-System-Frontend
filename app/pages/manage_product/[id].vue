@@ -3,8 +3,19 @@
     <!-- Back -->
     <button @click="goBack" class="mb-4 text-blue-600 hover:underline">← Quay lại</button>
 
-    <div v-if="loading">Đang tải...</div>
-    <div v-else>
+    <div v-if="loading" class="text-center py-10">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+      <p class="mt-4">Đang tải...</p>
+    </div>
+
+    <div v-else-if="error" class="text-center py-10">
+      <p class="text-red-500">{{ error }}</p>
+      <button @click="goBack" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded">
+        Quay lại
+      </button>
+    </div>
+
+    <div v-else-if="vehicle">
       <!-- Title + Edit Toggle -->
       <div class="flex justify-between items-center mb-4">
         <h1 class="text-3xl font-bold">{{ vehicle.name }}</h1>
@@ -19,9 +30,17 @@
 
       <!-- Main Image -->
       <div class="mb-4 relative">
-        <img :src="mainImage" class="w-full rounded-xl shadow" alt="Main Image" />
+        <img 
+          v-if="mainImage" 
+          :src="mainImage" 
+          class="w-full rounded-xl shadow" 
+          alt="Main Image" 
+        />
+        <div v-else class="w-full h-96 bg-gray-200 rounded-xl flex items-center justify-center">
+          <span class="text-gray-500">Chưa có ảnh</span>
+        </div>
         <button
-          v-if="isEditing"
+          v-if="isEditing && mainImage"
           @click="setMainImage"
           class="absolute top-4 right-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 shadow-lg"
         >
@@ -32,17 +51,18 @@
       <!-- Thumbnail Images -->
       <div class="flex gap-3 mb-6 flex-wrap">
         <div
-          v-for="img in vehicle.images"
+          v-for="img in (vehicle.images || [])"
           :key="img.id"
           class="relative group"
         >
           <img
-            :src="img.path"
-            @click="mainImage = img.path"
+            :src="img.imageUrl"
+            @click="mainImage = img.imageUrl"
             :class="[
-              'w-24 h-20 rounded-lg cursor-pointer border-2 hover:scale-105 transition',
+              'w-24 h-20 rounded-lg cursor-pointer border-2 hover:scale-105 transition object-cover',
               img.is_main ? 'border-blue-500 ring-2 ring-blue-300' : 'border-gray-300'
             ]"
+            alt="Thumbnail"
           />
           <button
             v-if="isEditing"
@@ -60,7 +80,7 @@
         >
           <div class="text-center">
             <svg class="w-6 h-6 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              <imageUrl stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
             <span class="text-xs text-gray-500">Thêm ảnh</span>
           </div>
@@ -75,66 +95,66 @@
       </div>
 
       <!-- Info Grid -->
-      <div class="grid grid-cols-2 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <h2 class="font-bold text-xl mb-3">Thông tin kỹ thuật</h2>
           <ul class="space-y-2">
             <li>
               <strong>Model:</strong>
               <span v-if="!isEditing">{{ vehicle.model }}</span>
-              <input v-else v-model="form.model" class="border rounded px-2 py-1 w-full"/>
+              <input v-else v-model="form.model" class="border rounded px-2 py-1 w-full ml-2"/>
             </li>
             <li>
               <strong>Version:</strong>
               <span v-if="!isEditing">{{ vehicle.version }}</span>
-              <input v-else v-model="form.version" class="border rounded px-2 py-1 w-full"/>
+              <input v-else v-model="form.version" class="border rounded px-2 py-1 w-full ml-2"/>
             </li>
             <li>
               <strong>Năm SX:</strong>
               <span v-if="!isEditing">{{ vehicle.year }}</span>
-              <input v-else type="number" v-model.number="form.year" class="border rounded px-2 py-1 w-full"/>
+              <input v-else type="number" v-model.number="form.year" class="border rounded px-2 py-1 w-full ml-2"/>
             </li>
             <li>
               <strong>Quãng đường:</strong>
               <span v-if="!isEditing">{{ vehicle.mileage }}</span>
-              <input v-else v-model="form.mileage" class="border rounded px-2 py-1 w-full"/>
+              <input v-else v-model="form.mileage" class="border rounded px-2 py-1 w-full ml-2"/>
             </li>
             <li>
               <strong>Nhiên liệu:</strong>
               <span v-if="!isEditing">{{ vehicle.fuel_type }}</span>
-              <input v-else v-model="form.fuel_type" class="border rounded px-2 py-1 w-full"/>
+              <input v-else v-model="form.fuel_type" class="border rounded px-2 py-1 w-full ml-2"/>
             </li>
             <li>
               <strong>Hộp số:</strong>
               <span v-if="!isEditing">{{ vehicle.transmission }}</span>
-              <input v-else v-model="form.transmission" class="border rounded px-2 py-1 w-full"/>
+              <input v-else v-model="form.transmission" class="border rounded px-2 py-1 w-full ml-2"/>
             </li>
             <li>
               <strong>Động cơ:</strong>
               <span v-if="!isEditing">{{ vehicle.engine }}</span>
-              <input v-else v-model="form.engine" class="border rounded px-2 py-1 w-full"/>
+              <input v-else v-model="form.engine" class="border rounded px-2 py-1 w-full ml-2"/>
             </li>
             <li>
               <strong>Số ghế:</strong>
               <span v-if="!isEditing">{{ vehicle.seats }}</span>
-              <input v-else type="number" v-model.number="form.seats" class="border rounded px-2 py-1 w-full"/>
+              <input v-else type="number" v-model.number="form.seats" class="border rounded px-2 py-1 w-full ml-2"/>
             </li>
             <li>
               <strong>Xuất xứ:</strong>
               <span v-if="!isEditing">{{ vehicle.origin }}</span>
-              <input v-else v-model="form.origin" class="border rounded px-2 py-1 w-full"/>
+              <input v-else v-model="form.origin" class="border rounded px-2 py-1 w-full ml-2"/>
             </li>
             <li>
               <strong>Tình trạng:</strong>
               <span v-if="!isEditing">{{ vehicle.status }}</span>
-              <input v-else v-model="form.status" class="border rounded px-2 py-1 w-full"/>
+              <input v-else v-model="form.status" class="border rounded px-2 py-1 w-full ml-2"/>
             </li>
           </ul>
         </div>
 
         <div>
           <h2 class="font-bold text-xl mb-3">Màu sắc</h2>
-          <div class="flex gap-2 mb-4">
+          <div class="flex gap-2 mb-4 flex-wrap">
             <div
               v-for="(c, index) in form.color"
               :key="index"
@@ -142,19 +162,40 @@
               :style="{ background: c }"
               @click="isEditing && selectColor(index)"
             ></div>
+            <button
+              v-if="isEditing"
+              @click="addColor"
+              class="w-8 h-8 rounded-full border-2 border-dashed border-gray-400 hover:border-blue-500 flex items-center justify-center"
+            >
+              <span class="text-gray-500">+</span>
+            </button>
           </div>
 
           <h2 class="font-bold text-xl mb-3">Lợi ích</h2>
-          <ul class="list-disc ml-5 mb-4">
-            <li v-for="(benefit, idx) in form.benefits" :key="`benefit-${benefit.id || idx}`">
-              <span v-if="!isEditing">{{ benefit.benefit }}</span>
+          <ul class="list-disc ml-5 mb-4 space-y-1">
+            <li v-for="(benefit, idx) in form.benefits" :key="`benefit-${benefit.id || idx}`" class="flex items-center gap-2">
+              <span v-if="!isEditing" class="flex-1">{{ benefit.benefit }}</span>
               <input
                 v-else
                 v-model="form.benefits[idx].benefit"
-                class="border rounded px-2 py-1 w-full"
+                class="border rounded px-2 py-1 flex-1"
               />
+              <button
+                v-if="isEditing"
+                @click="removeBenefit(idx)"
+                class="text-red-500 hover:text-red-700"
+              >
+                ×
+              </button>
             </li>
           </ul>
+          <button
+            v-if="isEditing"
+            @click="addBenefit"
+            class="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600"
+          >
+            + Thêm lợi ích
+          </button>
         </div>
       </div>
 
@@ -164,37 +205,65 @@
 
         <div v-for="(group, groupIdx) in groupedFeatures" :key="`group-${groupIdx}`" class="mb-6">
           <h3 class="font-semibold mb-2">{{ group.category }}</h3>
-          <ul class="list-disc ml-5">
-            <li v-for="(item, itemIdx) in group.items" :key="`feature-${item.id || groupIdx}-${itemIdx}`">
-              <span v-if="!isEditing">{{ item.item }}</span>
+          <ul class="list-disc ml-5 space-y-1">
+            <li v-for="(item, itemIdx) in group.items" :key="`feature-${item.id || groupIdx}-${itemIdx}`" class="flex items-center gap-2">
+              <span v-if="!isEditing" class="flex-1">{{ item.item }}</span>
               <input
                 v-else
                 v-model="item.item"
-                class="border rounded px-2 py-1 w-full"
+                class="border rounded px-2 py-1 flex-1"
               />
+              <button
+                v-if="isEditing"
+                @click="removeFeature(item)"
+                class="text-red-500 hover:text-red-700"
+              >
+                ×
+              </button>
             </li>
           </ul>
+          <button
+            v-if="isEditing"
+            @click="addFeature(group.category)"
+            class="mt-2 px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600"
+          >
+            + Thêm tính năng
+          </button>
         </div>
+
+        <button
+          v-if="isEditing"
+          @click="addFeatureCategory"
+          class="mt-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+        >
+          + Thêm danh mục tính năng
+        </button>
       </div>
 
       <div class="mt-10">
         <h2 class="text-xl font-bold mb-3">Mô tả chi tiết</h2>
-        <span v-if="!isEditing">{{ vehicle.description }}</span>
+        <p v-if="!isEditing" class="whitespace-pre-wrap">{{ vehicle.description }}</p>
         <textarea
           v-else
           v-model="form.description"
-          class="border rounded px-2 py-1 w-full"
-          rows="4"
+          class="border rounded px-3 py-2 w-full"
+          rows="6"
         ></textarea>
       </div>
 
       <!-- Submit Button -->
-      <div v-if="isEditing" class="mt-6">
+      <div v-if="isEditing" class="mt-6 flex gap-3">
         <button
           @click="showUpdateConfirm = true"
           class="px-6 py-2 bg-green-500 text-white rounded hover:bg-green-600"
         >
           Cập nhật
+        </button>
+        <button
+          @click="cancelEdit"
+          class="px-6 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+        >
+          Hủy
         </button>
       </div>
     </div>
@@ -203,6 +272,7 @@
     <div 
       v-if="showUpdateConfirm"
       class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
+      @click.self="showUpdateConfirm = false"
     >
       <div class="bg-white p-6 rounded-lg shadow-lg w-96">
         <h2 class="text-lg font-bold mb-3">Xác nhận cập nhật</h2>
@@ -231,6 +301,7 @@
     <div 
       v-if="showDeleteImageConfirm"
       class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
+      @click.self="showDeleteImageConfirm = false"
     >
       <div class="bg-white p-6 rounded-lg shadow-lg w-96">
         <h2 class="text-lg font-bold mb-3">Xác nhận xóa</h2>
@@ -261,17 +332,17 @@
 import { ref, reactive, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useNotification } from "@/composables/useNotification.js";
-
-const { showNotification } = useNotification();
+import { useVehicle } from '~/composables/useVehicle'
 
 const route = useRoute();
 const router = useRouter();
+const { showNotification } = useNotification();
+const { fetchOne, loading, error } = useVehicle();
 
 const vehicle = ref<any>(null);
 const mainImage = ref("");
-const loading = ref(true);
 const isEditing = ref(false);
-const nextImageId = ref(10); // ID cho ảnh mới
+const nextImageId = ref(10);
 
 // Confirm modals
 const showUpdateConfirm = ref(false);
@@ -297,72 +368,52 @@ const form = reactive<any>({
 
 const goBack = () => router.back();
 
-onMounted(() => {
-  loadFakeData();
+onMounted(async () => {
+  const paramId = route.params.id;
+  const numId = typeof paramId === "string" ? parseInt(paramId, 10) : 0;
+
+  if (numId > 0) {
+    try {
+      const data = await fetchOne(numId);
+      
+      if (!data) {
+        showNotification("Không tìm thấy sản phẩm!", "error");
+        return;
+      }
+
+      vehicle.value = data;
+
+      // Đồng bộ form
+      form.model = data.model || "";
+      form.version = data.version || "";
+      form.year = data.year || 0;
+      form.mileage = data.mileage || "";
+      form.fuel_type = data.fuel_type || "";
+      form.transmission = data.transmission || "";
+      form.engine = data.engine || "";
+      form.seats = data.seats || 0;
+      form.origin = data.origin || "";
+      form.status = data.status || "";
+      form.color = Array.isArray(data.color) ? [...data.color] : [];
+      form.benefits = Array.isArray(data.benefits) ? JSON.parse(JSON.stringify(data.benefits)) : [];
+      form.features = Array.isArray(data.features) ? JSON.parse(JSON.stringify(data.features)) : [];
+      form.description = data.description || "";
+
+      // Set main image
+      if (data.images && Array.isArray(data.images) && data.images.length > 0) {
+        const mainImg = data.images.find((img: any) => img.is_main);
+        mainImage.value = mainImg?.imageUrl || data.images[0]?.imageUrl || "";
+        
+        const maxId = Math.max(...data.images.map((img: any) => img.id || 0));
+        nextImageId.value = maxId + 1;
+      } else {
+        mainImage.value = "";
+      }
+    } catch (err) {
+      showNotification("Lỗi khi tải dữ liệu sản phẩm!", "error");
+    }
+  }
 });
-
-const loadFakeData = () => {
-  loading.value = true;
-
-  vehicle.value = {
-    id: 1,
-    name: "VinFast VF8",
-    tagline: "SUV điện thông minh – An toàn – Hiện đại",
-    status: "Còn hàng",
-    year: 2024,
-    mileage: "0 km",
-    fuel_type: "Electric",
-    transmission: "Auto",
-    color: ["#000", "#ffffff", "#1e90ff"],
-    engine: "150kW/320Nm – Dual Motor",
-    seats: 5,
-    origin: "Việt Nam",
-    description:
-      "VinFast VF8 là mẫu SUV điện 5 chỗ với khả năng vận hành mạnh mẽ, trang bị nhiều công nghệ thông minh, an toàn đạt chuẩn châu Âu.",
-    model: "VF8",
-    version: "Plus",
-
-    images: [
-      { id: 1, path: "https://picsum.photos/id/1011/800/450", is_main: true },
-      { id: 2, path: "https://picsum.photos/id/1015/800/450" },
-      { id: 3, path: "https://picsum.photos/id/1020/800/450" }
-    ],
-
-    benefits: [
-      { id: 1, benefit: "Bảo hành 10 năm" },
-      { id: 2, benefit: "Miễn phí cứu hộ suốt đời" }
-    ],
-
-    features: [
-      { id: 1, category: "Ngoại thất", item: "Đèn LED tự động" },
-      { id: 2, category: "Ngoại thất", item: "Cảm biến trước & sau" },
-      { id: 3, category: "Nội thất", item: "Màn hình 15 inch" },
-      { id: 4, category: "Nội thất", item: "Ghế da cao cấp" },
-      { id: 5, category: "An toàn", item: "ADAS – Tự động giữ làn" },
-      { id: 6, category: "An toàn", item: "Cảnh báo va chạm" }
-    ]
-  };
-
-  mainImage.value = vehicle.value.images.find((i: any) => i.is_main)?.path || vehicle.value.images[0]?.path || "";
-
-  // copy dữ liệu sang form để edit - sử dụng JSON parse/stringify để deep clone
-  form.model = vehicle.value.model;
-  form.version = vehicle.value.version;
-  form.year = vehicle.value.year;
-  form.mileage = vehicle.value.mileage;
-  form.fuel_type = vehicle.value.fuel_type;
-  form.transmission = vehicle.value.transmission;
-  form.engine = vehicle.value.engine;
-  form.seats = vehicle.value.seats;
-  form.origin = vehicle.value.origin;
-  form.status = vehicle.value.status;
-  form.description = vehicle.value.description;
-  form.color = [...vehicle.value.color];
-  form.benefits = JSON.parse(JSON.stringify(vehicle.value.benefits));
-  form.features = JSON.parse(JSON.stringify(vehicle.value.features));
-
-  loading.value = false;
-};
 
 const groupedFeatures = computed(() => {
   if (!form.features || form.features.length === 0) return [];
@@ -384,8 +435,54 @@ const groupedFeatures = computed(() => {
 });
 
 function selectColor(index: number) {
-  // ví dụ đổi màu sang đỏ khi click
-  form.color[index] = "#ff0000";
+  const newColor = prompt("Nhập mã màu (hex):", form.color[index]);
+  if (newColor) {
+    form.color[index] = newColor;
+  }
+}
+
+function addColor() {
+  const newColor = prompt("Nhập mã màu (hex):", "#000000");
+  if (newColor) {
+    form.color.push(newColor);
+  }
+}
+
+function addBenefit() {
+  form.benefits.push({
+    id: Date.now(),
+    benefit: "Lợi ích mới"
+  });
+}
+
+function removeBenefit(index: number) {
+  form.benefits.splice(index, 1);
+}
+
+function addFeature(category: string) {
+  form.features.push({
+    id: Date.now(),
+    category: category,
+    item: "Tính năng mới"
+  });
+}
+
+function removeFeature(item: any) {
+  const index = form.features.findIndex((f: any) => f === item);
+  if (index !== -1) {
+    form.features.splice(index, 1);
+  }
+}
+
+function addFeatureCategory() {
+  const category = prompt("Nhập tên danh mục:");
+  if (category) {
+    form.features.push({
+      id: Date.now(),
+      category: category,
+      item: "Tính năng mới"
+    });
+  }
 }
 
 function handleImageUpload(event: Event) {
@@ -394,43 +491,41 @@ function handleImageUpload(event: Event) {
   
   if (!files || files.length === 0) return;
   
-  // Xử lý từng file
+  // Đảm bảo vehicle.images tồn tại
+  if (!vehicle.value.images) {
+    vehicle.value.images = [];
+  }
+  
   Array.from(files).forEach((file) => {
-    // Kiểm tra định dạng file
     if (!file.type.startsWith('image/')) {
       showNotification('Vui lòng chỉ chọn file ảnh!', 'error');
       return;
     }
     
-    // Kiểm tra kích thước (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       showNotification('Kích thước ảnh không được vượt quá 5MB!', 'error');
       return;
     }
     
-    // Đọc file và chuyển thành base64
     const reader = new FileReader();
     reader.onload = (e) => {
       const newImage = {
         id: nextImageId.value++,
-        path: e.target?.result as string,
-        is_main: vehicle.value.images.length === 0, // Nếu chưa có ảnh nào thì đặt làm ảnh chính
-        file: file // Lưu file để có thể upload lên server sau
+        imageUrl: e.target?.result as string,
+        is_main: vehicle.value.images.length === 0,
+        file: file
       };
       
       vehicle.value.images.push(newImage);
       
-      // Nếu là ảnh đầu tiên, set làm main image
       if (vehicle.value.images.length === 1) {
-        mainImage.value = newImage.path;
+        mainImage.value = newImage.imageUrl;
       }
     };
     reader.readAsDataURL(file);
   });
   
-  // Reset input để có thể chọn lại file
   input.value = '';
-  
   showNotification('Đã thêm ảnh thành công!', 'success');
 }
 
@@ -440,7 +535,7 @@ function removeImage(imageId: number) {
 }
 
 function confirmDeleteImage() {
-  if (imageToDelete.value === null) return;
+  if (imageToDelete.value === null || !vehicle.value.images) return;
   
   const index = vehicle.value.images.findIndex((img: any) => img.id === imageToDelete.value);
   if (index === -1) {
@@ -452,15 +547,13 @@ function confirmDeleteImage() {
   const removedImage = vehicle.value.images[index];
   vehicle.value.images.splice(index, 1);
   
-  // Nếu xóa ảnh chính, đặt ảnh đầu tiên làm ảnh chính
   if (removedImage.is_main && vehicle.value.images.length > 0) {
     vehicle.value.images[0].is_main = true;
-    mainImage.value = vehicle.value.images[0].path;
+    mainImage.value = vehicle.value.images[0].imageUrl;
   } else if (vehicle.value.images.length === 0) {
     mainImage.value = '';
-  } else if (mainImage.value === removedImage.path) {
-    // Nếu đang hiển thị ảnh bị xóa, chuyển sang ảnh khác
-    mainImage.value = vehicle.value.images[0].path;
+  } else if (mainImage.value === removedImage.imageUrl) {
+    mainImage.value = vehicle.value.images[0].imageUrl;
   }
   
   showDeleteImageConfirm.value = false;
@@ -469,24 +562,45 @@ function confirmDeleteImage() {
 }
 
 function setMainImage() {
-  // Tìm ảnh đang được hiển thị trong mainImage
-  const currentImage = vehicle.value.images.find((img: any) => img.path === mainImage.value);
+  if (!vehicle.value.images) return;
+  
+  const currentImage = vehicle.value.images.find((img: any) => img.imageUrl === mainImage.value);
   
   if (!currentImage) return;
   
-  // Bỏ đánh dấu ảnh chính cũ
   vehicle.value.images.forEach((img: any) => {
     img.is_main = false;
   });
   
-  // Đặt ảnh hiện tại làm ảnh chính
   currentImage.is_main = true;
   
   showNotification('Đã đặt làm ảnh chính!', 'success');
 }
 
+function cancelEdit() {
+  isEditing.value = false;
+  
+  // Reset form về dữ liệu gốc
+  if (vehicle.value) {
+    form.model = vehicle.value.model || "";
+    form.version = vehicle.value.version || "";
+    form.year = vehicle.value.year || 0;
+    form.mileage = vehicle.value.mileage || "";
+    form.fuel_type = vehicle.value.fuel_type || "";
+    form.transmission = vehicle.value.transmission || "";
+    form.engine = vehicle.value.engine || "";
+    form.seats = vehicle.value.seats || 0;
+    form.origin = vehicle.value.origin || "";
+    form.status = vehicle.value.status || "";
+    form.color = Array.isArray(vehicle.value.color) ? [...vehicle.value.color] : [];
+    form.benefits = JSON.parse(JSON.stringify(vehicle.value.benefits || []));
+    form.features = JSON.parse(JSON.stringify(vehicle.value.features || []));
+    form.description = vehicle.value.description || "";
+  }
+}
+
 function handleSubmit() {
-  // fake submit -> copy form sang vehicle
+  // Copy form data sang vehicle
   vehicle.value.model = form.model;
   vehicle.value.version = form.version;
   vehicle.value.year = form.year;
@@ -501,10 +615,18 @@ function handleSubmit() {
   vehicle.value.color = [...form.color];
   vehicle.value.benefits = JSON.parse(JSON.stringify(form.benefits));
   vehicle.value.features = JSON.parse(JSON.stringify(form.features));
+  // images không cần copy vì đã cập nhật trực tiếp vào vehicle.value.images
   
   isEditing.value = false;
   showUpdateConfirm.value = false;
 
   showNotification("Cập nhật sản phẩm thành công!", "success");
+  
+  // TODO: Gọi API để cập nhật dữ liệu lên server
+  // await updateVehicle(vehicle.value.id, vehicle.value);
 }
+
+definePageMeta({
+  layout: "admin",
+});
 </script>
