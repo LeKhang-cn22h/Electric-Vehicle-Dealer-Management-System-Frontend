@@ -7,6 +7,7 @@
                 {{ title }}
             </h1>
             <NuxtLink
+                v-if="isActiveBtnCreate"
                 :to="createLink"
                 class="inline-flex items-center gap-2 bg-black text-white px-5 py-2.5 rounded-xl font-medium hover:bg-gray-800 active:scale-95 transition-all shadow-md"
             >
@@ -71,17 +72,23 @@ interface Column {
     key: string;
 }
 
-const props = defineProps<{
-    title: string;
-    icon: any;
-    tableComponent: any;
-    fieldsName: Column[];
-    createLink: string;
-    createLabel: string;
-    data: BaseItem[];
-    showToolbar?: boolean;
-    filterFunction?: (item: BaseItem) => boolean;
-}>();
+const props = withDefaults(
+    defineProps<{
+        title: string;
+        icon: any;
+        tableComponent: any;
+        fieldsName: Column[];
+        createLink: string;
+        createLabel: string;
+        data: BaseItem[];
+        showToolbar?: boolean;
+        isActiveBtnCreate?: boolean;
+        filterFunction?: (item: BaseItem) => boolean;
+    }>(),
+    {
+        isActiveBtnCreate: true,
+    }
+);
 
 const emit = defineEmits<{
     (e: "print", item: BaseItem): void;
@@ -90,7 +97,7 @@ const emit = defineEmits<{
 const pending = ref(false);
 const currentPage = ref(1);
 const pageSize = 10;
-const items = ref<BaseItem[]>(props.data || []);
+const items = computed(() => props.data || []);
 
 const paginatedItems = computed(() => {
     const start = (currentPage.value - 1) * pageSize;

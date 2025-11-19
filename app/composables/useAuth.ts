@@ -7,7 +7,6 @@ export function useAuth() {
   const login = async (email: string, password: string) => {
     isSubmitting.value = true;
     serverError.value = null;
-    
     serverSuccess.value = null;
 
     try {
@@ -24,11 +23,29 @@ export function useAuth() {
         throw new Error(data.message || "Đăng nhập thất bại");
       }
 
+      // Lấy token & user từ BE
+      const accessToken = data.access_token;
+      const refreshToken = data.refresh_token;
       const user = data.user;
       const role = user?.user_metadata?.role;
 
-      localStorage.setItem("access_token", data.access_token);
-      localStorage.setItem("role", role);
+      // LƯU VÀO localStorage để useMe đọc được
+      if (typeof localStorage !== "undefined") {
+        localStorage.setItem("access_token", accessToken);
+        if (refreshToken) {
+          localStorage.setItem("refresh_token", refreshToken);
+        }
+      }
+
+      // (Optional) vẫn lưu vào cookie nếu muốn dùng ở SSR
+      const tokenCookie = useCookie("access_token", {
+        maxAge: 60 * 60 * 24 * 7, // 7 ngày
+        path: "/",
+      });
+      tokenCookie.value = accessToken;
+
+      const roleCookie = useCookie("role");
+      roleCookie.value = role;
 
       return { success: true, role, user };
     } catch (err: any) {
