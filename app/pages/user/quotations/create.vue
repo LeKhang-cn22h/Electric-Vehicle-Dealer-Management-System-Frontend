@@ -116,6 +116,13 @@ import type { CreateCustomer, Customer, ProductItem, Promotion } from "@/schemas
 import type { ApiResponse, CreateQuoteResponse } from "@/types/";
 import { notiFail, notiSuccess } from "@/utils/format";
 
+definePageMeta({
+    layout: false,
+});
+
+const { layoutName, applyLayout } = useRoleBasedLayout();
+applyLayout();
+
 const router = useRouter();
 const isSubmitting = ref(false);
 const currentStep = ref(1);
