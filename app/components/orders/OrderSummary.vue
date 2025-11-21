@@ -65,7 +65,7 @@
                         :key="promotion.id"
                         class="flex justify-between items-center py-2"
                     >
-                        <span class="font-medium">{{ promotion.name }}</span>
+                        <span class="font-medium">{{ promotion.code }}</span>
                         <span class="text-green-600 font-medium">-{{ formatCurrency(promotion.discountAmount) }}</span>
                     </div>
                 </div>
@@ -153,7 +153,7 @@
                     <span v-if="isSubmitting">
                         <Loader2 class="w-4 h-4 animate-spin" />
                     </span>
-                    {{ isSubmitting ? "Đang tạo..." : "Xác nhận tạo đơn hàng" }}
+                    {{ isSubmitting ? "Đang tạo..." : "Tạo mới" }}
                 </button>
             </div>
         </div>
