@@ -119,7 +119,7 @@
 
               <!-- Success Message -->
               <div v-if="successMessage" class="success-message">
-                <div class="success-icon"></div>
+                <div class="success-icon">✅</div>
                 <div class="success-content">
                   <h3>{{ successMessage }}</h3>
                   <p>Cảm ơn bạn đã gửi yêu cầu. Chúng tôi sẽ liên hệ với bạn trong thời gian sớm nhất.</p>
@@ -128,7 +128,7 @@
 
               <!-- Error Message -->
               <div v-if="errorMessage" class="error-message-global">
-                <div class="error-icon"></div>
+                <div class="error-icon">❌</div>
                 <div class="error-content">
                   <h3>Có lỗi xảy ra</h3>
                   <p>{{ errorMessage }}</p>
@@ -175,137 +175,114 @@
   </div>
 </template>
 
+
 <script>
-import { ref, reactive, onMounted } from 'vue'
+import { reactive } from 'vue'
+import { useDealerAgreement } from '~/composables/userDealerAgreement';
 
 export default {
-  name: 'AgreementRequestPage',
   setup() {
     const formData = reactive({
       dealer_name: '',
       address: '',
       phone: '',
       email: ''
-    })
+    });
 
-    const errors = reactive({})
-    const loading = ref(false)
+    const errors = reactive({});
+    const {
+      pending: loading, // Map pending thành loading
+      createContractRequest: createAgreementRequest // Map tên hàm
+    } = useDealerAgreement();
+
+    // Tạo local success và error messages
     const successMessage = ref('')
     const errorMessage = ref('')
 
-    // Auto-fill email từ user đã login (nếu có)
-    onMounted(() => {
-      const userData = localStorage.getItem('user')
-      if (userData) {
-        const user = JSON.parse(userData)
-        if (user.email) {
-          formData.email = user.email
-        }
-      }
-    })
-
     const validateForm = () => {
-      // Reset errors và messages
       Object.keys(errors).forEach(key => {
-        errors[key] = ''
-      })
-      successMessage.value = ''
-      errorMessage.value = ''
+        delete errors[key];
+      });
+      
+      let valid = true;
 
-      let isValid = true
-
-      // Validate dealer_name
       if (!formData.dealer_name.trim()) {
-        errors.dealer_name = 'Tên đại lý là bắt buộc'
-        isValid = false
+        errors.dealer_name = "Tên đại lý là bắt buộc";
+        valid = false;
       }
 
-      // Validate address
       if (!formData.address.trim()) {
-        errors.address = 'Địa chỉ là bắt buộc'
-        isValid = false
+        errors.address = "Địa chỉ là bắt buộc";
+        valid = false;
       }
 
-      // Validate phone
       if (!formData.phone.trim()) {
-        errors.phone = 'Số điện thoại là bắt buộc'
-        isValid = false
-      } else if (!/^(0|\+84)(\d{9,10})$/.test(formData.phone.replace(/\s/g, ''))) {
-        errors.phone = 'Số điện thoại không hợp lệ'
-        isValid = false
+        errors.phone = "Số điện thoại là bắt buộc";
+        valid = false;
+      } else if (!/^(0|\+84)[3|5|7|8|9][0-9]{8}$/.test(formData.phone.replace(/\s/g, ''))) {
+        errors.phone = "Số điện thoại không hợp lệ";
+        valid = false;
       }
 
-      // Validate email
       if (!formData.email.trim()) {
-        errors.email = 'Email là bắt buộc'
-        isValid = false
+        errors.email = "Email là bắt buộc";
+        valid = false;
       } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-        errors.email = 'Email không hợp lệ'
-        isValid = false
+        errors.email = "Email không hợp lệ";
+        valid = false;
       }
 
-      return isValid
-    }
+      return valid;
+    };
+
+    const resetForm = () => {
+      Object.keys(formData).forEach(key => {
+        formData[key] = '';
+      });
+      Object.keys(errors).forEach(key => {
+        delete errors[key];
+      });
+    };
 
     const submitForm = async () => {
+      console.log('Submit started');
       if (!validateForm()) {
-        return
+        console.log('Validation failed');
+        return;
       }
-
-      loading.value = true
-      errorMessage.value = ''
 
       try {
-        // URL backend - có thể thay đổi tùy theo môi trường
-        const API_BASE_URL = 'http://localhost:4000'
-        const token = localStorage.getItem('token')
-
-        console.log('📤 Gửi yêu cầu đến:', `${API_BASE_URL}/dealer-agreement/contract-request`)
-        console.log('📝 Dữ liệu:', formData)
-
-        const response = await fetch(`${API_BASE_URL}/dealer-agreement/contract-request`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify(formData)
-        })
-
-        if (!response.ok) {
-          const errorData = await response.json()
-          throw new Error(errorData.message || `Lỗi HTTP! status: ${response.status}`)
-        }
-
-        const result = await response.json()
+        const result = await createAgreementRequest({ ...formData });
+        console.log('Request successful:', result);
+        successMessage.value = "Yêu cầu hợp tác đã được gửi thành công!";
+        resetForm();
         
-        console.log('✅ Phản hồi từ server:', result)
+        // Tự động ẩn success message sau 5 giây
+        setTimeout(() => {
+          successMessage.value = '';
+        }, 5000);
+      } catch (err) {
+        console.error('Request failed:', err);
+        errorMessage.value = "Có lỗi xảy ra khi gửi yêu cầu";
         
-        // Hiển thị thông báo thành công
-        successMessage.value = result.message || 'Yêu cầu hợp đồng đã được gửi thành công'
-
-        Object.keys(formData).forEach(key => {
-          formData[key] = ''
-        })
-
-      } catch (error) {
-        console.error('Lỗi khi gửi yêu cầu:', error)
-        errorMessage.value = error.message || 'Có lỗi xảy ra khi gửi yêu cầu. Vui lòng thử lại sau.'
-      } finally {
-        loading.value = false
+        // Tự động ẩn error message sau 5 giây
+        setTimeout(() => {
+          errorMessage.value = '';
+        }, 5000);
       }
-    }
+    };
 
     return {
       formData,
       errors,
       loading,
-      successMessage,
       errorMessage,
-      submitForm
-    }
-  }
-}
+      successMessage,
+      submitForm,
+    };
+  },
+};
+
 </script>
 
 <style scoped>
@@ -395,6 +372,7 @@ export default {
   border-radius: 8px;
   font-size: 16px;
   transition: all 0.3s ease;
+  font-family: inherit;
 }
 
 .form-input:focus {
@@ -405,22 +383,26 @@ export default {
 
 .form-input.error {
   border-color: #e74c3c;
+  box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
 }
 
 .form-input:disabled {
   background-color: #f8f9fa;
   cursor: not-allowed;
+  opacity: 0.7;
 }
 
 .error-message {
   color: #e74c3c;
   font-size: 14px;
   margin-top: 5px;
+  display: block;
 }
 
 textarea.form-input {
   resize: vertical;
   min-height: 80px;
+  font-family: inherit;
 }
 
 .form-actions {
@@ -438,6 +420,7 @@ textarea.form-input {
   cursor: pointer;
   transition: all 0.3s ease;
   width: 100%;
+  font-family: inherit;
 }
 
 .submit-btn:hover:not(:disabled) {
@@ -481,6 +464,18 @@ textarea.form-input {
   padding: 20px;
   border-radius: 8px;
   margin-top: 20px;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .success-message {
@@ -498,18 +493,20 @@ textarea.form-input {
 .success-icon,
 .error-icon {
   font-size: 1.5rem;
-  margin-top: 2px;
+  flex-shrink: 0;
 }
 
 .success-content h3,
 .error-content h3 {
   margin: 0 0 5px 0;
+  font-size: 1.1rem;
 }
 
 .success-content p,
 .error-content p {
   margin: 0;
   opacity: 0.9;
+  font-size: 0.95rem;
 }
 
 /* Info Section */
@@ -524,6 +521,8 @@ textarea.form-input {
   border-radius: 12px;
   padding: 25px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 20px;
 }
 
 .info-header {
@@ -540,6 +539,7 @@ textarea.form-input {
 .info-header h3 {
   color: #2c3e50;
   margin: 0;
+  font-size: 1.3rem;
 }
 
 .benefits-list {
@@ -562,6 +562,7 @@ textarea.form-input {
 
 .benefit-icon {
   font-size: 1.2rem;
+  flex-shrink: 0;
   margin-top: 2px;
 }
 
@@ -569,22 +570,55 @@ textarea.form-input {
   color: #2c3e50;
   display: block;
   margin-bottom: 5px;
+  font-size: 1rem;
 }
 
 .benefits-list p {
   color: #7f8c8d;
   margin: 0;
   font-size: 0.9rem;
+  line-height: 1.4;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
   .content-wrapper {
     grid-template-columns: 1fr;
+    gap: 20px;
   }
   
   .header-content h1 {
     font-size: 2rem;
+  }
+  
+  .form-section {
+    padding: 20px;
+  }
+  
+  .info-card {
+    position: static;
+  }
+  
+  .container {
+    padding: 0 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-content h1 {
+    font-size: 1.75rem;
+  }
+  
+  .page-header {
+    padding: 30px 0;
+  }
+  
+  .page-content {
+    padding: 20px 0;
+  }
+  
+  .form-card h2 {
+    font-size: 1.3rem;
   }
 }
 </style>
