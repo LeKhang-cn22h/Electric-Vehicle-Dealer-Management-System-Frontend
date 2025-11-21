@@ -175,7 +175,7 @@
       <div class="bg-white rounded-lg shadow p-6">
         <h2 class="text-xl font-bold mb-4">Hình ảnh sản phẩm</h2>
         
-        <div v-if="form.images.length > 0" class="mb-4">
+        <div v-if="imageFiles.length > 0" class="mb-4">
           <label class="block text-sm font-medium text-gray-700 mb-2">
             Ảnh chính
           </label>
@@ -186,7 +186,7 @@
 
         <div class="flex gap-3 flex-wrap mb-4">
           <div
-            v-for="(img, index) in form.images"
+            v-for="(img, index) in imagePreviews"
             :key="index"
             class="relative group"
           >
@@ -466,9 +466,10 @@
 import { ref, reactive, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useNotification } from "@/composables/useNotification.js";
-
+import { useVehicle } from '~/composables/useVehicle'
 const { showNotification } = useNotification();
 const router = useRouter();
+const {create, loading, error} =useVehicle();
 
 // Form state
 const form = reactive({
@@ -485,12 +486,13 @@ const form = reactive({
   origin: "Việt Nam",
   status: "Còn hàng",
   description: "",
+  quantity:0,
   color: [] as string[],
-  images: [] as any[],
   benefits: [] as any[],
   features: [] as any[]
 });
-
+const imageFiles = ref<File[]>([]);
+const imagePreviews = ref<{ path: string; is_main: boolean }[]>([]);
 // Validation errors
 const errors = reactive({
   name: "",
@@ -509,8 +511,8 @@ const newColor = ref("#000000");
 
 // Computed
 const mainImage = computed(() => {
-  const main = form.images.find(img => img.is_main);
-  return main ? main.path : (form.images[0]?.path || "");
+  const main = imagePreviews.value.find(img => img.is_main);
+  return main ? main.path : (imagePreviews.value[0]?.path || "");
 });
 
 const goBack = () => router.back();
@@ -519,42 +521,40 @@ const goBack = () => router.back();
 function handleImageUpload(event: Event) {
   const input = event.target as HTMLInputElement;
   const files = input.files;
-  
   if (!files || files.length === 0) return;
-  
-  Array.from(files).forEach((file) => {
-    if (!file.type.startsWith('image/')) {
-      showNotification('Vui lòng chỉ chọn file ảnh!', 'error');
+
+  Array.from(files).forEach(file => {
+    if (!file.type.startsWith("image/")) {
+      showNotification("Vui lòng chỉ chọn file ảnh!", "error");
       return;
     }
-    
     if (file.size > 5 * 1024 * 1024) {
-      showNotification('Kích thước ảnh không được vượt quá 5MB!', 'error');
+      showNotification("Kích thước ảnh không được vượt quá 5MB!", "error");
       return;
     }
-    
+
     const reader = new FileReader();
     reader.onload = (e) => {
-      const newImage = {
+      imagePreviews.value.push({
         path: e.target?.result as string,
-        is_main: form.images.length === 0,
-        file: file
-      };
-      
-      form.images.push(newImage);
+        is_main: imagePreviews.value.length === 0
+      });
+      imageFiles.value.push(file);
     };
     reader.readAsDataURL(file);
   });
-  
-  input.value = '';
-  showNotification('Đã thêm ảnh thành công!', 'success');
+
+  input.value = "";
+  showNotification("Đã thêm ảnh thành công!", "success");
 }
 
+
 function selectMainImage(index: number) {
-  form.images.forEach((img, i) => {
+  imagePreviews.value.forEach((img, i) => {
     img.is_main = i === index;
   });
 }
+
 
 function removeImageAtIndex(index: number) {
   imageIndexToDelete.value = index;
@@ -563,19 +563,23 @@ function removeImageAtIndex(index: number) {
 
 function confirmDeleteImage() {
   if (imageIndexToDelete.value === null) return;
-  
-  const removedImage = form.images[imageIndexToDelete.value];
-  form.images.splice(imageIndexToDelete.value, 1);
-  
-  // If removed main image, set first as main
-  if (removedImage.is_main && form.images.length > 0) {
-    form.images[0].is_main = true;
+
+  imagePreviews.value.splice(imageIndexToDelete.value, 1);
+  imageFiles.value.splice(imageIndexToDelete.value, 1);
+
+  // Nếu xóa ảnh chính, set ảnh đầu tiên là chính
+  if (imagePreviews.value.length > 0 && !imagePreviews.value.some(img => img.is_main)) {
+    const firstImage = imagePreviews.value[0];
+    if (firstImage) {
+      firstImage.is_main = true;
+    }
   }
-  
+
   showDeleteImageConfirm.value = false;
   imageIndexToDelete.value = null;
-  showNotification('Đã xóa ảnh!', 'success');
+  showNotification("Đã xóa ảnh!", "success");
 }
+
 
 // Color functions
 function addColor() {
@@ -636,28 +640,29 @@ function validate() {
 }
 
 // Submit
-function handleSubmit() {
+async function handleSubmit() {
   if (!validate()) {
     showCreateConfirm.value = false;
     showNotification('Vui lòng kiểm tra lại thông tin!', 'error');
     return;
   }
-  
-  // Filter out empty benefits and features
+
   const cleanedData = {
     ...form,
     benefits: form.benefits.filter(b => b.benefit.trim() !== ""),
     features: form.features.filter(f => f.item.trim() !== "")
   };
-  
-  console.log('Creating product:', cleanedData);
-  
+
+  // Gửi lên backend
+  const result = await create(cleanedData, imageFiles.value);
+
   showCreateConfirm.value = false;
   showNotification('Tạo sản phẩm thành công!', 'success');
   
-  // Redirect after success
-  setTimeout(() => {
-    router.push('/admin/products');
-  }, 1500);
+  setTimeout(() => router.push('/admin/products'), 1500);
 }
+
+definePageMeta({
+  layout: "admin",
+});
 </script>
