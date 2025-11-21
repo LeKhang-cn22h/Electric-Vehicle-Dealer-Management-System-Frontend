@@ -37,6 +37,17 @@ export const PromotionService = {
         return res.data;
     },
 
+    async findAllApplied(minOrderValue = 0, minQuantity = 0) {
+        const res = await api.get("/sales/promotions/aplied", {
+            params: {
+                minOrderValue,
+                minQuantity,
+            },
+        });
+
+        return res.data;
+    },
+
     // ===============================
     // CREATE PROMOTION
     // ===============================
