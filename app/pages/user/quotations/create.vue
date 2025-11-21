@@ -64,6 +64,7 @@
                         Tiếp tục
                     </button>
                 </div>
+                <NuxtLink to="/dealer_manager/payments/vnpay" class="nav-item"> Test thanh toán VNPay </NuxtLink>
             </div>
 
             <!-- Step 2: Xác nhận -->

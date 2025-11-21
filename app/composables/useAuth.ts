@@ -29,12 +29,12 @@ export function useAuth() {
       const user = data.user;
       const role = user?.user_metadata?.role;
 
-      // LƯU VÀO localStorage để useMe đọc được
+      const userId = user?.id;
+
       if (typeof localStorage !== "undefined") {
         localStorage.setItem("access_token", accessToken);
-        if (refreshToken) {
-          localStorage.setItem("refresh_token", refreshToken);
-        }
+        if (refreshToken) localStorage.setItem("refresh_token", refreshToken);
+        if (userId) localStorage.setItem("user_id", userId);
       }
 
       // (Optional) vẫn lưu vào cookie nếu muốn dùng ở SSR
