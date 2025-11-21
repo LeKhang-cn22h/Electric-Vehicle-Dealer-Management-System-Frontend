@@ -29,7 +29,7 @@ api.interceptors.request.use((config) => {
 
 export const VehicleService = {
     // ===============================
-    // 📌 GET ALL (Public)
+    //  GET ALL (Public)
     // ===============================
     async findAll(filters?: any) {
         const res = await api.get("/vehicle", {
@@ -39,7 +39,7 @@ export const VehicleService = {
     },
 
     // ===============================
-    // 📌 SEARCH ALL (Public)
+    //  SEARCH ALL (Public)
     // ===============================
     async searchAll(keyword: string, cursor?: number, limit: number = 20) {
         const res = await api.get("/vehicle/search", {
@@ -49,7 +49,7 @@ export const VehicleService = {
     },
 
     // ===============================
-    // 📌 FILTER BY MODEL (Public)
+    //  FILTER BY MODEL (Public)
     // ===============================
     async filterByModel(model: string, cursor?: number, limit: number = 20) {
         const res = await api.get("/vehicle/filter/model", {
@@ -59,7 +59,7 @@ export const VehicleService = {
     },
 
     // ===============================
-    // 📌 GET ALL MODELS (Public)
+    //  GET ALL MODELS (Public)
     // ===============================
     async getAllModels() {
         const res = await api.get("/vehicle/models");
@@ -67,7 +67,7 @@ export const VehicleService = {
     },
 
     // ===============================
-    // 📌 GET ONE (Public)
+    //  GET ONE (Public)
     // ===============================
     async getOne(id: number) {
         const res = await api.get(`/vehicle/${id}`);
@@ -75,7 +75,7 @@ export const VehicleService = {
     },
 
     // ===============================
-    // 🔒 CREATE (Auth)
+    // CREATE (Auth)
     // ===============================
     async create(vehicleData: any, images: File[]) {
         const formData = new FormData();
@@ -90,7 +90,7 @@ export const VehicleService = {
     },
 
     // ===============================
-    // 🔒 UPDATE (Auth)
+    // UPDATE (Auth)
     // ===============================
     async update(id: number, vehicleData: any, images?: File[]) {
         const formData = new FormData();
@@ -108,7 +108,7 @@ export const VehicleService = {
     },
 
     // ===============================
-    // 🔒 DELETE (Auth)
+    // DELETE (Auth)
     // ===============================
     async remove(id: number) {
         const res = await api.delete(`/vehicle/${id}`);
@@ -116,7 +116,7 @@ export const VehicleService = {
     },
 
     // ===============================
-    // 📌 RECOMMEND SIMILAR (Public)
+    //  RECOMMEND SIMILAR (Public)
     // ===============================
     async recommendSimilar(model: string, limit: number = 6) {
         const res = await api.get("/vehicle/recommend/similar", {
@@ -126,7 +126,7 @@ export const VehicleService = {
     },
 
     // ===============================
-    // 📌 RECOMMEND BY PRICE RANGE (Public)
+    //  RECOMMEND BY PRICE RANGE (Public)
     // ===============================
     async recommendByPrice(min: number, max: number, limit: number = 6) {
         const res = await api.get("/vehicle/recommend/price-range", {
@@ -136,7 +136,7 @@ export const VehicleService = {
     },
 
     // ===============================
-    // 📌 COMPARE VEHICLES (Public)
+    //  COMPARE VEHICLES (Public)
     // ===============================
     async compare(ids: number[]) {
         const res = await api.post("/vehicle/compare", { vehicleIds: ids });
@@ -157,4 +157,10 @@ export const VehicleService = {
         });
         return res.data;
     },
+    async getListVehicleWithPrice(vehicleIds: number[]) {
+    if (!vehicleIds || vehicleIds.length === 0) return [];
+
+    const res = await api.post('/vehicle/list', { vehicleIds });
+    return res.data.data; 
+}
 };
