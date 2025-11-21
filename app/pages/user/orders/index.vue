@@ -70,6 +70,13 @@ import OrderStatusBadge from "@/components/orders/OrderStatusBadge.vue";
 import { formatCurrency, formatDate } from "@/utils/format";
 import { ScrollText } from "lucide-vue-next";
 
+definePageMeta({
+    layout: false,
+});
+
+const { layoutName, applyLayout } = useRoleBasedLayout();
+applyLayout();
+
 const filters = reactive({
     searchQuery: "",
     status: "",

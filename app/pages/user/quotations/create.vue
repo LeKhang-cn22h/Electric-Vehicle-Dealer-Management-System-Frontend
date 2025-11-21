@@ -41,39 +41,14 @@
 
                 <!-- Promotions Section -->
                 <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Khuyến mãi áp dụng</h2>
                     <OrderPromotionSelect v-model:promotions="quoteData.appliedPromotions" :items="quoteData.items" />
                 </div>
 
                 <!-- Notes Section -->
                 <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Ghi chú và thời hạn</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Thời hạn báo giá (ngày)</label>
-                            <input
-                                v-model.number="quoteData.validDays"
-                                type="number"
-                                min="1"
-                                placeholder="30"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Giảm giá thêm (%)</label>
-                            <input
-                                v-model.number="quoteData.discountPercent"
-                                type="number"
-                                min="0"
-                                max="100"
-                                placeholder="0"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                        </div>
-                    </div>
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Ghi chú</h2>
 
                     <div class="mt-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Ghi chú</label>
                         <textarea
                             v-model="quoteData.notes"
                             rows="3"
@@ -97,10 +72,26 @@
                     :order-data="quoteData"
                     :order-total="total"
                     @back="currentStep = 1"
-                    @submit="createQuote"
+                    @submit="handleSubmit"
                     :is-payment="false"
                 />
             </div>
+            <ConfirmModal
+                v-model:show="showModal"
+                title="Xác nhận tạo báo giá"
+                message="Bạn có chắc chắn muốn <b>tạo</b> báo giá mới này không?"
+                confirmText="Xác nhận"
+                cancelText="Hủy"
+                @confirm="handleConfirm"
+            />
+            <StatusModal
+                :visible="visible"
+                :loading="loading"
+                :error="error"
+                @update:visible="(val: boolean) => (visible = val)"
+                @update:loading="(val: boolean) => (loading = val)"
+                @update:error="(val: string | null) => (error = val)"
+            />
         </div>
     </div>
 </template>
@@ -115,6 +106,8 @@ import OrderSummary from "@/components/orders/OrderSummary.vue";
 import type { CreateCustomer, Customer, ProductItem, Promotion } from "@/schemas";
 import type { ApiResponse, CreateQuoteResponse } from "@/types/";
 import { notiFail, notiSuccess } from "@/utils/format";
+import ConfirmModal from "~/components/shared/ConfirmModal.vue";
+import StatusModal from "~/components/shared/StatusModal.vue";
 
 definePageMeta({
     layout: false,
@@ -122,6 +115,8 @@ definePageMeta({
 
 const { layoutName, applyLayout } = useRoleBasedLayout();
 applyLayout();
+
+const { loading, error, create } = usePromotions();
 
 const router = useRouter();
 const isSubmitting = ref(false);
@@ -219,4 +214,23 @@ const goBack = () => {
         router.back();
     }
 };
+const showModal = ref(false);
+
+const handleSubmit = () => {
+    showModal.value = true;
+};
+
+const handleConfirm = () => {
+    console.log("Người dùng xác nhận hành động!");
+    // Gọi API hoặc thực hiện action ở đây
+    showModal.value = false; // đóng modal sau khi xác nhận
+    // savePromotion();
+};
+
+// State của modal
+const visible = ref(false);
+
+watch(loading, () => {
+    if (loading.value) visible.value = true;
+});
 </script>
