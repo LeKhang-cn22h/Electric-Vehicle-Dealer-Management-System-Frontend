@@ -101,6 +101,9 @@
             ></textarea>
           </div>
         </div>
+        <NuxtLink to="/dealer_manager/payments/vnpay-demo" class="nav-item">
+          Test thanh toán VNPay
+        </NuxtLink>
 
         <!-- Next Button -->
         <div class="flex justify-end">

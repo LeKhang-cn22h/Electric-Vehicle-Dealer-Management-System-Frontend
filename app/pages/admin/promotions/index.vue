@@ -2,18 +2,20 @@
     <BaseListPage
         title="Danh sách khuyến mãi"
         :icon="TicketPercent"
-        create-link="/user/promotions/create"
+        create-link="/admin/promotions/create"
         create-label="Tạo khuyến mãi mới"
+        :is-active-btn-create="isActiveBtn"
         :fields-name="fieldsName"
         :table-component="OrderTable"
         :data="promotions"
+        :show-toolbar="true"
         :filter-function="filterPromotions"
     >
         <!-- Toolbar -->
         <template #toolbar>
             <OrderToolbar
                 :search-query="filters.searchQuery"
-                :active-filter="filters.isActive"
+                :status-filter="filters.isActive"
                 @update:search-query="filters.searchQuery = $event"
                 @update:active-filter="filters.isActive = $event"
             />
@@ -26,6 +28,14 @@
                 {{ formatCurrency(row.discountValue) }}
             </span>
         </template>
+        <template #minOrderValue="{ row }">
+            <!-- <console class="log">{{ row }}</console> -->
+            <span> {{ formatCurrency(row.minOrderValue) }} </span>
+        </template>
+        <template #discountType="{ row }">
+            <span v-if="row.discountType == 'percent'"> Phần trăm </span>
+            <span v-else>Giá tiền</span>
+        </template>
 
         <template #dateRange="{ row }">
             {{ formatDate(row.startDate) }} -
@@ -34,9 +44,12 @@
         </template>
 
         <template #isActive="{ row }">
-            <OrderStatusBadge :is-active="row.isActive" />
+            <OrderStatusBadge :status="row.isActive" />
         </template>
     </BaseListPage>
+    <div>
+        <button @click="fetchAll">Chạy</button>
+    </div>
 </template>
 
 <script setup lang="ts">
@@ -52,6 +65,15 @@ definePageMeta({
     layout: false,
 });
 
+const { layoutName, applyLayout } = useRoleBasedLayout();
+applyLayout();
+
+// Dữ liệu mẫu
+const { promotions, fetchAll } = usePromotions();
+
+const roleCookie = useCookie("role");
+const isActiveBtn = ref<boolean>(false);
+if (roleCookie.value === "admin") isActiveBtn.value = true;
 const filters = reactive({
     searchQuery: "",
     isActive: "",
@@ -60,39 +82,21 @@ const filters = reactive({
 // Cấu hình cột
 const fieldsName = [
     { label: "Mã KM", key: "code" },
-    { label: "Loại giảm", key: "discount" },
+    { label: "Loại giảm", key: "discountType" },
     { label: "Mô tả", key: "description" },
-    { label: "Điều kiện tối thiểu", key: "conditions" },
+    { label: "Điều kiện tối thiểu", key: "minOrderValue" },
     { label: "Khoảng thời gian", key: "dateRange" },
     { label: "Trạng thái", key: "isActive" },
     { label: "Thao tác", key: "actions" },
 ];
 
-// Dữ liệu mẫu
-const promotions = [
-    {
-        id: "1",
-        code: "SUMMER10",
-        description: "Giảm giá mùa hè",
-        discountType: "percent",
-        discountValue: 10,
-        minOrderValue: 2000000,
-        startDate: "2024-09-01",
-        endDate: "2024-10-01",
-        isActive: true,
-    },
-    {
-        id: "2",
-        code: "VOUCHER300K",
-        description: "Giảm 300.000đ cho đơn từ 5 triệu",
-        discountType: "amount",
-        discountValue: 300000,
-        minOrderValue: 5000000,
-        startDate: "2024-09-01",
-        endDate: null,
-        isActive: false,
-    },
-];
+onMounted(async () => {
+    await fetchAll();
+});
+
+watch(promotions, (val) => {
+    console.log("Updated promotions:", promotions.value);
+});
 
 // Filter danh sách
 const filterPromotions = (item: any) => {

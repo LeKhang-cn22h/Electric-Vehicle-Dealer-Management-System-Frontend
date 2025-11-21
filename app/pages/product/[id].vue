@@ -7,11 +7,22 @@ import { useVehicle } from "~/composables/useVehicle";
 
 const route = useRoute();
 const id = computed(() => Number(route.params.id));
-
-const { vehicle, loading, error, fetchOne } = useVehicle();
+const { vehicle, loading, error, fetchOne, getSimilarVehicles } = useVehicle();
 
 onMounted(async () => {
   await fetchOne(id.value);
+
+  try {
+    relatedLoading.value = true;
+    const res = await getSimilarVehicles(id.value, 4);
+    console.log("Similar vehicles:", res);
+    relatedCars.value = (res as any).data ?? res;
+  } catch (e: any) {
+    console.error("Lỗi khi load sản phẩm gợi ý:", e);
+    relatedError.value = e.message || "Không tải được sản phẩm gợi ý";
+  } finally {
+    relatedLoading.value = false;
+  }
 });
 
 const car = computed(() => vehicle.value);
@@ -23,28 +34,30 @@ const formattedPrice = computed(() => {
     : "Liên hệ";
 });
 
-// ✅ selectedImage là index của ảnh được chọn
 const selectedImageIndex = ref(0);
 
-// ✅ Computed để sort images (ảnh chính lên đầu)
+// Computed để sort images (ảnh chính lên đầu)
 const sortedImages = computed(() => {
   if (!car.value?.images || car.value.images.length === 0) return [];
-  
+
   return [...car.value.images].sort((a, b) => {
     // Ảnh is_main = true lên đầu
     return (b.is_main ? 1 : 0) - (a.is_main ? 1 : 0);
   });
 });
 
-// ✅ Computed ảnh hiện tại
+// Computed ảnh hiện tại
 const currentImage = computed(() => {
   if (sortedImages.value.length === 0) {
-    return 'https://via.placeholder.com/800x500?text=No+Image';
+    return "https://via.placeholder.com/800x500?text=No+Image";
   }
-  return sortedImages.value[selectedImageIndex.value]?.imageUrl || 'https://via.placeholder.com/800x500?text=No+Image';
+  return (
+    sortedImages.value[selectedImageIndex.value]?.imageUrl ||
+    "https://via.placeholder.com/800x500?text=No+Image"
+  );
 });
 
-// ✅ Function select image
+// Function select image
 const selectImage = (index: number) => {
   selectedImageIndex.value = index;
 };
@@ -54,47 +67,40 @@ const selectedColor = ref<string | null>(null);
 const tabs = ["specs", "features", "description"] as const;
 type TabType = (typeof tabs)[number];
 const activeTab = ref<TabType>("specs");
-
-const relatedCars = ref([
-  {
-    id: 2,
-    name: "BMW 7 Series",
-    image: "/showcase/xe2.jpg",
-    price: 4800000000,
-    tagline: "Phong cách doanh nhân",
-  },
-  {
-    id: 3,
-    name: "Lexus LX 600",
-    image: "/showcase/xe3.jpg",
-    price: 8500000000,
-    tagline: "SUV đẳng cấp",
-  },
-  {
-    id: 4,
-    name: "Porsche Cayenne",
-    image: "/showcase/xe4.jpg",
-    price: 6200000000,
-    tagline: "Hiệu năng vượt trội",
-  },
-]);
+type RelatedCar = {
+  id: number;
+  name: string;
+  imageUrl: string;
+  price?: number | null;
+  tagline?: string | null;
+};
+const relatedCars = ref<RelatedCar[]>([]);
+const relatedLoading = ref(false);
+const relatedError = ref<string | null>(null);
 </script>
 
 <template>
-  <!-- Loading state -->
-  <div v-if="loading" class="min-h-screen bg-gray-50 flex items-center justify-center">
+  <div
+    v-if="loading"
+    class="min-h-screen bg-gray-50 flex items-center justify-center"
+  >
     <div class="text-center">
-      <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      <div
+        class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"
+      ></div>
       <p class="mt-4 text-gray-600">Đang tải thông tin xe...</p>
     </div>
   </div>
 
   <!-- Error state -->
-  <div v-else-if="error" class="min-h-screen bg-gray-50 flex items-center justify-center">
+  <div
+    v-else-if="error"
+    class="min-h-screen bg-gray-50 flex items-center justify-center"
+  >
     <div class="text-center">
       <p class="text-red-600 text-lg mb-4">❌ {{ error }}</p>
-      <NuxtLink 
-        to="/product" 
+      <NuxtLink
+        to="/product"
         class="inline-block px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
       >
         ← Quay lại danh sách
@@ -103,11 +109,16 @@ const relatedCars = ref([
   </div>
 
   <!-- Not found -->
-  <div v-else-if="!car" class="min-h-screen bg-gray-50 flex items-center justify-center">
+  <div
+    v-else-if="!car"
+    class="min-h-screen bg-gray-50 flex items-center justify-center"
+  >
     <div class="text-center">
-      <p class="text-gray-600 text-lg mb-4">Không tìm thấy xe với ID: {{ id }}</p>
-      <NuxtLink 
-        to="/product" 
+      <p class="text-gray-600 text-lg mb-4">
+        Không tìm thấy xe với ID: {{ id }}
+      </p>
+      <NuxtLink
+        to="/product"
         class="inline-block px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
       >
         ← Quay lại danh sách
@@ -146,7 +157,9 @@ const relatedCars = ref([
         <!-- Image gallery -->
         <div class="sticky top-6 h-fit">
           <!-- Main image -->
-          <div class="relative w-full aspect-[16/10] rounded-2xl overflow-hidden bg-gray-900 shadow-2xl mb-4">
+          <div
+            class="relative w-full aspect-[16/10] rounded-2xl overflow-hidden bg-gray-900 shadow-2xl mb-4"
+          >
             <img
               :src="currentImage"
               :alt="car.name"
@@ -161,7 +174,10 @@ const relatedCars = ref([
           </div>
 
           <!-- Thumbnails -->
-          <div v-if="sortedImages.length > 0" class="grid grid-cols-5 gap-3 mb-4">
+          <div
+            v-if="sortedImages.length > 0"
+            class="grid grid-cols-5 gap-3 mb-4"
+          >
             <button
               v-for="(img, index) in sortedImages"
               :key="img.id || index"
@@ -200,14 +216,14 @@ const relatedCars = ref([
             </div>
             <!-- Nếu car.color là array (nhiều màu) -->
             <template v-else-if="Array.isArray(car.color)">
-              <div 
+              <div
                 v-for="(color, index) in car.color"
                 :key="index"
                 @click="selectedColor = color"
                 class="w-8 h-8 rounded-full cursor-pointer border-2 transition-all hover:scale-110"
                 :class="[
-                  selectedColor === color 
-                    ? 'border-gray-900 scale-110 shadow-lg' 
+                  selectedColor === color
+                    ? 'border-gray-900 scale-110 shadow-lg'
                     : 'border-gray-300',
                 ]"
                 :style="{ backgroundColor: color }"
@@ -229,18 +245,24 @@ const relatedCars = ref([
           </div>
 
           <!-- Price box -->
-          <div class="bg-gradient-to-br from-indigo-500 to-purple-600 p-6 rounded-2xl text-white">
+          <div
+            class="bg-gradient-to-br from-indigo-500 to-purple-600 p-6 rounded-2xl text-white"
+          >
             <div class="text-4xl font-extrabold mb-1">{{ formattedPrice }}</div>
             <div class="text-sm opacity-90">Liên hệ để biết thêm chi tiết</div>
           </div>
 
           <!-- Specs summary -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white p-6 rounded-2xl shadow-lg">
+          <div
+            class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white p-6 rounded-2xl shadow-lg"
+          >
             <div v-if="car.year" class="flex gap-3 items-center">
               <CalendarClock class="text-blue-800" />
               <div>
                 <span class="text-xs text-gray-500 block mb-0.5">Năm</span>
-                <span class="text-sm text-gray-800 font-semibold">{{ car.year }}</span>
+                <span class="text-sm text-gray-800 font-semibold">{{
+                  car.year
+                }}</span>
               </div>
             </div>
 
@@ -248,7 +270,9 @@ const relatedCars = ref([
               <Gauge class="text-yellow-300" />
               <div>
                 <span class="text-xs text-gray-500 block mb-0.5">Km</span>
-                <span class="text-sm text-gray-800 font-semibold">{{ car.mileage }}</span>
+                <span class="text-sm text-gray-800 font-semibold">{{
+                  car.mileage
+                }}</span>
               </div>
             </div>
 
@@ -256,21 +280,30 @@ const relatedCars = ref([
               <Settings />
               <div>
                 <span class="text-xs text-gray-500 block mb-0.5">Hộp số</span>
-                <span class="text-sm text-gray-800 font-semibold">{{ car.transmission }}</span>
+                <span class="text-sm text-gray-800 font-semibold">{{
+                  car.transmission
+                }}</span>
               </div>
             </div>
 
             <div v-if="car.fuel_type" class="flex gap-3 items-center">
               <Fuel class="text-red-500" />
               <div>
-                <span class="text-xs text-gray-500 block mb-0.5">Nhiên liệu</span>
-                <span class="text-sm text-gray-800 font-semibold">{{ car.fuel_type }}</span>
+                <span class="text-xs text-gray-500 block mb-0.5"
+                  >Nhiên liệu</span
+                >
+                <span class="text-sm text-gray-800 font-semibold">{{
+                  car.fuel_type
+                }}</span>
               </div>
             </div>
           </div>
 
           <!-- Benefits -->
-          <div v-if="car.benefits && car.benefits.length > 0" class="bg-white p-6 rounded-2xl shadow-lg">
+          <div
+            v-if="car.benefits && car.benefits.length > 0"
+            class="bg-white p-6 rounded-2xl shadow-lg"
+          >
             <h3 class="text-lg font-bold text-gray-800 mb-4">Ưu đãi</h3>
             <ul class="grid gap-3">
               <li
@@ -302,7 +335,9 @@ const relatedCars = ref([
 
       <!-- Tabs -->
       <div class="bg-white rounded-2xl shadow-lg overflow-hidden mb-16">
-        <div class="flex border-b-2 border-gray-100 overflow-x-auto scrollbar-hide">
+        <div
+          class="flex border-b-2 border-gray-100 overflow-x-auto scrollbar-hide"
+        >
           <button
             v-for="tab in tabs"
             :key="tab"
@@ -328,44 +363,81 @@ const relatedCars = ref([
           <!-- Specs -->
           <div v-show="activeTab === 'specs'" class="animate-fade-in">
             <div class="divide-y divide-gray-200 rounded-xl overflow-hidden">
-              <div v-if="car.origin" class="flex justify-between py-4 px-6 bg-gray-50">
+              <div
+                v-if="car.origin"
+                class="flex justify-between py-4 px-6 bg-gray-50"
+              >
                 <span class="text-gray-500 text-sm">Xuất xứ</span>
-                <span class="text-gray-800 font-semibold text-sm">{{ car.origin }}</span>
+                <span class="text-gray-800 font-semibold text-sm">{{
+                  car.origin
+                }}</span>
               </div>
-              <div v-if="car.seats" class="flex justify-between py-4 px-6 bg-gray-50">
+              <div
+                v-if="car.seats"
+                class="flex justify-between py-4 px-6 bg-gray-50"
+              >
                 <span class="text-gray-500 text-sm">Số chỗ</span>
-                <span class="text-gray-800 font-semibold text-sm">{{ car.seats }}</span>
+                <span class="text-gray-800 font-semibold text-sm">{{
+                  car.seats
+                }}</span>
               </div>
-              <div v-if="car.engine" class="flex justify-between py-4 px-6 bg-gray-50">
+              <div
+                v-if="car.engine"
+                class="flex justify-between py-4 px-6 bg-gray-50"
+              >
                 <span class="text-gray-500 text-sm">Động cơ</span>
-                <span class="text-gray-800 font-semibold text-sm">{{ car.engine }}</span>
+                <span class="text-gray-800 font-semibold text-sm">{{
+                  car.engine
+                }}</span>
               </div>
-              <div v-if="car.color" class="flex justify-between py-4 px-6 bg-gray-50">
+              <div
+                v-if="car.color"
+                class="flex justify-between py-4 px-6 bg-gray-50"
+              >
                 <span class="text-gray-500 text-sm">Màu</span>
                 <span class="text-gray-800 font-semibold text-sm">
-                  {{ typeof car.color === 'string' ? car.color : car.color.join(', ') }}
+                  {{
+                    typeof car.color === "string"
+                      ? car.color
+                      : car.color.join(", ")
+                  }}
                 </span>
               </div>
-              <div v-if="car.model" class="flex justify-between py-4 px-6 bg-gray-50">
+              <div
+                v-if="car.model"
+                class="flex justify-between py-4 px-6 bg-gray-50"
+              >
                 <span class="text-gray-500 text-sm">Model</span>
-                <span class="text-gray-800 font-semibold text-sm">{{ car.model }}</span>
+                <span class="text-gray-800 font-semibold text-sm">{{
+                  car.model
+                }}</span>
               </div>
-              <div v-if="car.version" class="flex justify-between py-4 px-6 bg-gray-50">
+              <div
+                v-if="car.version"
+                class="flex justify-between py-4 px-6 bg-gray-50"
+              >
                 <span class="text-gray-500 text-sm">Phiên bản</span>
-                <span class="text-gray-800 font-semibold text-sm">{{ car.version }}</span>
+                <span class="text-gray-800 font-semibold text-sm">{{
+                  car.version
+                }}</span>
               </div>
             </div>
           </div>
 
           <!-- Features -->
           <div v-show="activeTab === 'features'" class="animate-fade-in">
-            <div v-if="car.features && car.features.length > 0" class="grid md:grid-cols-2 gap-8">
+            <div
+              v-if="car.features && car.features.length > 0"
+              class="grid md:grid-cols-2 gap-8"
+            >
               <div
                 v-for="(f, index) in car.features"
                 :key="f.id || index"
                 class="bg-gray-50 p-6 rounded-xl"
               >
-                <h3 class="text-lg font-bold text-gray-800 mb-4 pb-3 border-b-2 border-gray-200">
+                <h3
+                  class="text-lg font-bold text-gray-800 mb-4 pb-3 border-b-2 border-gray-200"
+                >
                   {{ f.category }}
                 </h3>
                 <div class="flex items-center gap-3 text-gray-600 text-sm">
@@ -395,7 +467,10 @@ const relatedCars = ref([
 
           <!-- Description -->
           <div v-show="activeTab === 'description'" class="animate-fade-in">
-            <div v-if="car.description" class="text-base leading-relaxed text-gray-600">
+            <div
+              v-if="car.description"
+              class="text-base leading-relaxed text-gray-600"
+            >
               <p>{{ car.description }}</p>
             </div>
             <div v-else class="text-center text-gray-500 py-8">
@@ -408,7 +483,27 @@ const relatedCars = ref([
       <!-- Related Cars -->
       <div class="max-w-7xl mx-auto px-6 mb-20">
         <h2 class="text-2xl font-bold text-gray-800 mb-6">Sản phẩm gợi ý</h2>
-        <div class="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+
+        <!-- Đang tải -->
+        <div v-if="relatedLoading" class="text-gray-500 py-6">
+          Đang tải sản phẩm gợi ý...
+        </div>
+
+        <!-- Lỗi -->
+        <div v-else-if="relatedError" class="text-red-500 py-6">
+          {{ relatedError }}
+        </div>
+
+        <!-- Không có gợi ý -->
+        <div v-else-if="!relatedCars.length" class="text-gray-500 py-6">
+          Chưa có sản phẩm gợi ý phù hợp.
+        </div>
+
+        <!-- Có dữ liệu từ BE -->
+        <div
+          v-else
+          class="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+        >
           <div
             v-for="relatedCar in relatedCars"
             :key="relatedCar.id"
@@ -416,15 +511,25 @@ const relatedCars = ref([
           >
             <NuxtLink :to="`/product/${relatedCar.id}`">
               <img
-                :src="relatedCar.image"
+                :src="relatedCar.imageUrl"
                 :alt="relatedCar.name"
                 class="w-full aspect-video object-cover"
               />
               <div class="p-4">
-                <h3 class="font-bold text-gray-800 mb-1">{{ relatedCar.name }}</h3>
-                <p class="text-sm text-gray-500 mb-2">{{ relatedCar.tagline }}</p>
-                <div class="text-indigo-600 font-semibold">
+                <h3 class="font-bold text-gray-800 mb-1">
+                  {{ relatedCar.name }}
+                </h3>
+                <p v-if="relatedCar.tagline" class="text-sm text-gray-500 mb-2">
+                  {{ relatedCar.tagline }}
+                </p>
+                <div
+                  v-if="relatedCar.price"
+                  class="text-indigo-600 font-semibold"
+                >
                   {{ formatCurrency(relatedCar.price) }}
+                </div>
+                <div v-else class="text-gray-500 text-sm">
+                  Liên hệ để biết giá
                 </div>
               </div>
             </NuxtLink>

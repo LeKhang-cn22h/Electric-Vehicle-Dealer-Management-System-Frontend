@@ -7,6 +7,7 @@
         :fields-name="fieldsName"
         :table-component="OrderTable"
         :data="quotes"
+        :show-toolbar="true"
         :filter-function="filterQuotes"
         @print="handlePrint"
     >
@@ -37,6 +38,13 @@ import { reactive } from "vue";
 import OrderStatusBadge from "@/components/orders/OrderStatusBadge.vue";
 import { formatCurrency, formatDate } from "@/utils/format";
 
+definePageMeta({
+    layout: false,
+});
+
+const { layoutName, applyLayout } = useRoleBasedLayout();
+applyLayout();
+
 const filters = reactive({
     searchQuery: "",
     status: "",
@@ -54,7 +62,7 @@ const fieldsName = [
 const quotes = [
     {
         id: 19,
-        orderCode: "#ORD-002",
+        orderCode: "#ORD-001",
         customerName: "Trần Thị B",
         orderDate: "2024-10-22",
         productName: "EV Model Y - Trắng",
@@ -74,7 +82,7 @@ const quotes = [
     },
     {
         id: 21,
-        orderCode: "#ORD-002",
+        orderCode: "#ORD-003",
         customerName: "Trần Thị B",
         orderDate: "2024-10-22",
         productName: "EV Model Y - Trắng",
