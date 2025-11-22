@@ -1,6 +1,6 @@
 import type { VehicleImage } from "./vehicle";
 
-export interface ProductItem {
+export interface ProductItemDetail {
     id: number;
     name: string;
     status?: string;
@@ -11,4 +11,13 @@ export interface ProductItem {
     model?: string;
     images?: VehicleImage[];
     price?: number;
+}
+
+export interface ProductItem {
+    id: number;
+    quotation_id: string;
+    quantity?: number;
+    unit_price: number;
+    create_at: string;
+    product_id: number;
 }

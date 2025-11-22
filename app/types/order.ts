@@ -1,3 +1,51 @@
-export interface CreateOrderResponse {
-    orderId: string | number;
+import type { Detail } from "~/schemas";
+
+export interface Order {
+    id: string;
+    quotationId?: string;
+    createdBy: string;
+
+    totalAmount: number;
+    total_amount: number;
+
+    paymentMethod: "cash" | "bank_transfer";
+    paymentStatus: "unpaid" | "paid" | "partial";
+    paymentAmount: number;
+
+    bank: string;
+    term: number;
+    downPayment: number;
+    down_payment: number;
+
+    status: "pending" | "confirmed" | "delivering" | "completed" | "cancelled";
+    createdAt: Date;
+    updatedAt: Date;
+}
+
+export interface OrderTable {
+    id: string;
+    createdBy: string;
+    totalAmount: number;
+    status: "pending" | "confirmed" | "delivering" | "completed" | "cancelled";
+    paymentAmount: number;
+    downPayment: number;
+    paymentStatus: "unpaid" | "paid" | "partial";
+    createdAt: Date;
+}
+
+export interface OrderDetailnotId extends Detail {
+    createdBy: string;
+
+    paymentMethod: "cash" | "bank_transfer";
+    paymentStatus: "unpaid" | "paid" | "partial";
+    paymentAmount: number;
+
+    bank: string;
+    term: number;
+    downPayment: number;
+
+    status: "pending" | "confirmed" | "delivering" | "completed" | "cancelled";
+}
+export interface OrderDetail extends OrderDetailnotId {
+    id: string;
 }

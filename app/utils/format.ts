@@ -1,7 +1,7 @@
 import type { CatalogProduct, ProductItem } from "@/schemas";
 import { useNotification } from "@/composables/useNotification";
 
-export function formatCurrency(value: number): string {
+export function formatCurrency(value: number = 0): string {
     return new Intl.NumberFormat("vi-VN", {
         style: "currency",
         currency: "VND",

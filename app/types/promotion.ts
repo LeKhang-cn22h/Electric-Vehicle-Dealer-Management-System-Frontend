@@ -3,17 +3,17 @@ export interface Promotion {
     code: string;
     description?: string;
 
-    discount_type: "percent" | "amount";
-    discount_value: number;
+    discountType: "percent" | "amount";
+    discountValue: number;
 
-    min_order_value?: number;
-    min_quantity?: number;
+    minOrderValue?: number;
+    minQuantity?: number;
 
-    start_date: Date;
-    end_date: Date | null;
+    startDate: Date;
+    endDate: Date | null;
 
-    is_active: boolean;
+    isActive: boolean;
 
-    created_at: Date;
-    updated_at: Date;
+    createdAt: Date;
+    updatedAt: Date;
 }
