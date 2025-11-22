@@ -11,12 +11,13 @@ const props = defineProps({
     errorMessage: { type: String, default: "Lỗi xảy ra!" },
 });
 
-const emits = defineEmits(["update:visible", "update:loading", "update:error"]);
+const emits = defineEmits(["update:visible", "update:loading", "update:error", "close"]);
 
 function closeModal() {
     emits("update:visible", false);
     emits("update:loading", false);
     emits("update:error", null);
+    emits("close");
 }
 </script>
 
