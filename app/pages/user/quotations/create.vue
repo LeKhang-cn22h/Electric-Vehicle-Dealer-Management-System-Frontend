@@ -1,49 +1,55 @@
 <template>
-    <div class="min-h-screen bg-gray-50 p-6">
-        <div class="max-w-5xl mx-auto">
-            <!-- Header -->
-            <header class="mb-8">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <h1 class="text-2xl font-semibold text-gray-900">
-                            {{ currentStep === 1 ? "Tạo báo giá mới" : "Xác nhận báo giá" }}
-                        </h1>
-                        <p class="text-gray-600 mt-1">
-                            {{
-                                currentStep === 1
-                                    ? "Nhập thông tin báo giá cho khách hàng tiềm năng"
-                                    : "Kiểm tra lại toàn bộ thông tin trước khi gửi"
-                            }}
-                        </p>
-                    </div>
-                    <button @click="goBack" class="text-gray-600 hover:text-gray-900 flex items-center gap-2">
-                        ← Quay lại danh sách
-                    </button>
-                </div>
-            </header>
+  <div class="min-h-screen bg-gray-50 p-6">
+    <div class="max-w-5xl mx-auto">
+      <!-- Header -->
+      <header class="mb-8">
+        <div class="flex justify-between items-center">
+          <div>
+            <h1 class="text-2xl font-semibold text-gray-900">
+              {{ currentStep === 1 ? "Tạo báo giá mới" : "Xác nhận báo giá" }}
+            </h1>
+            <p class="text-gray-600 mt-1">
+              {{
+                currentStep === 1
+                  ? "Nhập thông tin báo giá cho khách hàng tiềm năng"
+                  : "Kiểm tra lại toàn bộ thông tin trước khi gửi"
+              }}
+            </p>
+          </div>
+          <button
+            @click="goBack"
+            class="text-gray-600 hover:text-gray-900 flex items-center gap-2"
+          >
+            ← Quay lại danh sách
+          </button>
+        </div>
+      </header>
 
-            <!-- Step 1: Nhập thông tin -->
-            <div v-if="currentStep === 1" class="space-y-6">
-                <!-- Customer Section -->
-                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <OrderCustomerForm v-model:customer="quoteData.customer" />
-                    <!-- @form-valid="handleFormValid" -->
-                    <!-- @customer-type="quoteData.customerType = $event" -->
-                </div>
+      <!-- Step 1: Nhập thông tin -->
+      <div v-if="currentStep === 1" class="space-y-6">
+        <!-- Customer Section -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <OrderCustomerForm v-model:customer="quoteData.customer" />
+          <!-- @form-valid="handleFormValid" -->
+          <!-- @customer-type="quoteData.customerType = $event" -->
+        </div>
 
-                <!-- Products Section -->
-                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Sản phẩm</h2>
-                    <OrderProductSelect v-model:items="quoteData.items" />
-                </div>
+        <!-- Products Section -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h2 class="text-lg font-semibold text-gray-900 mb-4">Sản phẩm</h2>
+          <OrderProductSelect v-model:items="quoteData.items" />
+        </div>
 
-                <!-- Promotions Section -->
-                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <OrderPromotionSelect v-model:promotions="quoteData.appliedPromotions" :items="quoteData.items" />
-                </div>
+        <!-- Promotions Section -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <OrderPromotionSelect
+            v-model:promotions="quoteData.appliedPromotions"
+            :items="quoteData.items"
+          />
+        </div>
 
-                <!-- Notes Section -->
-                <!-- <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <!-- Notes Section -->
+        <!-- <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                     <h2 class="text-lg font-semibold text-gray-900 mb-4">Ghi chú</h2>
 
                     <div class="mt-4">
@@ -56,43 +62,48 @@
                     </div>
                 </div> -->
 
-                <!-- Next Button -->
-                <div class="flex justify-end">
-                    <button @click="goToSummary" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
-                        Tiếp tục
-                    </button>
-                </div>
-                <NuxtLink to="/dealer_manager/payments/vnpay" class="nav-item"> Test thanh toán VNPay </NuxtLink>
-            </div>
-
-            <!-- Step 2: Xác nhận -->
-            <div v-else>
-                <OrderSummary
-                    :order-data="quoteData"
-                    :order-total="total"
-                    @back="currentStep = 1"
-                    @submit="handleSubmit"
-                    :is-payment="false"
-                />
-            </div>
-            <ConfirmModal
-                v-model:show="showModal"
-                title="Xác nhận tạo báo giá"
-                message="Bạn có chắc chắn muốn <b>tạo</b> báo giá mới này không?"
-                confirmText="Xác nhận"
-                cancelText="Hủy"
-                @confirm="handleConfirm"
-            />
-            <StatusModal
-                :visible="visible"
-                :loading="loading"
-                :error="error"
-                @update:visible="(val: boolean) => (visible = val)"
-                @update:loading="(val: boolean) => (loading = val)"
-                @update:error="(val: string | null) => (error = val)"
-            />
+        <!-- Next Button -->
+        <div class="flex justify-end">
+          <button
+            @click="goToSummary"
+            class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+          >
+            Tiếp tục
+          </button>
         </div>
+        <NuxtLink to="/dealer_manager/payments/vnpay" class="nav-item">
+          Test thanh toán VNPay
+        </NuxtLink>
+      </div>
+
+      <!-- Step 2: Xác nhận -->
+      <div v-else>
+        <OrderSummary
+          :order-data="quoteData"
+          :order-total="total"
+          @back="currentStep = 1"
+          @submit="handleSubmit"
+          :is-payment="false"
+        />
+      </div>
+      <ConfirmModal
+        v-model:show="showModal"
+        title="Xác nhận tạo báo giá"
+        message="Bạn có chắc chắn muốn <b>tạo</b> báo giá mới này không?"
+        confirmText="Xác nhận"
+        cancelText="Hủy"
+        @confirm="handleConfirm"
+      />
+      <StatusModal
+        :visible="visible"
+        :loading="loading"
+        :error="error"
+        @update:visible="(val: boolean) => (visible = val)"
+        @update:loading="(val: boolean) => (loading = val)"
+        @update:error="(val: string | null) => (error = val)"
+      />
     </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -103,7 +114,11 @@ import OrderProductSelect from "@/components/orders/OrderProductSelect.vue";
 import OrderPromotionSelect from "@/components/orders/OrderPromotionSelect.vue";
 import OrderSummary from "@/components/orders/OrderSummary.vue";
 import type { Promotion } from "@/schemas";
-import type { ApiResponse, CreateQuotationDto, CreateQuoteResponse } from "@/types/";
+import type {
+  ApiResponse,
+  CreateQuotationDto,
+  CreateQuoteResponse,
+} from "@/types/";
 import { notiFail, notiSuccess } from "@/utils/format";
 import ConfirmModal from "~/components/shared/ConfirmModal.vue";
 import StatusModal from "~/components/shared/StatusModal.vue";
@@ -111,8 +126,9 @@ import type { Customer } from "~/types/profile";
 import type { ProductItem } from "~/types/product-item";
 
 definePageMeta({
-    layout: false,
+  layout: false,
 });
+
 const { layoutName, applyLayout } = useRoleBasedLayout();
 applyLayout();
 
@@ -124,33 +140,47 @@ const currentStep = ref(1);
 // const isCustomerFormValid = ref(false);
 
 const quoteData = reactive({
-    customer: null as Customer | null,
-    // | CreateCustomer
-    // customerType: null as "existing" | "new" | null,
-    items: [] as ProductItem[],
-    appliedPromotions: [] as Promotion[],
-    discountPercent: 0,
-    validDays: 30,
-    notes: "",
+  customer: null as Customer | null,
+  // | CreateCustomer
+  // customerType: null as "existing" | "new" | null,
+  items: [] as ProductItem[],
+  appliedPromotions: [] as Promotion[],
+  discountPercent: 0,
+  validDays: 30,
+  notes: "",
 });
 
 watch(
-    () => quoteData.customer,
-    (val) => {
-        console.log("Đã chọn user có id:", val?.id);
-    }
+  () => quoteData.customer,
+  (val) => {
+    console.log("Đã chọn user có id:", val?.id);
+  }
 );
 watch(
-    () => quoteData.items,
-    (val) => {
-        console.log("tất cả sản phẩm chọn:", val);
-    }
+  () => quoteData.items,
+  (val) => {
+    console.log("tất cả sản phẩm chọn:", val);
+  }
 );
 // --- Computed totals ---
-const subtotal = computed(() => quoteData.items.reduce((sum, item) => sum + (item.quantity || 0) * (item.price || 0), 0));
-const promoDiscount = computed(() => quoteData.appliedPromotions.reduce((sum, promo) => sum + promo.discountAmount, 0));
-const percentDiscount = computed(() => (subtotal.value * (quoteData.discountPercent || 0)) / 100);
-const total = computed(() => subtotal.value - promoDiscount.value - percentDiscount.value);
+const subtotal = computed(() =>
+  quoteData.items.reduce(
+    (sum, item) => sum + (item.quantity || 0) * (item.price || 0),
+    0
+  )
+);
+const promoDiscount = computed(() =>
+  quoteData.appliedPromotions.reduce(
+    (sum, promo) => sum + promo.discountAmount,
+    0
+  )
+);
+const percentDiscount = computed(
+  () => (subtotal.value * (quoteData.discountPercent || 0)) / 100
+);
+const total = computed(
+  () => subtotal.value - promoDiscount.value - percentDiscount.value
+);
 
 // const handleFormValid = (val: boolean) => {
 //     isCustomerFormValid.value = val;
@@ -158,116 +188,121 @@ const total = computed(() => subtotal.value - promoDiscount.value - percentDisco
 
 // --- Validation ---
 const validateQuote = () => {
-    if (
-        !quoteData.customer
-        // || !isCustomerFormValid.value
-    ) {
-        notiFail("Vui lòng kiểm tra thông tin khách hàng");
-        return false;
-    }
-    console.log("!quoteData.customer", !quoteData.customer);
-    console.log("quoteData.items", quoteData.items);
-    console.log("quoteData.items.length", quoteData.items.length);
-    if (quoteData.items.length === 0) {
-        notiFail("Vui lòng thêm ít nhất một sản phẩm");
-        return false;
-    }
-    console.log("quoteData.items.length === 0", quoteData.items.length === 0);
-    const invalidItem = quoteData.items.some((i) => !i.name || (i.quantity || 0) <= 0 || (i.price || 0) < 0);
-    if (invalidItem) {
-        notiFail("Vui lòng điền đầy đủ thông tin sản phẩm");
-        return false;
-    }
-    console.log("invalidItem", invalidItem);
-    return true;
+  if (
+    !quoteData.customer
+    // || !isCustomerFormValid.value
+  ) {
+    notiFail("Vui lòng kiểm tra thông tin khách hàng");
+    return false;
+  }
+  console.log("!quoteData.customer", !quoteData.customer);
+  console.log("quoteData.items", quoteData.items);
+  console.log("quoteData.items.length", quoteData.items.length);
+  if (quoteData.items.length === 0) {
+    notiFail("Vui lòng thêm ít nhất một sản phẩm");
+    return false;
+  }
+  console.log("quoteData.items.length === 0", quoteData.items.length === 0);
+  const invalidItem = quoteData.items.some(
+    (i) => !i.name || (i.quantity || 0) <= 0 || (i.price || 0) < 0
+  );
+  if (invalidItem) {
+    notiFail("Vui lòng điền đầy đủ thông tin sản phẩm");
+    return false;
+  }
+  console.log("invalidItem", invalidItem);
+  return true;
 };
 
 // --- Step Control ---
 const goToSummary = () => {
-    console.log("Đã tiếp tục");
-    if (!validateQuote()) {
-        console.log("Lỗi");
-        return;
-    }
-    currentStep.value = 2;
-    console.log("currentStep", currentStep.value);
+  console.log("Đã tiếp tục");
+  if (!validateQuote()) {
+    console.log("Lỗi");
+    return;
+  }
+  currentStep.value = 2;
+  console.log("currentStep", currentStep.value);
 };
 
 // --- Submit ---
 const createQuote = async () => {
-    isSubmitting.value = true;
+  isSubmitting.value = true;
 
-    try {
-        const body: any = {
-            items: quoteData.items,
-            promotions: quoteData.appliedPromotions,
-            discountPercent: quoteData.discountPercent,
-            promoDiscount: promoDiscount.value,
-            discountAmount: percentDiscount.value,
-            subtotal: subtotal.value,
-            total: total.value,
-            validDays: quoteData.validDays,
-            notes: quoteData.notes,
-        };
+  try {
+    const body: any = {
+      items: quoteData.items,
+      promotions: quoteData.appliedPromotions,
+      discountPercent: quoteData.discountPercent,
+      promoDiscount: promoDiscount.value,
+      discountAmount: percentDiscount.value,
+      subtotal: subtotal.value,
+      total: total.value,
+      validDays: quoteData.validDays,
+      notes: quoteData.notes,
+    };
 
-        // if ("id" in (quoteData.customer || {})) {
-        // Khách hàng đã có trong hệ thống
-        //     body.customerId = (quoteData.customer as Customer).id;
-        // } else {
-        // Khách hàng mới
-        //     body.customerInfo = quoteData.customer as CreateCustomer;
-        // }
+    // if ("id" in (quoteData.customer || {})) {
+    // Khách hàng đã có trong hệ thống
+    //     body.customerId = (quoteData.customer as Customer).id;
+    // } else {
+    // Khách hàng mới
+    //     body.customerInfo = quoteData.customer as CreateCustomer;
+    // }
 
-        const response = await $fetch<ApiResponse<CreateQuoteResponse>>("/api/quotes", {
-            method: "POST",
-            body,
-        });
+    const response = await $fetch<ApiResponse<CreateQuoteResponse>>(
+      "/api/quotes",
+      {
+        method: "POST",
+        body,
+      }
+    );
 
-        await router.push(`/quotes/${response.data.quoteId}`);
-    } catch (err) {
-        console.error("Lỗi khi tạo báo giá:", err);
-        alert("Có lỗi xảy ra khi tạo báo giá, vui lòng thử lại!");
-    } finally {
-        isSubmitting.value = false;
-    }
+    await router.push(`/quotes/${response.data.quoteId}`);
+  } catch (err) {
+    console.error("Lỗi khi tạo báo giá:", err);
+    alert("Có lỗi xảy ra khi tạo báo giá, vui lòng thử lại!");
+  } finally {
+    isSubmitting.value = false;
+  }
 };
 
 const goBack = () => {
-    if (confirm("Bạn có chắc muốn hủy? Dữ liệu sẽ không được lưu.")) {
-        router.back();
-    }
+  if (confirm("Bạn có chắc muốn hủy? Dữ liệu sẽ không được lưu.")) {
+    router.back();
+  }
 };
 
 const showModal = ref(false);
 
 const handleSubmit = () => {
-    showModal.value = true;
+  showModal.value = true;
 };
 
 const handleConfirm = () => {
-    console.log("Người dùng xác nhận hành động!");
-    // Gọi API hoặc thực hiện action ở đây
-    showModal.value = false; // đóng modal sau khi xác nhận
-    // savePromotion();
+  console.log("Người dùng xác nhận hành động!");
+  // Gọi API hoặc thực hiện action ở đây
+  showModal.value = false; // đóng modal sau khi xác nhận
+  // savePromotion();
 };
 
 // State của modal
 const visible = ref(false);
 
 watch(loading, () => {
-    if (loading.value) visible.value = true;
+  if (loading.value) visible.value = true;
 });
 
 const mapToBackendDto = (quotation: CreateQuotationDto) => ({
-    customerId: quotation.customerId,
-    customerName: quotation.customerName,
-    customerPhone: quotation.customerPhone,
-    customerEmail: quotation.customerEmail,
-    customerAddress: quotation.customerAddress,
-    createdBy: quotation.createdBy,
-    items: quotation.items,
-    vatRate: quotation.vatRate || 0.1,
-    note: quotation.note,
-    promotionCode: quotation.promotionCode,
+  customerId: quotation.customerId,
+  customerName: quotation.customerName,
+  customerPhone: quotation.customerPhone,
+  customerEmail: quotation.customerEmail,
+  customerAddress: quotation.customerAddress,
+  createdBy: quotation.createdBy,
+  items: quotation.items,
+  vatRate: quotation.vatRate || 0.1,
+  note: quotation.note,
+  promotionCode: quotation.promotionCode,
 });
 </script>
