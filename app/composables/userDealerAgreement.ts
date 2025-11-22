@@ -1,5 +1,4 @@
 import { ref } from "vue";
-
 export function useDealerAgreement() {
   const pending = ref(false);
 
@@ -30,4 +29,5 @@ function useAuthHeader() {
   return {
     Authorization: `Bearer ${token}`,
   };
+  
 }
