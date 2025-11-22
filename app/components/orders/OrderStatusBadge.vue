@@ -17,6 +17,11 @@ const statusConfig = {
     pending: { class: "bg-yellow-100 text-yellow-800", text: "Đang xử lý" },
     confirmed: { class: "bg-blue-100 text-blue-800", text: "Đã xác nhận" },
     cancelled: { class: "bg-red-100 text-red-800", text: "Đã hủy" },
+    draft: { class: "bg-gray-100 text-gray-800", text: "Nháp" },
+    converted: { class: "bg-green-100 text-green-800", text: "Đã chuyển" },
+    unpaid: { class: "bg-yellow-100 text-yellow-800", text: "Chưa thanh toán" },
+    paid: { class: "bg-green-100 text-green-800", text: "Đã thanh toán" },
+    partial: { class: "bg-yellow-100 text-yellow-800", text: "1 phần" },
     true: { class: "bg-green-100 text-green-800", text: "Đang hoạt động" },
     false: { class: "bg-gray-100 text-gray-800", text: "Đã ẩn" },
 };

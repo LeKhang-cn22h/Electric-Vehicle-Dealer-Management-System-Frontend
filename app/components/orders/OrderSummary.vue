@@ -36,7 +36,7 @@
                     <h3 class="font-medium text-gray-900">Sản phẩm đã chọn</h3>
                 </div>
                 <div class="divide-y">
-                    <div v-for="(item, index) in orderData.items" :key="index" class="p-4">
+                    <div v-for="(item, index) in orderData.vehicles" :key="index" class="p-4">
                         <div class="flex justify-between items-start">
                             <div class="flex-1">
                                 <div class="font-medium">{{ item.name }}</div>
@@ -55,13 +55,13 @@
             </div>
 
             <!-- Khuyến mãi -->
-            <div v-if="orderData.appliedPromotions.length > 0" class="border border-gray-200 rounded-lg">
+            <div v-if="orderData.promotions.length > 0" class="border border-gray-200 rounded-lg">
                 <div class="bg-gray-50 px-4 py-3 border-b">
                     <h3 class="font-medium text-gray-900">Khuyến mãi đã áp dụng</h3>
                 </div>
                 <div class="p-4">
                     <div
-                        v-for="promotion in orderData.appliedPromotions"
+                        v-for="promotion in orderData.promotions"
                         :key="promotion.id"
                         class="flex justify-between items-center py-2"
                     >
@@ -189,7 +189,7 @@ const isSubmitting = ref(false);
 
 // Computed
 const itemsTotal = computed(() => {
-    return props.orderData.items.reduce((sum, item) => sum + item.quantity * item.price, 0);
+    return props.orderData.vehicles.reduce((sum, item) => sum + item.quantity * item.price, 0);
 });
 
 const vatAmount = computed(() => {
@@ -201,7 +201,7 @@ const finalTotal = computed(() => {
 });
 
 const discountTotal = computed(() => {
-    return props.orderData.appliedPromotions.reduce((sum, promo) => sum + promo.discountAmount, 0);
+    return props.orderData.promotions.reduce((sum, promo) => sum + promo.discountAmount, 0);
 });
 
 // Methods
@@ -209,9 +209,9 @@ const submitOrder = async () => {
     isSubmitting.value = true;
 
     try {
+        props.orderData.notes = orderNote.value;
         await emit("submit", {
             ...props.orderData,
-            note: orderNote.value,
         });
     } finally {
         isSubmitting.value = false;

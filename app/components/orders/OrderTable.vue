@@ -4,7 +4,11 @@
         <table class="w-full">
             <thead class="bg-black">
                 <tr>
-                    <th v-for="(field, i) in fieldsName" :key="i" class="px-4 py-4 text-left text-base font-semibold text-white">
+                    <th
+                        v-for="(field, i) in fieldsName"
+                        :key="i"
+                        class="px-4 py-4 text-left text-base font-semibold text-white truncate w-[120px] max-w-[150px]"
+                    >
                         {{ field.label }}
                     </th>
                 </tr>
