@@ -43,7 +43,7 @@
                 </div>
 
                 <!-- Notes Section -->
-                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <!-- <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                     <h2 class="text-lg font-semibold text-gray-900 mb-4">Ghi chú</h2>
 
                     <div class="mt-4">
@@ -54,7 +54,7 @@
                             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                         ></textarea>
                     </div>
-                </div>
+                </div> -->
 
                 <!-- Next Button -->
                 <div class="flex justify-end">
@@ -102,12 +102,13 @@ import OrderCustomerForm from "@/components/orders/OrderCustomerForm.vue";
 import OrderProductSelect from "@/components/orders/OrderProductSelect.vue";
 import OrderPromotionSelect from "@/components/orders/OrderPromotionSelect.vue";
 import OrderSummary from "@/components/orders/OrderSummary.vue";
-import type { CreateCustomer, ProductItem, Promotion } from "@/schemas";
+import type { Promotion } from "@/schemas";
 import type { ApiResponse, CreateQuotationDto, CreateQuoteResponse } from "@/types/";
 import { notiFail, notiSuccess } from "@/utils/format";
 import ConfirmModal from "~/components/shared/ConfirmModal.vue";
 import StatusModal from "~/components/shared/StatusModal.vue";
 import type { Customer } from "~/types/profile";
+import type { ProductItem } from "~/types/product-item";
 
 definePageMeta({
     layout: false,
@@ -120,7 +121,7 @@ const { loading, error, create } = usePromotions();
 const router = useRouter();
 const isSubmitting = ref(false);
 const currentStep = ref(1);
-const isCustomerFormValid = ref(false);
+// const isCustomerFormValid = ref(false);
 
 const quoteData = reactive({
     customer: null as Customer | null,
@@ -139,9 +140,14 @@ watch(
         console.log("Đã chọn user có id:", val?.id);
     }
 );
-
+watch(
+    () => quoteData.items,
+    (val) => {
+        console.log("tất cả sản phẩm chọn:", val);
+    }
+);
 // --- Computed totals ---
-const subtotal = computed(() => quoteData.items.reduce((sum, item) => sum + (item.quantity || 0) * (item.unitPrice || 0), 0));
+const subtotal = computed(() => quoteData.items.reduce((sum, item) => sum + (item.quantity || 0) * (item.price || 0), 0));
 const promoDiscount = computed(() => quoteData.appliedPromotions.reduce((sum, promo) => sum + promo.discountAmount, 0));
 const percentDiscount = computed(() => (subtotal.value * (quoteData.discountPercent || 0)) / 100);
 const total = computed(() => subtotal.value - promoDiscount.value - percentDiscount.value);
@@ -152,8 +158,6 @@ const total = computed(() => subtotal.value - promoDiscount.value - percentDisco
 
 // --- Validation ---
 const validateQuote = () => {
-    console.log(quoteData.customer);
-
     if (
         !quoteData.customer
         // || !isCustomerFormValid.value
@@ -161,27 +165,36 @@ const validateQuote = () => {
         notiFail("Vui lòng kiểm tra thông tin khách hàng");
         return false;
     }
+    console.log("!quoteData.customer", !quoteData.customer);
+    console.log("quoteData.items", quoteData.items);
+    console.log("quoteData.items.length", quoteData.items.length);
     if (quoteData.items.length === 0) {
         notiFail("Vui lòng thêm ít nhất một sản phẩm");
         return false;
     }
-    const invalidItem = quoteData.items.some((i) => !i.productName || i.quantity <= 0 || i.unitPrice < 0);
+    console.log("quoteData.items.length === 0", quoteData.items.length === 0);
+    const invalidItem = quoteData.items.some((i) => !i.name || (i.quantity || 0) <= 0 || (i.price || 0) < 0);
     if (invalidItem) {
         notiFail("Vui lòng điền đầy đủ thông tin sản phẩm");
         return false;
     }
+    console.log("invalidItem", invalidItem);
     return true;
 };
 
 // --- Step Control ---
 const goToSummary = () => {
-    if (!validateQuote()) return;
+    console.log("Đã tiếp tục");
+    if (!validateQuote()) {
+        console.log("Lỗi");
+        return;
+    }
     currentStep.value = 2;
+    console.log("currentStep", currentStep.value);
 };
 
 // --- Submit ---
 const createQuote = async () => {
-    if (!validateQuote()) return;
     isSubmitting.value = true;
 
     try {

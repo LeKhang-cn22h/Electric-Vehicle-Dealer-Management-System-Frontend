@@ -411,9 +411,7 @@ const getStatusText = (status: string) => {
 
 // ====================== SELECT PRODUCT ======================
 const selectProduct = (product: any) => {
-    console.log("[ProductModal] selectProduct:", product);
-
-    if (product.status !== "available") {
+    if (product.status !== "Còn hàng") {
         console.warn("[ProductModal] Product not available:", product);
         return;
     }

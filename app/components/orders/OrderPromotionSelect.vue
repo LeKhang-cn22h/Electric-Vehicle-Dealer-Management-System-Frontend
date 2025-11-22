@@ -122,14 +122,16 @@ const appliedPromotions = computed(() => props.promotions);
 
 // Computed
 const itemsTotal = computed(() => {
-    return props.items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
+    return props.items.reduce((sum, item) => sum + item.quantity * item.price, 0);
 });
 
 const totalDiscount = computed(() => {
     return appliedPromotions.value.reduce((sum, promo) => sum + promo.discountAmount, 0);
 });
 
-const finalTotal = computed(() => itemsTotal.value - totalDiscount.value);
+const finalTotal = computed(() => {
+    return Math.max(0, itemsTotal.value - totalDiscount.value);
+});
 
 // Methods
 // const loadAvailablePromotions = async () => {
