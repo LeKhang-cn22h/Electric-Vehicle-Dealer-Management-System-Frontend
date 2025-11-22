@@ -13,6 +13,22 @@
                         ← Quay lại danh sách
                     </button>
                 </div>
+                <button
+                    v-if="userRole === 'dealer_manager'"
+                    class="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed"
+                    @click="handleSubmit"
+                    :disabled="order?.status !== 'pending'"
+                >
+                    {{ order?.status === "pending" ? "Xác nhận" : "Đã xử lý" }}
+                </button>
+                <button
+                    v-else
+                    class="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed"
+                    @click=""
+                    :disabled="false"
+                >
+                    {{ order?.status === "pending" ? "Chờ xác nhận" : "Đã xử lý" }}
+                </button>
             </header>
 
             <!-- Loading -->
@@ -25,10 +41,10 @@
                 <!-- Thông tin khách hàng -->
                 <section>
                     <h2 class="text-lg font-semibold text-gray-800 mb-3">Khách hàng</h2>
-                    <p><strong>Tên:</strong> {{ order.customer.fullName }}</p>
+                    <p><strong>Tên:</strong> {{ order.customer.name }}</p>
                     <p><strong>Số điện thoại:</strong> {{ order.customer.phone }}</p>
                     <p><strong>Email:</strong> {{ order.customer.email }}</p>
-                    <p><strong>Địa chỉ:</strong> {{ order.customer.address }}</p>
+                    <p><strong>Địa chỉ:</strong> {{ order.customer.adress }}</p>
                 </section>
 
                 <!-- Sản phẩm -->
@@ -44,11 +60,18 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="item in order.items" :key="item.id" class="border-t">
-                                <td class="px-4 py-2">{{ item.productName }}</td>
-                                <td class="px-4 py-2">{{ item.quantity }}</td>
-                                <td class="px-4 py-2">{{ formatCurrency(item.unitPrice) }}</td>
-                                <td class="px-4 py-2">{{ formatCurrency(item.quantity * item.unitPrice) }}</td>
+                            <tr v-for="item in order.vehicles" :key="item.id" class="border-t">
+                                <td class="px-4 py-2">{{ item.name }}</td>
+                                <td class="px-4 py-2">{{ order.items.find((i) => i.product_id === item.id)?.quantity || 0 }}</td>
+                                <td class="px-4 py-2">{{ formatCurrency(item.price) }}</td>
+                                <td class="px-4 py-2">
+                                    {{
+                                        formatCurrency(
+                                            (order.items.find((i) => i.product_id === item.id)?.quantity || 0) *
+                                                (item.price ? item.price : 0)
+                                        )
+                                    }}
+                                </td>
                             </tr>
                         </tbody>
                     </table>
@@ -58,8 +81,11 @@
                 <section v-if="order.promotions?.length">
                     <h2 class="text-lg font-semibold text-gray-800 mb-3">Khuyến mãi</h2>
                     <ul class="list-disc list-inside text-gray-700">
-                        <li v-for="promo in order.promotions" :key="promo.promo_id">
-                            {{ promo.name }} — Giảm {{ formatCurrency(promo.discountAmount) }}
+                        <li v-for="promo in order.promotions" :key="promo.id">
+                            {{ promo.code }} — Giảm
+                            {{
+                                promo.discountType === "amount" ? formatCurrency(promo.discountValue) : promo.discountValue + "%"
+                            }}
                         </li>
                     </ul>
                 </section>
@@ -67,19 +93,17 @@
                 <!-- Thanh toán -->
                 <section>
                     <h2 class="text-lg font-semibold text-gray-800 mb-3">Thanh toán</h2>
-                    <p><strong>Phương thức:</strong> {{ order.payment.method === "cash" ? "Tiền mặt" : "Trả góp" }}</p>
-                    <p v-if="order.payment.method === 'installment'">
-                        <strong>Đối tác ngân hàng:</strong> {{ order.payment.bankPartner }}
-                    </p>
-                    <p><strong>Trả trước:</strong> {{ formatCurrency(order.payment.downPayment) }}</p>
-                    <p><strong>Kỳ hạn:</strong> {{ order.payment.tenor }} tháng</p>
+                    <p><strong>Phương thức:</strong> {{ order.payment_method === "cash" ? "Tiền mặt" : "Trả góp" }}</p>
+                    <p v-if="order.payment_method === 'bank_transfer'"><strong>Đối tác ngân hàng:</strong> {{ order.bank }}</p>
+                    <p><strong>Trả trước:</strong> {{ formatCurrency(order.down_payment) }}</p>
+                    <p><strong>Kỳ hạn:</strong> {{ order.term }} tháng</p>
                 </section>
 
                 <!-- Tổng kết -->
                 <section class="border-t pt-4">
                     <div class="flex justify-between items-center">
                         <span class="text-lg font-semibold text-gray-700">Tổng tiền:</span>
-                        <span class="text-2xl font-bold text-blue-600">{{ formatCurrency(order.totalAmount) }}</span>
+                        <span class="text-2xl font-bold text-blue-600">{{ formatCurrency(order.total_amount) }}</span>
                     </div>
                 </section>
             </div>
@@ -87,85 +111,117 @@
             <!-- Không có dữ liệu -->
             <div v-else class="text-center py-16 text-gray-500">Không tìm thấy đơn hàng nào 📭</div>
         </div>
+        <ConfirmModal
+            v-model:show="showModal"
+            title="Xác nhận tạo hợp đồng"
+            message="Bạn có chắc chắn muốn <b>tạo</b> hợp đồng mới này không?"
+            confirmText="Xác nhận"
+            cancelText="Hủy"
+            @confirm="handleConfirm"
+        />
+        <StatusModal
+            :visible="visible"
+            :loading="loadingContract"
+            :error="errorContract"
+            @update:visible="(val: boolean) => (visible = val)"
+            @update:loading="(val: boolean) => (loadingContract = val)"
+            @update:error="(val: string | null) => (errorContract = val)"
+            @close="goToListContractDetail"
+        />
     </div>
 </template>
 
 <script setup lang="ts">
 import { formatCurrency } from "@/utils/format";
-import type { ApiResponse } from "@/types";
-import type { OrderDetail } from "@/schemas"; // bạn có thể định nghĩa kiểu này theo project
+import ConfirmModal from "~/components/shared/ConfirmModal.vue";
+import StatusModal from "~/components/shared/StatusModal.vue";
+
+definePageMeta({
+    layout: false,
+});
+
+const { layoutName, applyLayout } = useRoleBasedLayout();
+applyLayout();
 
 const route = useRoute();
 const router = useRouter();
-const orderId = route.params.id;
-
+const orderId = route.params.id as string;
+const userRole = useCookie<string>("role");
 // Trạng thái
-const order = ref<OrderDetail | null>(null);
+const { loading, error, fetchOne, order } = useOrders();
+const { loading: loadingContract, error: errorContract, create } = useContract();
 const pending = ref(true);
+watch(
+    () => order.value,
+    () => {
+        console.log("order", order.value);
+    }
+);
 
 // Lấy dữ liệu từ API
 onMounted(async () => {
-    // try {
-    //     const response = await $fetch<ApiResponse<OrderDetail>>(`/api/orders/${orderId}`);
-    //     order.value = response.data;
-    // } catch (error) {
-    //     console.error("Lỗi khi tải đơn hàng:", error);
-    // } finally {
-    //     pending.value = false;
-    // }
-    const mockOrderDetail: OrderDetail = {
-        id: 1,
-        customer: {
-            id: 1001,
-            fullName: "Nguyễn Văn A",
-            phone: "0912345678",
-            email: "vana@example.com",
-            address: "123 Đường Lê Lợi, Quận 1, TP.HCM",
-            createdAt: new Date("2024-01-01T10:00:00Z"),
-            updatedAt: new Date("2024-06-01T10:00:00Z"),
-        },
-        items: [
-            {
-                id: 501,
-                productName: "Xe điện VinFast Vento",
-                skuCode: "VF-VNT01",
-                color: "Trắng ngọc trai",
-                unitPrice: 45000000,
-                quantity: 1,
-            },
-            {
-                id: 502,
-                productName: "Mũ bảo hiểm VinFast",
-                skuCode: "VF-HELM01",
-                color: "Đen bóng",
-                unitPrice: 500000,
-                quantity: 2,
-            },
-        ],
-        promotions: [
-            {
-                promo_id: 301,
-                name: "Giảm giá khai trương",
-                promo_type: "discount",
-                conditions: "Áp dụng cho đơn hàng trên 40 triệu",
-                discountAmount: 2000000,
-                valid_from: new Date("2024-01-01T00:00:00Z"),
-                valid_to: new Date("2024-12-31T23:59:59Z"),
-            },
-        ],
-        payment: {
-            method: "installment",
-            bankPartner: "TPBank",
-            downPayment: 10000000,
-            tenor: 12,
-        },
-        totalAmount: 44000000, // 45.000.000 + (2 * 500.000) - 2.000.000
-    };
-    order.value = mockOrderDetail;
-    pending.value = false;
+    try {
+        await fetchOne(orderId);
+    } catch (error) {
+        console.error("Lỗi khi tải đơn hàng:", error);
+    } finally {
+        pending.value = false;
+    }
 });
 
+function addMonthsVN(months: number) {
+    const nowVN = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" }));
+
+    nowVN.setMonth(nowVN.getMonth() + months);
+
+    return nowVN.toDateString();
+}
+
+const createOrder = async () => {
+    const dealerId = localStorage.getItem("user_id");
+    const now = addMonthsVN(0);
+    order.value?.term;
+    try {
+        const body: any = {
+            orderId: order.value?.id,
+            dealerId: dealerId,
+            startDate: now,
+            endDate: addMonthsVN(order.value?.term ? order.value.term : 0),
+        };
+        console.log("body", body);
+        await create(body);
+        console.log("Tạo thành công");
+    } catch (err) {
+        console.error("Lỗi khi tạo báo giá:", err);
+        alert("Có lỗi xảy ra khi tạo báo giá, vui lòng thử lại!");
+    }
+};
 function goBack() {
     router.back();
 }
+function goToListContractDetail() {
+    router.push("/user/order");
+}
+const showModal = ref(false);
+
+const handleSubmit = () => {
+    showModal.value = true;
+};
+
+const handleConfirm = () => {
+    console.log("Người dùng xác nhận hành động!");
+    // Gọi API hoặc thực hiện action ở đây
+    showModal.value = false; // đóng modal sau khi xác nhận
+    createOrder();
+};
+
+// State của modal
+const visible = ref(false);
+
+watch(
+    () => loadingContract.value,
+    () => {
+        if (loadingContract.value) visible.value = true;
+    }
+);
 </script>
