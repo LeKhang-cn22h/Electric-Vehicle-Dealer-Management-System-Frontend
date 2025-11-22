@@ -6,7 +6,7 @@
         create-label="Tạo báo giá mới"
         :fields-name="fieldsName"
         :table-component="OrderTable"
-        :data="quotes"
+        :data="quotationsByCreator"
         :show-toolbar="true"
         :filter-function="filterQuotes"
         @print="handlePrint"
@@ -20,12 +20,12 @@
             />
         </template>
         <!-- custom cột trong bảng -->
-        <template #orderDate="{ row }">{{ formatDate(row.orderDate) }}</template>
+        <template #createdAt="{ row }">{{ formatDate(row.createdAt) }}</template>
         <template #totalAmount="{ row }">{{ formatCurrency(row.totalAmount) }}</template>
+        <template #customerName="{ row }">{{ row.customer.name }}</template>
         <template #status="{ row }">
             <OrderStatusBadge :status="row.status" />
         </template>
-        <template #quantity="{ row }"> x{{ row.quantity }} </template>
     </BaseListPage>
 </template>
 
@@ -45,51 +45,31 @@ definePageMeta({
 const { layoutName, applyLayout } = useRoleBasedLayout();
 applyLayout();
 
+const user_id = localStorage.getItem("user_id");
+console.log("user id:", user_id);
+const { quotationsByCreator, fetchAllByCreator } = useQuotations();
+
+watch(
+    () => quotationsByCreator.value,
+    (val) => {
+        console.log("quotationsByCreator", val);
+    }
+);
 const filters = reactive({
     searchQuery: "",
     status: "",
 });
+
 const fieldsName = [
-    { label: "Mã báo giá", key: "orderCode" },
+    { label: "Mã báo giá", key: "id" },
     { label: "Khách hàng", key: "customerName" },
-    { label: "Người tạo", key: "customerName" },
-    { label: "Ngày tạo", key: "orderDate" },
+    { label: "Người tạo", key: "createdBy" },
+    { label: "Ngày tạo", key: "createdAt" },
     { label: "Tổng tiền", key: "totalAmount" },
     { label: "Trạng thái", key: "status" },
     { label: "Thao tác", key: "actions" },
 ];
-const quotes = [
-    {
-        id: 19,
-        orderCode: "#ORD-001",
-        customerName: "Trần Thị B",
-        orderDate: "2024-10-22",
-        productName: "EV Model Y - Trắng",
-        quantity: 1,
-        totalAmount: 720000000,
-        status: "pending",
-    },
-    {
-        id: 20,
-        orderCode: "#ORD-002",
-        customerName: "Trần Thị B",
-        orderDate: "2024-10-22",
-        productName: "EV Model Y - Trắng",
-        quantity: 1,
-        totalAmount: 720000000,
-        status: "pending",
-    },
-    {
-        id: 21,
-        orderCode: "#ORD-003",
-        customerName: "Trần Thị B",
-        orderDate: "2024-10-22",
-        productName: "EV Model Y - Trắng",
-        quantity: 1,
-        totalAmount: 720000000,
-        status: "pending",
-    },
-];
+// const quotes = ref<any>();
 
 const filterQuotes = (order: any) => {
     const query = filters.searchQuery.toLowerCase();
@@ -102,4 +82,7 @@ const filterQuotes = (order: any) => {
 const handlePrint = (order: any) => {
     console.log("In đơn hàng:", order);
 };
+onMounted(async () => {
+    await fetchAllByCreator(user_id);
+});
 </script>

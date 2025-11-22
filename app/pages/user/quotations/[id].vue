@@ -13,6 +13,13 @@
                         ← Quay lại danh sách
                     </button>
                 </div>
+                <button
+                    class="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed"
+                    @click="convertOrder(quoteId)"
+                    :disabled="quotation?.status === 'converted'"
+                >
+                    {{ quotation?.status === "draft" ? "Tạo đơn hàng" : "Đã tạo đơn hàng" }}
+                </button>
             </header>
 
             <!-- Loading -->
@@ -21,13 +28,15 @@
             </div>
 
             <!-- Nội dung chi tiết -->
-            <div v-else-if="quote" class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 space-y-8">
+            <div v-else-if="quotation" class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 space-y-8">
                 <!-- Thông tin khách hàng -->
                 <section>
                     <h2 class="text-lg font-semibold text-gray-800 mb-3">Khách hàng</h2>
-                    <p><strong>Tên:</strong> {{ quote.customer.fullName }}</p>
-                    <p><strong>Số điện thoại:</strong> {{ quote.customer.phone }}</p>
-                    <p><strong>Email:</strong> {{ quote.customer.email }}</p>
+                    <p><strong>Tên:</strong> {{ quotation?.customer.name || "Không có" }}</p>
+                    <p><strong>Số điện thoại:</strong> {{ quotation?.customer.phone || "Không có" }}</p>
+                    <p><strong>Email:</strong> {{ quotation?.customer.email || "Không có" }}</p>
+                    <p><strong>Ngày sinh:</strong> {{ quotation?.customer.birth_day || "Không có" }}</p>
+                    <p><strong>Địa chỉ:</strong> {{ quotation?.customer.adress || "Không có" }}</p>
                 </section>
 
                 <!-- Sản phẩm -->
@@ -43,23 +52,45 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="item in quote.items" :key="item.id" class="border-t">
-                                <td class="px-4 py-2">{{ item.productName }}</td>
-                                <td class="px-4 py-2">{{ item.quantity }}</td>
-                                <td class="px-4 py-2">{{ formatCurrency(item.unitPrice) }}</td>
-                                <td class="px-4 py-2">{{ formatCurrency(item.quantity * item.unitPrice) }}</td>
+                            <tr v-for="item in quotation?.vehicles" :key="item.id" class="border-t">
+                                <td class="px-4 py-2">{{ item.name }}</td>
+                                <td class="px-4 py-2">
+                                    {{ quotation.items.find((i) => i.product_id === item.id)?.quantity || 0 }}
+                                </td>
+                                <td v-if="item.price" class="px-4 py-2">{{ formatCurrency(item.price) }}</td>
+                                <td
+                                    v-if="item.price && quotation.items.find((i) => i.product_id === item.id)?.quantity"
+                                    class="px-4 py-2"
+                                >
+                                    {{
+                                        formatCurrency(
+                                            (quotation.items.find((i) => i.product_id === item.id)?.quantity || 0) * item.price
+                                        )
+                                    }}
+                                </td>
                             </tr>
                         </tbody>
                     </table>
                 </section>
 
                 <!-- Khuyến mãi -->
-                <section v-if="quote.promotions?.length">
+                <section v-if="quotation?.promotions?.length">
                     <h2 class="text-lg font-semibold text-gray-800 mb-3">Khuyến mãi</h2>
                     <ul class="list-disc list-inside text-gray-700">
-                        <li v-for="promo in quote.promotions" :key="promo.promo_id">
-                            {{ promo.name }} — Giảm {{ formatCurrency(promo.discountAmount) }}
+                        <li v-for="promo in quotation.promotions" :key="promo.id">
+                            {{ promo.code }} — Giảm
+                            {{
+                                promo.discountType === "amount" ? formatCurrency(promo.discountValue) : promo.discountValue + "%"
+                            }}
                         </li>
+                    </ul>
+                </section>
+
+                <!-- Thuế VAT -->
+                <section>
+                    <h2 class="text-lg font-semibold text-gray-800 mb-3">Thuế VAT</h2>
+                    <ul class="list-disc list-inside text-gray-700">
+                        <li>10%</li>
                     </ul>
                 </section>
 
@@ -67,7 +98,7 @@
                 <section class="border-t pt-4">
                     <div class="flex justify-between items-center">
                         <span class="text-lg font-semibold text-gray-700">Tổng tiền:</span>
-                        <span class="text-2xl font-bold text-blue-600">{{ formatCurrency(quote.totalAmount) }}</span>
+                        <span class="text-2xl font-bold text-blue-600">{{ formatCurrency(quotation?.totalAmount) }}</span>
                     </div>
                 </section>
             </div>
@@ -80,7 +111,6 @@
 
 <script setup lang="ts">
 import { formatCurrency } from "@/utils/format";
-import type { ApiResponse } from "@/types";
 import type { QuoteDetail } from "@/schemas"; // bạn có thể định nghĩa kiểu này theo project
 
 definePageMeta({
@@ -92,68 +122,28 @@ applyLayout();
 
 const route = useRoute();
 const router = useRouter();
-const quoteId = route.params.id;
+const quoteId = route.params.id as string;
 
 // Trạng thái
 const quote = ref<QuoteDetail | null>(null);
 const pending = ref(true);
 
+const { loading, error, fetchOne, quotation } = useQuotations();
 // Lấy dữ liệu từ API
 onMounted(async () => {
-    // try {
-    //     const response = await $fetch<ApiResponse<OrderDetail>>(`/api/orders/${orderId}`);
-    //     order.value = response.data;
-    // } catch (error) {
-    //     console.error("Lỗi khi tải đơn hàng:", error);
-    // } finally {
-    //     pending.value = false;
-    // }
-    const mockQuoteDetail: QuoteDetail = {
-        id: 1,
-        customer: {
-            id: 1001,
-            fullName: "Nguyễn Văn A",
-            phone: "0912345678",
-            email: "vana@example.com",
-            address: "123 Đường Lê Lợi, Quận 1, TP.HCM",
-            createdAt: new Date("2024-01-01T10:00:00Z"),
-            updatedAt: new Date("2024-06-01T10:00:00Z"),
-        },
-        items: [
-            {
-                id: 501,
-                productName: "Xe điện VinFast Vento",
-                skuCode: "VF-VNT01",
-                color: "Trắng ngọc trai",
-                unitPrice: 45000000,
-                quantity: 1,
-            },
-            {
-                id: 502,
-                productName: "Mũ bảo hiểm VinFast",
-                skuCode: "VF-HELM01",
-                color: "Đen bóng",
-                unitPrice: 500000,
-                quantity: 2,
-            },
-        ],
-        promotions: [
-            {
-                promo_id: 301,
-                name: "Giảm giá khai trương",
-                promo_type: "discount",
-                conditions: "Áp dụng cho đơn hàng trên 40 triệu",
-                discountAmount: 2000000,
-                valid_from: new Date("2024-01-01T00:00:00Z"),
-                valid_to: new Date("2024-12-31T23:59:59Z"),
-            },
-        ],
-        totalAmount: 44000000, // 45.000.000 + (2 * 500.000) - 2.000.000
-    };
-    quote.value = mockQuoteDetail;
+    try {
+        await fetchOne(quoteId);
+        console.log("quotation", toRaw(quotation));
+    } catch (error) {
+        console.error("Lỗi khi tải đơn hàng:", error);
+    } finally {
+        pending.value = false;
+    }
     pending.value = false;
 });
-
+function convertOrder(id: string) {
+    router.push(`/user/orders/create/${id}`);
+}
 function goBack() {
     router.back();
 }

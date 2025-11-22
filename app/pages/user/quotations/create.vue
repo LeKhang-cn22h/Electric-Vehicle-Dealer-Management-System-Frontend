@@ -34,12 +34,12 @@
                 <!-- Products Section -->
                 <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                     <h2 class="text-lg font-semibold text-gray-900 mb-4">Sản phẩm</h2>
-                    <OrderProductSelect v-model:items="quoteData.items" />
+                    <OrderProductSelect v-model:items="quoteData.vehicles" />
                 </div>
 
                 <!-- Promotions Section -->
                 <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <OrderPromotionSelect v-model:promotions="quoteData.appliedPromotions" :items="quoteData.items" />
+                    <OrderPromotionSelect v-model:promotions="quoteData.promotions" :items="quoteData.vehicles" />
                 </div>
 
                 <!-- Notes Section -->
@@ -90,6 +90,7 @@
                 @update:visible="(val: boolean) => (visible = val)"
                 @update:loading="(val: boolean) => (loading = val)"
                 @update:error="(val: string | null) => (error = val)"
+                @close="goToListQuote"
             />
         </div>
     </div>
@@ -108,7 +109,7 @@ import { notiFail, notiSuccess } from "@/utils/format";
 import ConfirmModal from "~/components/shared/ConfirmModal.vue";
 import StatusModal from "~/components/shared/StatusModal.vue";
 import type { Customer } from "~/types/profile";
-import type { ProductItem } from "~/types/product-item";
+import type { ProductItem, ProductItemDetail } from "~/types/product-item";
 
 definePageMeta({
     layout: false,
@@ -116,7 +117,7 @@ definePageMeta({
 const { layoutName, applyLayout } = useRoleBasedLayout();
 applyLayout();
 
-const { loading, error, create } = usePromotions();
+const { loading, error, create } = useQuotations();
 
 const router = useRouter();
 const isSubmitting = ref(false);
@@ -127,30 +128,15 @@ const quoteData = reactive({
     customer: null as Customer | null,
     // | CreateCustomer
     // customerType: null as "existing" | "new" | null,
-    items: [] as ProductItem[],
-    appliedPromotions: [] as Promotion[],
-    discountPercent: 0,
-    validDays: 30,
+    vehicles: [] as ProductItemDetail[],
+    promotions: [] as Promotion[],
     notes: "",
 });
 
-watch(
-    () => quoteData.customer,
-    (val) => {
-        console.log("Đã chọn user có id:", val?.id);
-    }
-);
-watch(
-    () => quoteData.items,
-    (val) => {
-        console.log("tất cả sản phẩm chọn:", val);
-    }
-);
 // --- Computed totals ---
-const subtotal = computed(() => quoteData.items.reduce((sum, item) => sum + (item.quantity || 0) * (item.price || 0), 0));
-const promoDiscount = computed(() => quoteData.appliedPromotions.reduce((sum, promo) => sum + promo.discountAmount, 0));
-const percentDiscount = computed(() => (subtotal.value * (quoteData.discountPercent || 0)) / 100);
-const total = computed(() => subtotal.value - promoDiscount.value - percentDiscount.value);
+const subtotal = computed(() => quoteData.vehicles.reduce((sum, item) => sum + (item.quantity || 0) * (item.price || 0), 0));
+const promoDiscount = computed(() => quoteData.promotions.reduce((sum, promo) => sum + promo.discountAmount, 0));
+const total = computed(() => subtotal.value - promoDiscount.value);
 
 // const handleFormValid = (val: boolean) => {
 //     isCustomerFormValid.value = val;
@@ -166,14 +152,14 @@ const validateQuote = () => {
         return false;
     }
     console.log("!quoteData.customer", !quoteData.customer);
-    console.log("quoteData.items", quoteData.items);
-    console.log("quoteData.items.length", quoteData.items.length);
-    if (quoteData.items.length === 0) {
+    console.log("quoteData.items", quoteData.vehicles);
+    console.log("quoteData.items.length", quoteData.vehicles.length);
+    if (quoteData.vehicles.length === 0) {
         notiFail("Vui lòng thêm ít nhất một sản phẩm");
         return false;
     }
-    console.log("quoteData.items.length === 0", quoteData.items.length === 0);
-    const invalidItem = quoteData.items.some((i) => !i.name || (i.quantity || 0) <= 0 || (i.price || 0) < 0);
+    console.log("quoteData.items.length === 0", quoteData.vehicles.length === 0);
+    const invalidItem = quoteData.vehicles.some((i) => !i.name || (i.quantity || 0) <= 0 || (i.price || 0) < 0);
     if (invalidItem) {
         notiFail("Vui lòng điền đầy đủ thông tin sản phẩm");
         return false;
@@ -196,34 +182,24 @@ const goToSummary = () => {
 // --- Submit ---
 const createQuote = async () => {
     isSubmitting.value = true;
-
+    const createBy = localStorage.getItem("user_id");
+    const promotionsCode = quoteData.promotions.map((promo) => {
+        return promo.id;
+    });
+    console.log("promotionsCode", promotionsCode);
+    console.log("quoteData.appliedPromotions", quoteData.promotions);
     try {
         const body: any = {
-            items: quoteData.items,
-            promotions: quoteData.appliedPromotions,
-            discountPercent: quoteData.discountPercent,
-            promoDiscount: promoDiscount.value,
-            discountAmount: percentDiscount.value,
-            subtotal: subtotal.value,
-            total: total.value,
-            validDays: quoteData.validDays,
-            notes: quoteData.notes,
+            customerId: quoteData.customer?.id,
+            createdBy: createBy,
+            items: quoteData.vehicles,
+            vatRate: 0.1,
+            note: quoteData.notes,
+            promotionCode: promotionsCode,
         };
-
-        // if ("id" in (quoteData.customer || {})) {
-        // Khách hàng đã có trong hệ thống
-        //     body.customerId = (quoteData.customer as Customer).id;
-        // } else {
-        // Khách hàng mới
-        //     body.customerInfo = quoteData.customer as CreateCustomer;
-        // }
-
-        const response = await $fetch<ApiResponse<CreateQuoteResponse>>("/api/quotes", {
-            method: "POST",
-            body,
-        });
-
-        await router.push(`/quotes/${response.data.quoteId}`);
+        console.log("body", body);
+        const response = await create(body);
+        console.log("Tạo thành công");
     } catch (err) {
         console.error("Lỗi khi tạo báo giá:", err);
         alert("Có lỗi xảy ra khi tạo báo giá, vui lòng thử lại!");
@@ -237,7 +213,9 @@ const goBack = () => {
         router.back();
     }
 };
-
+const goToListQuote = () => {
+    router.push("/user/quotations");
+};
 const showModal = ref(false);
 
 const handleSubmit = () => {
@@ -248,7 +226,7 @@ const handleConfirm = () => {
     console.log("Người dùng xác nhận hành động!");
     // Gọi API hoặc thực hiện action ở đây
     showModal.value = false; // đóng modal sau khi xác nhận
-    // savePromotion();
+    createQuote();
 };
 
 // State của modal
@@ -256,18 +234,5 @@ const visible = ref(false);
 
 watch(loading, () => {
     if (loading.value) visible.value = true;
-});
-
-const mapToBackendDto = (quotation: CreateQuotationDto) => ({
-    customerId: quotation.customerId,
-    customerName: quotation.customerName,
-    customerPhone: quotation.customerPhone,
-    customerEmail: quotation.customerEmail,
-    customerAddress: quotation.customerAddress,
-    createdBy: quotation.createdBy,
-    items: quotation.items,
-    vatRate: quotation.vatRate || 0.1,
-    note: quotation.note,
-    promotionCode: quotation.promotionCode,
 });
 </script>
