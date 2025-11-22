@@ -10,7 +10,7 @@
       <div class="nav-section">
         <router-link to="/dealer_staff/EVM_staff" class="nav-item">Trang chủ</router-link>
         <router-link to="/EVM_staff/vehicle-coordination" class="nav-item">Điều phối</router-link>
-        <router-link to="/dealer_staff/EVM_staff/orders" class="nav-item">Giá sỉ</router-link>
+        <router-link to="/EVM_staff/evmStaffAgreement/" class="nav-item">Giá sỉ</router-link>
         <router-link to="/dealer_staff/EVM_staff/pricing" class="nav-item">Khuyến mãi</router-link>
         <router-link to="/" class="nav-item">Công nợ</router-link>
         <router-link to="/manage_Feedback/" class="nav-item">Phản hồi</router-link>
