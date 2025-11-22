@@ -26,11 +26,9 @@
             <div v-if="currentStep === 1" class="space-y-6">
                 <!-- Customer Section -->
                 <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <OrderCustomerForm
-                        v-model:customer="quoteData.customer"
-                        @customer-type="quoteData.customerType = $event"
-                        @form-valid="handleFormValid"
-                    />
+                    <OrderCustomerForm v-model:customer="quoteData.customer" />
+                    <!-- @form-valid="handleFormValid" -->
+                    <!-- @customer-type="quoteData.customerType = $event" -->
                 </div>
 
                 <!-- Products Section -->
@@ -104,16 +102,16 @@ import OrderCustomerForm from "@/components/orders/OrderCustomerForm.vue";
 import OrderProductSelect from "@/components/orders/OrderProductSelect.vue";
 import OrderPromotionSelect from "@/components/orders/OrderPromotionSelect.vue";
 import OrderSummary from "@/components/orders/OrderSummary.vue";
-import type { CreateCustomer, Customer, ProductItem, Promotion } from "@/schemas";
-import type { ApiResponse, CreateQuoteResponse } from "@/types/";
+import type { CreateCustomer, ProductItem, Promotion } from "@/schemas";
+import type { ApiResponse, CreateQuotationDto, CreateQuoteResponse } from "@/types/";
 import { notiFail, notiSuccess } from "@/utils/format";
 import ConfirmModal from "~/components/shared/ConfirmModal.vue";
 import StatusModal from "~/components/shared/StatusModal.vue";
+import type { Customer } from "~/types/profile";
 
 definePageMeta({
     layout: false,
 });
-
 const { layoutName, applyLayout } = useRoleBasedLayout();
 applyLayout();
 
@@ -125,8 +123,9 @@ const currentStep = ref(1);
 const isCustomerFormValid = ref(false);
 
 const quoteData = reactive({
-    customer: null as Customer | CreateCustomer | null,
-    customerType: null as "existing" | "new" | null,
+    customer: null as Customer | null,
+    // | CreateCustomer
+    // customerType: null as "existing" | "new" | null,
     items: [] as ProductItem[],
     appliedPromotions: [] as Promotion[],
     discountPercent: 0,
@@ -134,21 +133,31 @@ const quoteData = reactive({
     notes: "",
 });
 
+watch(
+    () => quoteData.customer,
+    (val) => {
+        console.log("Đã chọn user có id:", val?.id);
+    }
+);
+
 // --- Computed totals ---
 const subtotal = computed(() => quoteData.items.reduce((sum, item) => sum + (item.quantity || 0) * (item.unitPrice || 0), 0));
 const promoDiscount = computed(() => quoteData.appliedPromotions.reduce((sum, promo) => sum + promo.discountAmount, 0));
 const percentDiscount = computed(() => (subtotal.value * (quoteData.discountPercent || 0)) / 100);
 const total = computed(() => subtotal.value - promoDiscount.value - percentDiscount.value);
 
-const handleFormValid = (val: boolean) => {
-    isCustomerFormValid.value = val;
-};
+// const handleFormValid = (val: boolean) => {
+//     isCustomerFormValid.value = val;
+// };
 
 // --- Validation ---
 const validateQuote = () => {
     console.log(quoteData.customer);
 
-    if (!quoteData.customer || !isCustomerFormValid.value) {
+    if (
+        !quoteData.customer
+        // || !isCustomerFormValid.value
+    ) {
         notiFail("Vui lòng kiểm tra thông tin khách hàng");
         return false;
     }
@@ -188,13 +197,13 @@ const createQuote = async () => {
             notes: quoteData.notes,
         };
 
-        if ("id" in (quoteData.customer || {})) {
-            // Khách hàng đã có trong hệ thống
-            body.customerId = (quoteData.customer as Customer).id;
-        } else {
-            // Khách hàng mới
-            body.customerInfo = quoteData.customer as CreateCustomer;
-        }
+        // if ("id" in (quoteData.customer || {})) {
+        // Khách hàng đã có trong hệ thống
+        //     body.customerId = (quoteData.customer as Customer).id;
+        // } else {
+        // Khách hàng mới
+        //     body.customerInfo = quoteData.customer as CreateCustomer;
+        // }
 
         const response = await $fetch<ApiResponse<CreateQuoteResponse>>("/api/quotes", {
             method: "POST",
@@ -215,6 +224,7 @@ const goBack = () => {
         router.back();
     }
 };
+
 const showModal = ref(false);
 
 const handleSubmit = () => {
@@ -233,5 +243,18 @@ const visible = ref(false);
 
 watch(loading, () => {
     if (loading.value) visible.value = true;
+});
+
+const mapToBackendDto = (quotation: CreateQuotationDto) => ({
+    customerId: quotation.customerId,
+    customerName: quotation.customerName,
+    customerPhone: quotation.customerPhone,
+    customerEmail: quotation.customerEmail,
+    customerAddress: quotation.customerAddress,
+    createdBy: quotation.createdBy,
+    items: quotation.items,
+    vatRate: quotation.vatRate || 0.1,
+    note: quotation.note,
+    promotionCode: quotation.promotionCode,
 });
 </script>

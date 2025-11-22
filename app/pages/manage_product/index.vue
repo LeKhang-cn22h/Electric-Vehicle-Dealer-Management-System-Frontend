@@ -21,8 +21,7 @@ import { useRouter } from "#app"
 
 import ProductTable from "~/components/manage_product/ProductTable.vue"
 import ProductFilter from "~/components/manage_product/ProductFilter.vue"
-import { useVehicles } from "~/composables/useProducts"
-
+import { useVehicle } from "~/composables/useVehicle"
 // router
 const router = useRouter()
 
@@ -31,13 +30,16 @@ const goToCreate = () => {
 }
 
 // composable lấy xe
-const { vehicles, loading, error, fetchVehicles } = useVehicles()
+const { vehicles, loading, error, fetchAll } = useVehicle()
 
 onMounted(() => {
-  fetchVehicles() // tải mặc định
+  fetchAll() // tải mặc định
 })
 
 const handleFilter = (filters: any) => {
-  fetchVehicles(filters)
+  fetchAll(filters)
 }
+definePageMeta({
+  layout: "admin",
+});
 </script>

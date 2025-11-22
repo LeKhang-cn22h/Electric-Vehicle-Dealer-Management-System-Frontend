@@ -15,10 +15,17 @@
                 <span v-if="sidebarOpen" class="nav-text">Tổng quan</span>
             </NuxtLink>
 
+<<<<<<< Updated upstream
             <NuxtLink to="/admin/products" class="nav-item" active-class="active">
                 <Car :size="20" class="nav-icon" />
                 <span v-if="sidebarOpen" class="nav-text">Sản phẩm</span>
             </NuxtLink>
+=======
+      <NuxtLink to="/manage_product" class="nav-item" active-class="active">
+        <Car :size="20" class="nav-icon" />
+        <span v-if="sidebarOpen" class="nav-text">Sản phẩm</span>
+      </NuxtLink>
+>>>>>>> Stashed changes
 
             <NuxtLink to="/admin/promotions" class="nav-item" active-class="active">
                 <TicketPercent :size="20" class="nav-icon" />
