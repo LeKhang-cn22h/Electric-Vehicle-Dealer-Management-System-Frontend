@@ -134,17 +134,16 @@ import OrderCustomerForm from "@/components/orders/OrderCustomerForm.vue";
 import OrderProductSelect from "@/components/orders/OrderProductSelect.vue";
 import OrderPromotionSelect from "@/components/orders/OrderPromotionSelect.vue";
 import OrderSummary from "@/components/orders/OrderSummary.vue";
-import type {
-  CreateCustomer,
-  Customer,
-  ProductItem,
-  Promotion,
-} from "@/schemas";
+
+import type { ProductItem, Promotion } from "@/schemas";
+import type { Customer, CreateCustomer } from "~/types/profile";
 import type { ApiResponse, CreateQuoteResponse } from "@/types/";
 import { notiFail, notiSuccess } from "@/utils/format";
+
 definePageMeta({
   layout: false,
 });
+
 const { layoutName, applyLayout } = useRoleBasedLayout();
 applyLayout();
 
