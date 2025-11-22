@@ -3,7 +3,7 @@ export const useRoleBasedLayout = () => {
 
     const layoutName = computed(() => {
         const role = userRole.value?.toLowerCase();
-        if (role === "dealer_staff") {
+        if (role === "dealer_staff" || role === "dealer_manager") {
             return "dealer-manager-layout";
         } else if (role === "admin") {
             return "admin";

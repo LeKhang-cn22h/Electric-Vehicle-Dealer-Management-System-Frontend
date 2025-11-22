@@ -1,10 +1,11 @@
 import { ref } from "vue";
+import type { QuoteDetail } from "~/schemas";
 import { QuotationService } from "~/services/sales/quotation.service";
 import type { QuotationResponse, QuotationTableResponse } from "~/types";
 
 export function useQuotations() {
     const quotations = ref<QuotationResponse[]>([]);
-    const quotation = ref<QuotationResponse | null>(null);
+    const quotation = ref<QuoteDetail | null>(null);
     const quotationsByCreator = ref<QuotationTableResponse[]>([]);
 
     const loading = ref(false);
@@ -59,7 +60,7 @@ export function useQuotations() {
 
         try {
             const response = await QuotationService.findAllByCreator(query);
-            quotations.value = response || [];
+            quotationsByCreator.value = response || [];
             return response;
         } catch (e: any) {
             error.value = e?.message || "Error fetching quotations";
@@ -140,12 +141,14 @@ export function useQuotations() {
         // state
         quotations,
         quotation,
+        quotationsByCreator,
         loading,
         error,
 
         // methods
         fetchAll,
         fetchOne,
+        fetchAllByCreator,
         create,
         update,
         remove,
