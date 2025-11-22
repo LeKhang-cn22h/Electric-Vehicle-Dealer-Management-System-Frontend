@@ -88,12 +88,12 @@ export const VehicleService = {
     return res.data;
   },
 
-  // ===============================
-  // 🔒 UPDATE (Auth)
-  // ===============================
-  async update(id: number, vehicleData: any, images?: File[]) {
-    const formData = new FormData();
-    formData.append("vehicle", JSON.stringify(vehicleData));
+    // ===============================
+    // UPDATE (Auth)
+    // ===============================
+    async update(id: number, vehicleData: any, images?: File[]) {
+        const formData = new FormData();
+        formData.append("vehicle", JSON.stringify(vehicleData));
 
     if (images && images.length > 0) {
       images.forEach((file) => formData.append("images", file));
@@ -106,41 +106,41 @@ export const VehicleService = {
     return res.data;
   },
 
-  // ===============================
-  // 🔒 DELETE (Auth)
-  // ===============================
-  async remove(id: number) {
-    const res = await api.delete(`/vehicle/${id}`);
-    return res.data;
-  },
+    // ===============================
+    // DELETE (Auth)
+    // ===============================
+    async remove(id: number) {
+        const res = await api.delete(`/vehicle/${id}`);
+        return res.data;
+    },
 
-  // ===============================
-  // 📌 RECOMMEND SIMILAR (Public)
-  // ===============================
-  async recommendSimilar(model: string, limit: number = 6) {
-    const res = await api.get("/vehicle/recommend/similar", {
-      params: { model, limit },
-    });
-    return res.data;
-  },
+    // ===============================
+    //  RECOMMEND SIMILAR (Public)
+    // ===============================
+    async recommendSimilar(model: string, limit: number = 6) {
+        const res = await api.get("/vehicle/recommend/similar", {
+            params: { model, limit },
+        });
+        return res.data;
+    },
 
-  // ===============================
-  // 📌 RECOMMEND BY PRICE RANGE (Public)
-  // ===============================
-  async recommendByPrice(min: number, max: number, limit: number = 6) {
-    const res = await api.get("/vehicle/recommend/price-range", {
-      params: { min, max, limit },
-    });
-    return res.data;
-  },
+    // ===============================
+    //  RECOMMEND BY PRICE RANGE (Public)
+    // ===============================
+    async recommendByPrice(min: number, max: number, limit: number = 6) {
+        const res = await api.get("/vehicle/recommend/price-range", {
+            params: { min, max, limit },
+        });
+        return res.data;
+    },
 
-  // ===============================
-  // 📌 COMPARE VEHICLES (Public)
-  // ===============================
-  async compare(ids: number[]) {
-    const res = await api.post("/vehicle/compare", { vehicleIds: ids });
-    return res.data;
-  },
+    // ===============================
+    //  COMPARE VEHICLES (Public)
+    // ===============================
+    async compare(ids: number[]) {
+        const res = await api.post("/vehicle/compare", { vehicleIds: ids });
+        return res.data;
+    },
 
   async getNewArrivals(limit = 8): Promise<VehicleSummary[]> {
     const res = await api.get<VehicleSummary[]>("/vehicle/new-arrivals", {
@@ -150,10 +150,16 @@ export const VehicleService = {
     return res.data;
   },
 
-  async getSimilarVehicles(id: string, limit: number = 10) {
-    const res = await api.get(`/vehicle/${id}/similar`, {
-      params: { limit },
-    });
-    return res.data;
-  },
+    async getSimilarVehicles(id: string, limit: number = 10) {
+        const res = await api.get(`/vehicle/${id}/similar`, {
+            params: { limit },
+        });
+        return res.data;
+    },
+    async getListVehicleWithPrice(vehicleIds: number[]) {
+    if (!vehicleIds || vehicleIds.length === 0) return [];
+
+    const res = await api.post('/vehicle/list', { vehicleIds });
+    return res.data.data; 
+}
 };

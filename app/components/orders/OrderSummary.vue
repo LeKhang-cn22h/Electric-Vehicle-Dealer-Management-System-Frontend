@@ -12,7 +12,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <div class="text-sm text-gray-600">Họ tên</div>
-                            <div class="font-medium">{{ orderData.customer?.fullName || "Chưa chọn" }}</div>
+                            <div class="font-medium">{{ orderData.customer?.name || "Chưa chọn" }}</div>
                         </div>
                         <div>
                             <div class="text-sm text-gray-600">Số điện thoại</div>
@@ -39,14 +39,14 @@
                     <div v-for="(item, index) in orderData.items" :key="index" class="p-4">
                         <div class="flex justify-between items-start">
                             <div class="flex-1">
-                                <div class="font-medium">{{ item.productName }}</div>
-                                <div class="text-sm text-gray-600">{{ item.skuCode }} • {{ item.color }}</div>
+                                <div class="font-medium">{{ item.name }}</div>
+                                <div class="text-sm text-gray-600">{{ item.model }}</div>
                             </div>
                             <div class="text-right">
-                                <div class="font-medium">{{ formatCurrency(item.unitPrice) }}</div>
+                                <div class="font-medium">{{ formatCurrency(item.price) }}</div>
                                 <div class="text-sm text-gray-600">SL: {{ item.quantity }}</div>
                                 <div class="font-medium text-blue-600">
-                                    {{ formatCurrency(item.quantity * item.unitPrice) }}
+                                    {{ formatCurrency(item.quantity * item.price) }}
                                 </div>
                             </div>
                         </div>
@@ -65,7 +65,7 @@
                         :key="promotion.id"
                         class="flex justify-between items-center py-2"
                     >
-                        <span class="font-medium">{{ promotion.name }}</span>
+                        <span class="font-medium">{{ promotion.code }}</span>
                         <span class="text-green-600 font-medium">-{{ formatCurrency(promotion.discountAmount) }}</span>
                     </div>
                 </div>
@@ -117,10 +117,13 @@
                         <span class="text-gray-600">Giảm giá:</span>
                         <span class="text-green-600 font-medium">-{{ formatCurrency(discountTotal) }}</span>
                     </div>
-
+                    <div v-if="discountTotal > 0" class="flex justify-between">
+                        <span class="text-gray-600">Thuế VAT (10%):</span>
+                        <span class="text-green-600 font-medium">+{{ formatCurrency(vatAmount) }}</span>
+                    </div>
                     <div class="flex justify-between text-lg font-bold border-t pt-3">
                         <span>Tổng thanh toán:</span>
-                        <span class="text-blue-600">{{ formatCurrency(orderTotal) }}</span>
+                        <span class="text-blue-600">{{ formatCurrency(finalTotal) }}</span>
                     </div>
 
                     <div v-if="isPayment && orderData.payment.method === 'installment'" class="text-sm text-gray-600">
@@ -131,7 +134,7 @@
 
             <!-- Ghi chú đơn hàng -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Ghi chú đơn hàng (tùy chọn)</label>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Ghi chú (tùy chọn)</label>
                 <textarea
                     v-model="orderNote"
                     rows="3"
@@ -153,7 +156,7 @@
                     <span v-if="isSubmitting">
                         <Loader2 class="w-4 h-4 animate-spin" />
                     </span>
-                    {{ isSubmitting ? "Đang tạo..." : "Xác nhận tạo đơn hàng" }}
+                    {{ isSubmitting ? "Đang tạo..." : "Tạo mới" }}
                 </button>
             </div>
         </div>
@@ -186,7 +189,15 @@ const isSubmitting = ref(false);
 
 // Computed
 const itemsTotal = computed(() => {
-    return props.orderData.items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
+    return props.orderData.items.reduce((sum, item) => sum + item.quantity * item.price, 0);
+});
+
+const vatAmount = computed(() => {
+    return itemsTotal.value * 0.1;
+});
+
+const finalTotal = computed(() => {
+    return props.orderTotal + vatAmount.value;
 });
 
 const discountTotal = computed(() => {

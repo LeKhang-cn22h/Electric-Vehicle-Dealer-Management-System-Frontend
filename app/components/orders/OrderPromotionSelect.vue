@@ -1,7 +1,12 @@
 <template>
     <div>
-        <h2 class="text-lg font-semibold text-gray-900 mb-4">Áp dụng khuyến mãi</h2>
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-semibold text-gray-900">Áp dụng khuyến mãi</h2>
 
+            <button @click="loadApliedPromotions" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
+                Kiểm tra
+            </button>
+        </div>
         <div class="space-y-6">
             <!-- Danh sách khuyến mãi khả dụng -->
             <div>
@@ -16,14 +21,17 @@
                         <div class="flex items-start justify-between">
                             <div class="flex-1">
                                 <div class="flex items-center gap-2 mb-2">
-                                    <span class="font-medium text-gray-900">{{ promotion.name }}</span>
-                                    <span class="px-2 py-1 text-xs rounded-full" :class="getPromotionTypeClass(promotion.type)">
-                                        {{ getPromotionTypeText(promotion.type) }}
+                                    <span class="font-medium text-gray-900">{{ promotion.code }}</span>
+                                    <span
+                                        class="px-2 py-1 text-xs rounded-full"
+                                        :class="getPromotionTypeClass(promotion.discountType)"
+                                    >
+                                        {{ getPromotionTypeText(promotion.discountType) }}
                                     </span>
                                 </div>
                                 <p class="text-sm text-gray-600 mb-2">{{ promotion.description }}</p>
                                 <div class="text-sm text-gray-500">
-                                    Áp dụng: {{ formatDate(promotion.validFrom) }} - {{ formatDate(promotion.validTo) }}
+                                    Áp dụng: {{ formatDate(promotion.startDate) }} - {{ formatDate(promotion.endDate) }}
                                 </div>
                                 <div class="text-sm font-medium text-green-600 mt-1">Giảm: {{ formatDiscount(promotion) }}</div>
                             </div>
@@ -114,36 +122,68 @@ const appliedPromotions = computed(() => props.promotions);
 
 // Computed
 const itemsTotal = computed(() => {
-    return props.items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
+    return props.items.reduce((sum, item) => sum + item.quantity * item.price, 0);
 });
 
 const totalDiscount = computed(() => {
     return appliedPromotions.value.reduce((sum, promo) => sum + promo.discountAmount, 0);
 });
 
-const finalTotal = computed(() => itemsTotal.value - totalDiscount.value);
+const finalTotal = computed(() => {
+    return Math.max(0, itemsTotal.value - totalDiscount.value);
+});
 
 // Methods
-const loadAvailablePromotions = async () => {
+// const loadAvailablePromotions = async () => {
+//     try {
+//         // TODO: Gọi API lấy khuyến mãi khả dụng từ EVM
+//         const response = await $fetch("/api/promotions/available");
+//         availablePromotions.value = response.map((promo) => ({
+//             ...promo,
+//             discountAmount: calculateDiscountAmount(promo, itemsTotal.value),
+//         }));
+//     } catch (error) {
+//         console.error("Lỗi tải khuyến mãi:", error);
+//     }
+// };
+const { promotions, fetchAplied, reset } = usePromotions();
+const loadApliedPromotions = async () => {
+    // const mock = [
+    //     {
+    //         id: "promo-001",
+    //         name: "Giảm 10% toàn bộ đơn hàng",
+    //         description: "Áp dụng cho tất cả sản phẩm, không giới hạn giá trị",
+    //         type: "percentage",
+    //         discountValue: 10,
+    //         validFrom: "2025-01-01T00:00:00Z",
+    //         validTo: "2025-12-31T23:59:59Z",
+    //     }
+    // ];
     try {
-        // TODO: Gọi API lấy khuyến mãi khả dụng từ EVM
-        const response = await $fetch("/api/promotions/available");
-        availablePromotions.value = response.map((promo) => ({
+        await fetchAplied(itemsTotal, props.items.quantity);
+        availablePromotions.value = promotions.value.map((promo) => ({
             ...promo,
             discountAmount: calculateDiscountAmount(promo, itemsTotal.value),
         }));
+        console.log("promotions:", promotions.value);
     } catch (error) {
         console.error("Lỗi tải khuyến mãi:", error);
     }
 };
 
+watch(itemsTotal, () => {
+    if (availablePromotions) {
+        availablePromotions.value.forEach((item) => {
+            item.discountAmount = calculateDiscountAmount(item, itemsTotal.value);
+        });
+    }
+});
+
 const calculateDiscountAmount = (promotion, total) => {
-    switch (promotion.type) {
-        case "percentage":
+    switch (promotion.discountType) {
+        case "percent":
             return total * (promotion.discountValue / 100);
-        case "fixed":
-            return promotion.discountValue;
-        case "cashback":
+        case "amount":
             return promotion.discountValue;
         default:
             return 0;
@@ -176,29 +216,25 @@ const isPromotionApplied = (promotion) => {
 
 const getPromotionTypeClass = (type) => {
     const classes = {
-        percentage: "bg-blue-100 text-blue-800",
-        fixed: "bg-green-100 text-green-800",
-        cashback: "bg-purple-100 text-purple-800",
+        percent: "bg-blue-100 text-blue-800",
+        amount: "bg-green-100 text-green-800",
     };
     return classes[type] || "bg-gray-100 text-gray-800";
 };
 
 const getPromotionTypeText = (type) => {
     const texts = {
-        percentage: "%",
-        fixed: "Fixed",
-        cashback: "Cashback",
+        percent: "%",
+        amount: "Fixed",
     };
     return texts[type] || type;
 };
 
 const formatDiscount = (promotion) => {
-    switch (promotion.type) {
-        case "percentage":
+    switch (promotion.discountType) {
+        case "percent":
             return `${promotion.discountValue}%`;
-        case "fixed":
-            return formatCurrency(promotion.discountValue);
-        case "cashback":
+        case "amount":
             return formatCurrency(promotion.discountValue);
         default:
             return "";
@@ -217,7 +253,7 @@ const formatDate = (dateString) => {
 };
 
 // Lifecycle
-onMounted(() => {
-    loadAvailablePromotions();
-});
+// onMounted(() => {
+//     loadApliedPromotions();
+// });
 </script>

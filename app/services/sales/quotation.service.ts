@@ -24,6 +24,11 @@ export const QuotationService = {
         return res.data;
     },
 
+    async findAllByCreator(id: string) {
+        const res = await api.get(`/sales/quotations/creator/${id}`);
+        return res.data;
+    },
+
     // ===============================
     // GET ONE QUOTATION
     // ===============================

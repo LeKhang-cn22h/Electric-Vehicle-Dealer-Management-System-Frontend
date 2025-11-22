@@ -50,11 +50,10 @@ const filters = reactive({
     status: "",
 });
 const fieldsName = [
-    { label: "Mã đơn hàng", key: "orderCode" },
+    { label: "Mã báo giá", key: "orderCode" },
     { label: "Khách hàng", key: "customerName" },
-    { label: "Sản phẩm", key: "productName" },
-    { label: "Số lượng", key: "quantity" },
-    { label: "Ngày đặt", key: "orderDate" },
+    { label: "Người tạo", key: "customerName" },
+    { label: "Ngày tạo", key: "orderDate" },
     { label: "Tổng tiền", key: "totalAmount" },
     { label: "Trạng thái", key: "status" },
     { label: "Thao tác", key: "actions" },

@@ -235,6 +235,23 @@ export function useVehicle() {
       loading.value = false;
     }
   };
+   
+  const getListVehiclePrice = async (vehicleIds: number[]) => {
+  loading.value = true;
+  error.value = null;
+
+  try {
+    if (!vehicleIds || vehicleIds.length === 0) return [];
+    const res = await VehicleService.getListVehicleWithPrice(vehicleIds);
+    return res;
+  } catch (e: any) {
+    error.value = e.message || "Error fetching vehicle prices";
+    throw e;
+  } finally {
+    loading.value = false;
+  }
+};
+
 
   return {
     // State
@@ -259,5 +276,6 @@ export function useVehicle() {
     compareVehicles,
     getSimilarVehicles,
     getNewArrivals,
+    getListVehiclePrice
   };
 }

@@ -1,12 +1,18 @@
 <template>
   <header class="header">
-    <div class="header-search">
-      <input
-        type="search"
-        class="search-input"
-        placeholder="Tìm kiếm..."
-        autocomplete="off"
-      />
+    <div class="header-left">
+      <div class="brand-section">
+        <div class="logo-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+          </svg>
+        </div>
+        <div class="brand-info">
+          <h1 class="brand-title">Admin Dashboard</h1>
+          <p class="brand-subtitle">Quản lý hệ thống</p>
+        </div>
+      </div>
     </div>
 
     <div class="user-info">
@@ -171,4 +177,55 @@ const avatarLetter = computed(() => {
     font-size: 16px;
   }
 }
+/* Header Left (Logo + Brand Info) */
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px; /* khoảng cách giữa logo và brand info */
+}
+
+.brand-section {
+  display: flex;
+  align-items: center;
+  gap: 12px; /* khoảng cách giữa icon và text */
+}
+
+.logo-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
+  color: white;
+  flex-shrink: 0;
+}
+
+.logo-icon svg {
+  width: 24px;
+  height: 24px;
+  stroke: white;
+}
+
+.brand-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.brand-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.brand-subtitle {
+  font-size: 12px;
+  color: #6b7280;
+  margin: 0;
+}
+
 </style>

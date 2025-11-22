@@ -2,6 +2,13 @@
 import { ref, computed, onMounted } from "vue";
 import { useMe } from "~/composables/useMe";
 import type { Profile } from "~/types/profile";
+import AdminLayout from "~/layouts/admin.vue";
+import DealerManagerLayout from "~/layouts/dealer-manager-layout.vue";
+import EvmStaffLayout from "~/layouts/evm-staff-layout.vue";
+import DefaultLayout from "~/layouts/default.vue";
+definePageMeta({
+  layout: false,
+});
 
 type PasswordForm = { current: string; next: string; confirm: string };
 
@@ -10,6 +17,31 @@ const isSubmitting = ref(false);
 const isLoading = ref(true);
 const msg = ref<string | null>(null);
 const err = ref<string | null>(null);
+
+const role = computed(() => {
+  const u: any = me.value;
+  if (!u) return null;
+
+  return (
+    u.user_metadata?.role ||
+    (Array.isArray(u.user_metadata?.roles) ? u.user_metadata.roles[0] : null) ||
+    u.role ||
+    null
+  );
+});
+
+const layoutComponent = computed(() => {
+  switch (role.value) {
+    case "admin":
+      return AdminLayout;
+    case "dealer_manager":
+      return DealerManagerLayout;
+    case "evm_staff":
+      return EvmStaffLayout;
+    default:
+      return DefaultLayout;
+  }
+});
 
 const profile = ref<Profile>({
   fullName: "",
@@ -168,192 +200,194 @@ async function changePassword() {
 </script>
 
 <template>
-  <div class="page">
-    <div class="container">
-      <header class="head">
-        <h1 style="margin: 0 0 6px; font-size: 28px; font-weight: bold">
-          Hồ sơ cá nhân
-        </h1>
-        <p class="muted">Quản lý thông tin cơ bản & bảo mật tài khoản.</p>
-      </header>
+  <component :is="layoutComponent">
+    <div class="page">
+      <div class="container">
+        <header class="head">
+          <h1 style="margin: 0 0 6px; font-size: 28px; font-weight: bold">
+            Hồ sơ cá nhân
+          </h1>
+          <p class="muted">Quản lý thông tin cơ bản & bảo mật tài khoản.</p>
+        </header>
 
-      <!-- Loading state -->
-      <div v-if="isLoading" class="loading-container">
-        <div class="spinner-large"></div>
-        <p>Đang tải thông tin...</p>
-      </div>
-
-      <template v-else>
-        <div v-if="err" class="alert error" role="alert">{{ err }}</div>
-        <div v-if="msg" class="alert success" role="status">{{ msg }}</div>
-
-        <div class="grid">
-          <section class="card">
-            <h2 class="title">Thông tin tài khoản</h2>
-            <div
-              class="avatar-zone"
-              @dragover="onDragOver"
-              @drop="onDrop"
-              :class="{ empty: !avatarPreview && !profile.avatarUrl }"
-            >
-              <img
-                v-if="avatarPreview || profile.avatarUrl"
-                :src="avatarPreview || profile.avatarUrl!"
-                class="avatar"
-                alt="Avatar"
-              />
-              <div v-else class="placeholder">
-                <div class="placeholder-avatar">
-                  {{ profile.fullName?.[0]?.toUpperCase() || "?" }}
-                </div>
-                <p>PNG/JPG/WebP &lt; 2MB</p>
-              </div>
-
-              <div class="actions-row">
-                <label class="btn secondary">
-                  <input
-                    class="file"
-                    type="file"
-                    accept="image/png,image/jpeg,image/jpg,image/webp"
-                    @change="onPick"
-                  />
-                  Chọn ảnh
-                </label>
-                <button
-                  class="btn ghost"
-                  type="button"
-                  @click="removeAvatar"
-                  :disabled="isSubmitting"
-                >
-                  Xoá ảnh
-                </button>
-              </div>
-            </div>
-
-            <form class="form" @submit.prevent="saveProfile" novalidate>
-              <div class="row">
-                <div class="field">
-                  <label for="fullName">Họ và tên</label>
-                  <input
-                    id="fullName"
-                    v-model.trim="profile.fullName"
-                    :class="{ 'is-error': !!profileErrors.fullName }"
-                    placeholder="Nguyễn Văn A"
-                  />
-                  <small v-if="profileErrors.fullName" class="msg">{{
-                    profileErrors.fullName
-                  }}</small>
-                </div>
-
-                <div class="field">
-                  <label for="email">Email</label>
-                  <input
-                    id="email"
-                    v-model.trim="profile.email"
-                    type="email"
-                    :class="{ 'is-error': !!profileErrors.email }"
-                    placeholder="you@example.com"
-                    disabled
-                    title="Email không thể thay đổi"
-                  />
-                  <small class="msg info">Email không thể thay đổi</small>
-                </div>
-              </div>
-
-              <div class="row">
-                <div class="field">
-                  <label for="phone">Số điện thoại</label>
-                  <input
-                    id="phone"
-                    v-model.trim="profile.phone"
-                    inputmode="tel"
-                    :class="{ 'is-error': !!profileErrors.phone }"
-                    placeholder="+84 901 234 567"
-                  />
-                  <small v-if="profileErrors.phone" class="msg">{{
-                    profileErrors.phone
-                  }}</small>
-                </div>
-                <div class="field"></div>
-              </div>
-
-              <div class="actions-end">
-                <button
-                  class="btn primary"
-                  type="submit"
-                  :disabled="!canSaveProfile || isSubmitting"
-                >
-                  <span v-if="!isSubmitting">Lưu hồ sơ</span>
-                  <span v-else class="loading"
-                    ><span class="spinner"></span>Đang lưu…</span
-                  >
-                </button>
-              </div>
-            </form>
-          </section>
-
-          <section class="card">
-            <h2 class="title">Bảo mật</h2>
-
-            <form class="form" @submit.prevent="changePassword" novalidate>
-              <div class="field">
-                <label for="pwd-current">Mật khẩu hiện tại</label>
-                <input
-                  id="pwd-current"
-                  v-model.trim="pwd.current"
-                  type="password"
-                  :class="{ 'is-error': !!pwdErrors.current }"
-                />
-                <small v-if="pwdErrors.current" class="msg">{{
-                  pwdErrors.current
-                }}</small>
-              </div>
-
-              <div class="row">
-                <div class="field">
-                  <label for="pwd-next">Mật khẩu mới</label>
-                  <input
-                    id="pwd-next"
-                    v-model.trim="pwd.next"
-                    type="password"
-                    :class="{ 'is-error': !!pwdErrors.next }"
-                  />
-                  <small v-if="pwdErrors.next" class="msg">{{
-                    pwdErrors.next
-                  }}</small>
-                </div>
-                <div class="field">
-                  <label for="pwd-confirm">Xác nhận mật khẩu</label>
-                  <input
-                    id="pwd-confirm"
-                    v-model.trim="pwd.confirm"
-                    type="password"
-                    :class="{ 'is-error': !!pwdErrors.confirm }"
-                  />
-                  <small v-if="pwdErrors.confirm" class="msg">{{
-                    pwdErrors.confirm
-                  }}</small>
-                </div>
-              </div>
-
-              <div class="actions-end">
-                <button
-                  class="btn primary"
-                  type="submit"
-                  :disabled="!canChangePwd || isSubmitting"
-                >
-                  <span v-if="!isSubmitting">Đổi mật khẩu</span>
-                  <span v-else class="loading"
-                    ><span class="spinner"></span>Đang đổi…</span
-                  >
-                </button>
-              </div>
-            </form>
-          </section>
+        <!-- Loading state -->
+        <div v-if="isLoading" class="loading-container">
+          <div class="spinner-large"></div>
+          <p>Đang tải thông tin...</p>
         </div>
-      </template>
+
+        <template v-else>
+          <div v-if="err" class="alert error" role="alert">{{ err }}</div>
+          <div v-if="msg" class="alert success" role="status">{{ msg }}</div>
+
+          <div class="grid">
+            <section class="card">
+              <h2 class="title">Thông tin tài khoản</h2>
+              <div
+                class="avatar-zone"
+                @dragover="onDragOver"
+                @drop="onDrop"
+                :class="{ empty: !avatarPreview && !profile.avatarUrl }"
+              >
+                <img
+                  v-if="avatarPreview || profile.avatarUrl"
+                  :src="avatarPreview || profile.avatarUrl!"
+                  class="avatar"
+                  alt="Avatar"
+                />
+                <div v-else class="placeholder">
+                  <div class="placeholder-avatar">
+                    {{ profile.fullName?.[0]?.toUpperCase() || "?" }}
+                  </div>
+                  <p>PNG/JPG/WebP &lt; 2MB</p>
+                </div>
+
+                <div class="actions-row">
+                  <label class="btn secondary">
+                    <input
+                      class="file"
+                      type="file"
+                      accept="image/png,image/jpeg,image/jpg,image/webp"
+                      @change="onPick"
+                    />
+                    Chọn ảnh
+                  </label>
+                  <button
+                    class="btn ghost"
+                    type="button"
+                    @click="removeAvatar"
+                    :disabled="isSubmitting"
+                  >
+                    Xoá ảnh
+                  </button>
+                </div>
+              </div>
+
+              <form class="form" @submit.prevent="saveProfile" novalidate>
+                <div class="row">
+                  <div class="field">
+                    <label for="fullName">Họ và tên</label>
+                    <input
+                      id="fullName"
+                      v-model.trim="profile.fullName"
+                      :class="{ 'is-error': !!profileErrors.fullName }"
+                      placeholder="Nguyễn Văn A"
+                    />
+                    <small v-if="profileErrors.fullName" class="msg">{{
+                      profileErrors.fullName
+                    }}</small>
+                  </div>
+
+                  <div class="field">
+                    <label for="email">Email</label>
+                    <input
+                      id="email"
+                      v-model.trim="profile.email"
+                      type="email"
+                      :class="{ 'is-error': !!profileErrors.email }"
+                      placeholder="you@example.com"
+                      disabled
+                      title="Email không thể thay đổi"
+                    />
+                    <small class="msg info">Email không thể thay đổi</small>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="field">
+                    <label for="phone">Số điện thoại</label>
+                    <input
+                      id="phone"
+                      v-model.trim="profile.phone"
+                      inputmode="tel"
+                      :class="{ 'is-error': !!profileErrors.phone }"
+                      placeholder="+84 901 234 567"
+                    />
+                    <small v-if="profileErrors.phone" class="msg">{{
+                      profileErrors.phone
+                    }}</small>
+                  </div>
+                  <div class="field"></div>
+                </div>
+
+                <div class="actions-end">
+                  <button
+                    class="btn primary"
+                    type="submit"
+                    :disabled="!canSaveProfile || isSubmitting"
+                  >
+                    <span v-if="!isSubmitting">Lưu hồ sơ</span>
+                    <span v-else class="loading"
+                      ><span class="spinner"></span>Đang lưu…</span
+                    >
+                  </button>
+                </div>
+              </form>
+            </section>
+
+            <section class="card">
+              <h2 class="title">Bảo mật</h2>
+
+              <form class="form" @submit.prevent="changePassword" novalidate>
+                <div class="field">
+                  <label for="pwd-current">Mật khẩu hiện tại</label>
+                  <input
+                    id="pwd-current"
+                    v-model.trim="pwd.current"
+                    type="password"
+                    :class="{ 'is-error': !!pwdErrors.current }"
+                  />
+                  <small v-if="pwdErrors.current" class="msg">{{
+                    pwdErrors.current
+                  }}</small>
+                </div>
+
+                <div class="row">
+                  <div class="field">
+                    <label for="pwd-next">Mật khẩu mới</label>
+                    <input
+                      id="pwd-next"
+                      v-model.trim="pwd.next"
+                      type="password"
+                      :class="{ 'is-error': !!pwdErrors.next }"
+                    />
+                    <small v-if="pwdErrors.next" class="msg">{{
+                      pwdErrors.next
+                    }}</small>
+                  </div>
+                  <div class="field">
+                    <label for="pwd-confirm">Xác nhận mật khẩu</label>
+                    <input
+                      id="pwd-confirm"
+                      v-model.trim="pwd.confirm"
+                      type="password"
+                      :class="{ 'is-error': !!pwdErrors.confirm }"
+                    />
+                    <small v-if="pwdErrors.confirm" class="msg">{{
+                      pwdErrors.confirm
+                    }}</small>
+                  </div>
+                </div>
+
+                <div class="actions-end">
+                  <button
+                    class="btn primary"
+                    type="submit"
+                    :disabled="!canChangePwd || isSubmitting"
+                  >
+                    <span v-if="!isSubmitting">Đổi mật khẩu</span>
+                    <span v-else class="loading"
+                      ><span class="spinner"></span>Đang đổi…</span
+                    >
+                  </button>
+                </div>
+              </form>
+            </section>
+          </div>
+        </template>
+      </div>
     </div>
-  </div>
+  </component>
 </template>
 
 <style scoped>
