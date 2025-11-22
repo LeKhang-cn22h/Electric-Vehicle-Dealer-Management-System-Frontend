@@ -17,9 +17,7 @@ export function usePromotions() {
         error.value = null;
         try {
             const response = await PromotionService.findAll();
-            console.log("fetch all1", response);
             promotions.value = response || [];
-            console.log("fetch all2", JSON.parse(JSON.stringify(promotions.value)));
             return response;
         } catch (e: any) {
             error.value = e.message || "Error fetching promotions";
@@ -48,6 +46,22 @@ export function usePromotions() {
             loading.value = false;
         }
     };
+
+    async function fetchAplied(minOrderValue?: number, minQuantity?: number) {
+        loading.value = true;
+        error.value = null;
+        try {
+            const response = await PromotionService.findAllApplied();
+            promotions.value = response || [];
+            return response;
+        } catch (e: any) {
+            error.value = e.message || "Error fetching promotions";
+            console.error("[usePromotions] fetchAll error:", e);
+            throw e;
+        } finally {
+            loading.value = false;
+        }
+    }
 
     // ===============================
     // CREATE
@@ -125,6 +139,7 @@ export function usePromotions() {
         // methods
         fetchAll,
         fetchOne,
+        fetchAplied,
         create,
         update,
         remove,

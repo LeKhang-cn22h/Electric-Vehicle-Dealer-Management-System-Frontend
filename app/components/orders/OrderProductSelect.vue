@@ -22,10 +22,10 @@
                 <div class="divide-y">
                     <div v-for="(item, index) in items" :key="item.id || index" class="p-4 flex justify-between items-center">
                         <div class="flex-1">
-                            <div class="font-medium">{{ item.productName }}</div>
-                            <div class="text-sm text-gray-600">{{ item.skuCode }} • {{ item.color }}</div>
+                            <div class="font-medium">{{ item.name }}</div>
+                            <div class="text-sm text-gray-600">{{ item.model }} • {{ item.color }}</div>
                             <div class="text-sm font-medium text-blue-600">
-                                {{ formatCurrency(item.unitPrice) }}
+                                {{ formatCurrency(item.price) }}
                             </div>
                         </div>
 
@@ -117,12 +117,12 @@ const removeItem = (index) => {
     emit("update:items", updated);
 };
 
-const itemsTotal = computed(() => props.items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0));
+const itemsTotal = computed(() => props.items.reduce((sum, item) => sum + item.price * item.quantity, 0));
 
 const addProductToOrder = (productItem) => {
     // Kiểm tra sản phẩm đã tồn tại chưa
     const existingIndex = props.items.findIndex((item) => item.id === productItem.id);
-
+    console.log("đã add product ", toRaw(productItem));
     if (existingIndex >= 0) {
         // Nếu đã có, tăng số lượng
         const updated = [...props.items];
@@ -130,7 +130,7 @@ const addProductToOrder = (productItem) => {
         emit("update:items", updated);
     } else {
         // Nếu chưa có, thêm mới
-        emit("update:items", [...props.items, productItem]);
+        emit("update:items", [...props.items, { ...productItem, quantity: 1 }]);
     }
 
     showProductCatalog.value = false;

@@ -29,11 +29,9 @@
       <div v-if="currentStep === 1" class="space-y-6">
         <!-- Customer Section -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <OrderCustomerForm
-            v-model:customer="quoteData.customer"
-            @customer-type="quoteData.customerType = $event"
-            @form-valid="handleFormValid"
-          />
+          <OrderCustomerForm v-model:customer="quoteData.customer" />
+          <!-- @form-valid="handleFormValid" -->
+          <!-- @customer-type="quoteData.customerType = $event" -->
         </div>
 
         <!-- Products Section -->
@@ -44,9 +42,6 @@
 
         <!-- Promotions Section -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 class="text-lg font-semibold text-gray-900 mb-4">
-            Khuyến mãi áp dụng
-          </h2>
           <OrderPromotionSelect
             v-model:promotions="quoteData.appliedPromotions"
             :items="quoteData.items"
@@ -54,50 +49,18 @@
         </div>
 
         <!-- Notes Section -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 class="text-lg font-semibold text-gray-900 mb-4">
-            Ghi chú và thời hạn
-          </h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2"
-                >Thời hạn báo giá (ngày)</label
-              >
-              <input
-                v-model.number="quoteData.validDays"
-                type="number"
-                min="1"
-                placeholder="30"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2"
-                >Giảm giá thêm (%)</label
-              >
-              <input
-                v-model.number="quoteData.discountPercent"
-                type="number"
-                min="0"
-                max="100"
-                placeholder="0"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
+        <!-- <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Ghi chú</h2>
 
-          <div class="mt-4">
-            <label class="block text-sm font-medium text-gray-700 mb-2"
-              >Ghi chú</label
-            >
-            <textarea
-              v-model="quoteData.notes"
-              rows="3"
-              placeholder="Nhập ghi chú thêm (nếu có)"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-            ></textarea>
-          </div>
-        </div>
+                    <div class="mt-4">
+                        <textarea
+                            v-model="quoteData.notes"
+                            rows="3"
+                            placeholder="Nhập ghi chú thêm (nếu có)"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                        ></textarea>
+                    </div>
+                </div> -->
 
         <!-- Next Button -->
         <div class="flex justify-end">
@@ -119,10 +82,26 @@
           :order-data="quoteData"
           :order-total="total"
           @back="currentStep = 1"
-          @submit="createQuote"
+          @submit="handleSubmit"
           :is-payment="false"
         />
       </div>
+      <ConfirmModal
+        v-model:show="showModal"
+        title="Xác nhận tạo báo giá"
+        message="Bạn có chắc chắn muốn <b>tạo</b> báo giá mới này không?"
+        confirmText="Xác nhận"
+        cancelText="Hủy"
+        @confirm="handleConfirm"
+      />
+      <StatusModal
+        :visible="visible"
+        :loading="loading"
+        :error="error"
+        @update:visible="(val: boolean) => (visible = val)"
+        @update:loading="(val: boolean) => (loading = val)"
+        @update:error="(val: string | null) => (error = val)"
+      />
     </div>
   </div>
 </template>
@@ -134,11 +113,17 @@ import OrderCustomerForm from "@/components/orders/OrderCustomerForm.vue";
 import OrderProductSelect from "@/components/orders/OrderProductSelect.vue";
 import OrderPromotionSelect from "@/components/orders/OrderPromotionSelect.vue";
 import OrderSummary from "@/components/orders/OrderSummary.vue";
-
-import type { ProductItem, Promotion } from "@/schemas";
-import type { Customer, CreateCustomer } from "~/types/profile";
-import type { ApiResponse, CreateQuoteResponse } from "@/types/";
+import type { Promotion } from "@/schemas";
+import type {
+  ApiResponse,
+  CreateQuotationDto,
+  CreateQuoteResponse,
+} from "@/types/";
 import { notiFail, notiSuccess } from "@/utils/format";
+import ConfirmModal from "~/components/shared/ConfirmModal.vue";
+import StatusModal from "~/components/shared/StatusModal.vue";
+import type { Customer } from "~/types/profile";
+import type { ProductItem } from "~/types/product-item";
 
 definePageMeta({
   layout: false,
@@ -147,14 +132,17 @@ definePageMeta({
 const { layoutName, applyLayout } = useRoleBasedLayout();
 applyLayout();
 
+const { loading, error, create } = usePromotions();
+
 const router = useRouter();
 const isSubmitting = ref(false);
 const currentStep = ref(1);
-const isCustomerFormValid = ref(false);
+// const isCustomerFormValid = ref(false);
 
 const quoteData = reactive({
-  customer: null as Customer | CreateCustomer | null,
-  customerType: null as "existing" | "new" | null,
+  customer: null as Customer | null,
+  // | CreateCustomer
+  // customerType: null as "existing" | "new" | null,
   items: [] as ProductItem[],
   appliedPromotions: [] as Promotion[],
   discountPercent: 0,
@@ -162,10 +150,22 @@ const quoteData = reactive({
   notes: "",
 });
 
+watch(
+  () => quoteData.customer,
+  (val) => {
+    console.log("Đã chọn user có id:", val?.id);
+  }
+);
+watch(
+  () => quoteData.items,
+  (val) => {
+    console.log("tất cả sản phẩm chọn:", val);
+  }
+);
 // --- Computed totals ---
 const subtotal = computed(() =>
   quoteData.items.reduce(
-    (sum, item) => sum + (item.quantity || 0) * (item.unitPrice || 0),
+    (sum, item) => sum + (item.quantity || 0) * (item.price || 0),
     0
   )
 );
@@ -182,41 +182,51 @@ const total = computed(
   () => subtotal.value - promoDiscount.value - percentDiscount.value
 );
 
-const handleFormValid = (val: boolean) => {
-  isCustomerFormValid.value = val;
-};
+// const handleFormValid = (val: boolean) => {
+//     isCustomerFormValid.value = val;
+// };
 
 // --- Validation ---
 const validateQuote = () => {
-  console.log(quoteData.customer);
-
-  if (!quoteData.customer || !isCustomerFormValid.value) {
+  if (
+    !quoteData.customer
+    // || !isCustomerFormValid.value
+  ) {
     notiFail("Vui lòng kiểm tra thông tin khách hàng");
     return false;
   }
+  console.log("!quoteData.customer", !quoteData.customer);
+  console.log("quoteData.items", quoteData.items);
+  console.log("quoteData.items.length", quoteData.items.length);
   if (quoteData.items.length === 0) {
     notiFail("Vui lòng thêm ít nhất một sản phẩm");
     return false;
   }
+  console.log("quoteData.items.length === 0", quoteData.items.length === 0);
   const invalidItem = quoteData.items.some(
-    (i) => !i.productName || i.quantity <= 0 || i.unitPrice < 0
+    (i) => !i.name || (i.quantity || 0) <= 0 || (i.price || 0) < 0
   );
   if (invalidItem) {
     notiFail("Vui lòng điền đầy đủ thông tin sản phẩm");
     return false;
   }
+  console.log("invalidItem", invalidItem);
   return true;
 };
 
 // --- Step Control ---
 const goToSummary = () => {
-  if (!validateQuote()) return;
+  console.log("Đã tiếp tục");
+  if (!validateQuote()) {
+    console.log("Lỗi");
+    return;
+  }
   currentStep.value = 2;
+  console.log("currentStep", currentStep.value);
 };
 
 // --- Submit ---
 const createQuote = async () => {
-  if (!validateQuote()) return;
   isSubmitting.value = true;
 
   try {
@@ -232,13 +242,13 @@ const createQuote = async () => {
       notes: quoteData.notes,
     };
 
-    if ("id" in (quoteData.customer || {})) {
-      // Khách hàng đã có trong hệ thống
-      body.customerId = (quoteData.customer as Customer).id;
-    } else {
-      // Khách hàng mới
-      body.customerInfo = quoteData.customer as CreateCustomer;
-    }
+    // if ("id" in (quoteData.customer || {})) {
+    // Khách hàng đã có trong hệ thống
+    //     body.customerId = (quoteData.customer as Customer).id;
+    // } else {
+    // Khách hàng mới
+    //     body.customerInfo = quoteData.customer as CreateCustomer;
+    // }
 
     const response = await $fetch<ApiResponse<CreateQuoteResponse>>(
       "/api/quotes",
@@ -262,4 +272,37 @@ const goBack = () => {
     router.back();
   }
 };
+
+const showModal = ref(false);
+
+const handleSubmit = () => {
+  showModal.value = true;
+};
+
+const handleConfirm = () => {
+  console.log("Người dùng xác nhận hành động!");
+  // Gọi API hoặc thực hiện action ở đây
+  showModal.value = false; // đóng modal sau khi xác nhận
+  // savePromotion();
+};
+
+// State của modal
+const visible = ref(false);
+
+watch(loading, () => {
+  if (loading.value) visible.value = true;
+});
+
+const mapToBackendDto = (quotation: CreateQuotationDto) => ({
+  customerId: quotation.customerId,
+  customerName: quotation.customerName,
+  customerPhone: quotation.customerPhone,
+  customerEmail: quotation.customerEmail,
+  customerAddress: quotation.customerAddress,
+  createdBy: quotation.createdBy,
+  items: quotation.items,
+  vatRate: quotation.vatRate || 0.1,
+  note: quotation.note,
+  promotionCode: quotation.promotionCode,
+});
 </script>
