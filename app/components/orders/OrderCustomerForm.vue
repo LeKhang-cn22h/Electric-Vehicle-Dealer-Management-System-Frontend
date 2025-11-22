@@ -1,61 +1,84 @@
 <template>
-    <div>
-        <h2 class="text-lg font-semibold text-gray-900 mb-4">Thông tin khách hàng</h2>
+  <div>
+    <h2 class="text-lg font-semibold text-gray-900 mb-4">
+      Thông tin khách hàng
+    </h2>
 
-        <div class="space-y-4">
-            <!-- Tìm khách hàng hiện có -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Tìm khách hàng hiện có</label>
-                <SearchInput v-model="searchQuery" placeholder="Tìm theo tên, số điện thoại, email..." />
+    <div class="space-y-4">
+      <!-- Tìm khách hàng hiện có -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2"
+          >Tìm khách hàng hiện có</label
+        >
+        <SearchInput
+          v-model="searchQuery"
+          placeholder="Tìm theo tên, số điện thoại, email..."
+        />
 
-                <!-- Loading state -->
-                <div v-if="loading" class="mt-2 text-sm text-gray-500">Đang tải...</div>
+        <!-- Loading state -->
+        <div v-if="loading" class="mt-2 text-sm text-gray-500">Đang tải...</div>
 
-                <!-- Danh sách kết quả tìm kiếm -->
-                <!-- Danh sách khách hàng -->
-                <div v-if="filteredCustomers.length > 0 && !selectedCustomer" class="mt-2 space-y-2 max-h-60 overflow-y-auto">
-                    <div
-                        v-for="customer in filteredCustomers"
-                        :key="customer.id"
-                        class="p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
-                        @click="selectCustomer(customer)"
-                    >
-                        <div class="font-medium">{{ customer.name }}</div>
-                        <div class="text-sm text-gray-600">
-                            {{ customer.phone }}
-                            <span v-if="customer.email"> • {{ customer.email }}</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Hiển thị khách hàng đã chọn -->
-                <div v-if="selectedCustomer" class="p-4 mb-4 border rounded-xl bg-gray-50 flex items-start justify-between">
-                    <div :key="selectedCustomer.id" @click="selectCustomer(selectedCustomer)">
-                        <div class="font-medium">{{ selectedCustomer.name }}</div>
-                        <div class="text-sm text-gray-600">
-                            {{ selectedCustomer.phone }}
-                            <span v-if="selectedCustomer.email"> • {{ selectedCustomer.email }}</span>
-                        </div>
-                    </div>
-
-                    <!-- Nút xoá -->
-                    <button
-                        class="ml-4 text-red-600 hover:text-red-800 font-bold text-xl"
-                        @click="clearCustomer"
-                        title="Xóa khách hàng đã chọn"
-                    >
-                        ×
-                    </button>
-                </div>
-
-                <!-- No results -->
-                <div v-if="searchQuery.trim() && filteredCustomers.length === 0 && !loading" class="mt-2 text-sm text-gray-500">
-                    Không tìm thấy khách hàng
-                </div>
+        <!-- Danh sách kết quả tìm kiếm -->
+        <!-- Danh sách khách hàng -->
+        <div
+          v-if="filteredCustomers.length > 0 && !selectedCustomer"
+          class="mt-2 space-y-2 max-h-60 overflow-y-auto"
+        >
+          <div
+            v-for="customer in filteredCustomers"
+            :key="customer.id"
+            class="p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+            @click="selectCustomer(customer)"
+          >
+            <div class="font-medium">{{ customer.name }}</div>
+            <div class="text-sm text-gray-600">
+              {{ customer.phone }}
+              <span v-if="customer.email"> • {{ customer.email }}</span>
             </div>
+          </div>
+        </div>
 
-            <!-- Hoặc tạo khách hàng mới -->
-            <!-- <div class="border-t pt-4">
+        <!-- Hiển thị khách hàng đã chọn -->
+        <div
+          v-if="selectedCustomer"
+          class="p-4 mb-4 border rounded-xl bg-gray-50 flex items-start justify-between"
+        >
+          <div
+            :key="selectedCustomer.id"
+            @click="selectCustomer(selectedCustomer)"
+          >
+            <div class="font-medium">{{ selectedCustomer.name }}</div>
+            <div class="text-sm text-gray-600">
+              {{ selectedCustomer.phone }}
+              <span v-if="selectedCustomer.email">
+                • {{ selectedCustomer.email }}</span
+              >
+            </div>
+          </div>
+
+          <!-- Nút xoá -->
+          <button
+            class="ml-4 text-red-600 hover:text-red-800 font-bold text-xl"
+            @click="clearCustomer"
+            title="Xóa khách hàng đã chọn"
+          >
+            ×
+          </button>
+        </div>
+
+        <!-- No results -->
+        <div
+          v-if="
+            searchQuery.trim() && filteredCustomers.length === 0 && !loading
+          "
+          class="mt-2 text-sm text-gray-500"
+        >
+          Không tìm thấy khách hàng
+        </div>
+      </div>
+
+      <!-- Hoặc tạo khách hàng mới -->
+      <!-- <div class="border-t pt-4">
                 <button
                     @click="showFormNewCustomer"
                     :disabled="isActiveBtnCreateCustomer"
@@ -69,8 +92,8 @@
                     <h3 class="text-md font-medium text-gray-900 mb-3 pt-4">Khách hàng mới</h3>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4"> -->
-            <!-- Họ tên -->
-            <!-- <div>
+      <!-- Họ tên -->
+      <!-- <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">
                                 Họ tên <span class="text-red-500">*</span>
                             </label>
@@ -84,8 +107,8 @@
                             <span v-if="errors.name" class="text-red-500 text-sm">{{ errors.name }}</span>
                         </div> -->
 
-            <!-- Số điện thoại -->
-            <!-- <div>
+      <!-- Số điện thoại -->
+      <!-- <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">
                                 Số điện thoại <span class="text-red-500">*</span>
                             </label>
@@ -100,8 +123,8 @@
                             <span v-if="errors.phone" class="text-red-500 text-sm">{{ errors.phone }}</span>
                         </div> -->
 
-            <!-- Email -->
-            <!-- <div>
+      <!-- Email -->
+      <!-- <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
                             <input
                                 v-model="newCustomer.email"
@@ -113,8 +136,8 @@
                             <span v-if="errors.email" class="text-red-500 text-sm">{{ errors.email }}</span>
                         </div> -->
 
-            <!-- Ngày sinh -->
-            <!-- <div>
+      <!-- Ngày sinh -->
+      <!-- <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Ngày sinh</label>
                             <input
                                 v-model="newCustomer.birth_day"
@@ -125,8 +148,8 @@
                             <span v-if="errors.birth_day" class="text-red-500 text-sm">{{ errors.birth_day }}</span>
                         </div> -->
 
-            <!-- Giới tính -->
-            <!-- <div>
+      <!-- Giới tính -->
+      <!-- <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Giới tính</label>
                             <select
                                 v-model="newCustomer.gender"
@@ -141,8 +164,8 @@
                             <span v-if="errors.gender" class="text-red-500 text-sm">{{ errors.gender }}</span>
                         </div> -->
 
-            <!-- Địa chỉ -->
-            <!-- <div class="md:col-span-2">
+      <!-- Địa chỉ -->
+      <!-- <div class="md:col-span-2">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Địa chỉ</label>
                             <input
                                 v-model="newCustomer.address"
@@ -157,10 +180,10 @@
                 </div>
             </div> -->
 
-            <!-- Error message -->
-            <div v-if="error" class="text-red-500 text-sm">{{ error }}</div>
-        </div>
+      <!-- Error message -->
+      <div v-if="error" class="text-red-500 text-sm">{{ error }}</div>
     </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -180,18 +203,18 @@ import type { Customer, CustomerSummary } from "~/types/profile";
 // }
 
 const props = defineProps<{
-    customer: Customer | null;
-    // | CreateCustomer
+  customer: Customer | null;
+  // | CreateCustomer
 }>();
 
 const emit = defineEmits<{
-    (
-        e: "update:customer",
-        customer: Customer | null
-        // | CreateCustomer
-    ): void;
-    // (e: "customer-type", type: "existing" | "new" | null): void;
-    // (e: "form-valid", isValid: boolean): void;
+  (
+    e: "update:customer",
+    customer: Customer | null
+    // | CreateCustomer
+  ): void;
+  // (e: "customer-type", type: "existing" | "new" | null): void;
+  // (e: "form-valid", isValid: boolean): void;
 }>();
 
 // Composable
@@ -226,15 +249,15 @@ const selectedCustomer = ref<Customer | null>(null);
 
 // Computed - Filter customers locally
 const filteredCustomers = computed(() => {
-    const query = searchQuery.value.trim().toLowerCase();
-    if (!query) return customers.value; // trả về tất cả khách hàng nếu search rỗng
+  const query = searchQuery.value.trim().toLowerCase();
+  if (!query) return customers.value; // trả về tất cả khách hàng nếu search rỗng
 
-    return customers.value.filter((customer) => {
-        const matchName = customer.name?.toLowerCase().includes(query);
-        const matchPhone = customer.phone?.toLowerCase().includes(query);
-        const matchEmail = customer.email?.toLowerCase().includes(query);
-        return matchName || matchPhone || matchEmail;
-    });
+  return customers.value.filter((customer) => {
+    const matchName = customer.name?.toLowerCase().includes(query);
+    const matchPhone = customer.phone?.toLowerCase().includes(query);
+    const matchEmail = customer.email?.toLowerCase().includes(query);
+    return matchName || matchPhone || matchEmail;
+  });
 });
 
 // Form validation
@@ -256,32 +279,32 @@ const filteredCustomers = computed(() => {
 // };
 
 const selectCustomer = (customer: CustomerSummary) => {
-    emit("update:customer", customer as Customer);
-    // emit("customer-type", "existing");
-    console.log("Đã chọn customer:", customer);
-    selectedCustomer.value = customer as Customer;
-    // isNewCustomer.value = false;
-    searchQuery.value = "";
+  emit("update:customer", customer as Customer);
+  // emit("customer-type", "existing");
+  console.log("Đã chọn customer:", customer);
+  selectedCustomer.value = customer as Customer;
+  // isNewCustomer.value = false;
+  searchQuery.value = "";
 };
 
 const clearCustomer = () => {
-    selectedCustomer.value = null;
-    emit("update:customer", null);
-    // emit("customer-type", null);
-    // isNewCustomer.value = false;
+  selectedCustomer.value = null;
+  emit("update:customer", null);
+  // emit("customer-type", null);
+  // isNewCustomer.value = false;
 };
 
 watch(
-    () => props.customer,
-    (val) => {
-        if (
-            val
-            // && !isNewCustomer.value
-        ) {
-            selectedCustomer.value = val as Customer;
-        }
-    },
-    { immediate: true }
+  () => props.customer,
+  (val) => {
+    if (
+      val
+      // && !isNewCustomer.value
+    ) {
+      selectedCustomer.value = val as Customer;
+    }
+  },
+  { immediate: true }
 );
 
 // const onlyNumber = (event: KeyboardEvent) => {
@@ -315,11 +338,11 @@ watch(
 
 // Lifecycle
 onMounted(async () => {
-    try {
-        await fetchAll();
-        console.log("Customers:", customers.value);
-    } catch (err) {
-        console.error("Error loading customers:", err);
-    }
+  try {
+    await fetchAll();
+    console.log("Customers:", customers.value);
+  } catch (err) {
+    console.error("Error loading customers:", err);
+  }
 });
 </script>

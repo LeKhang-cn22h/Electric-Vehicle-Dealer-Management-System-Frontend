@@ -114,6 +114,7 @@ import type { ProductItem, ProductItemDetail } from "~/types/product-item";
 definePageMeta({
     layout: false,
 });
+
 const { layoutName, applyLayout } = useRoleBasedLayout();
 applyLayout();
 

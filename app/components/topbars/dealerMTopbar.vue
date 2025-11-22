@@ -27,7 +27,6 @@
                     <NuxtLink to="/dealer_manager/wholesale-pricing" class="nav-item"> Quản lý giá sỉ </NuxtLink>
 
                     <NuxtLink to="/dealer_manager/promotions" class="nav-item"> Quản lý khuyến mãi </NuxtLink>
-
                     <NuxtLink to="/user/contracts" class="nav-item"> Quản lý hợp đồng </NuxtLink>
 
                     <NuxtLink to="/dealer_manager/receivables" class="nav-item"> Quản lý công nợ </NuxtLink>
@@ -41,7 +40,29 @@
             </div>
 
             <div class="user-section">
-                <span class="user-role">{{ roleLabel }}</span>
+                <div class="user-info">
+                    <div class="user-details">
+                        <template v-if="pending">
+                            <span class="loading-text">Đang tải...</span>
+                        </template>
+
+                        <template v-else-if="me">
+                            <div class="user-profile">
+                                <span class="welcome-text">Xin chào, </span>
+                                <span class="user-name">{{ userName }}</span>
+                            </div>
+                        </template>
+
+                        <template v-else>
+                            <span class="loading-text">Chưa đăng nhập</span>
+                        </template>
+                    </div>
+                    <ClientOnly>
+                        <div class="dropdown-wrapper">
+                            <SettingsDropdown align="right" />
+                        </div>
+                    </ClientOnly>
+                </div>
             </div>
         </div>
     </nav>
@@ -49,10 +70,11 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { useRouter } from "vue-router";
 import { useCookie } from "#app";
+import SettingsDropdown from "@/components/SettingsMenu.vue";
+import { useMe } from "@/composables/useMe";
 
-const router = useRouter();
+// lấy role từ cookie
 const userRole = useCookie<string>("role");
 
 // flags
@@ -73,9 +95,14 @@ const homePath = computed(() => {
     return "/";
 });
 
-const switchToUser = () => {
-    router.push("/");
-};
+const { me, pending } = useMe();
+
+const userName = computed(() => {
+    const u: any = me.value;
+    if (!u) return null;
+
+    return u.user_metadata?.full_name || u.full_name || u.fullName || u.email?.split("@")[0] || "User";
+});
 </script>
 
 <style scoped>
@@ -134,18 +161,29 @@ const switchToUser = () => {
     color: #2d3436;
 }
 
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    white-space: nowrap;
+}
+
+.user-details {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
 .user-section {
     display: flex;
     align-items: center;
     gap: 15px;
-}
-
-.user-role {
-    background: rgba(255, 255, 255, 0.2);
-    padding: 8px 15px;
-    border-radius: 20px;
-    font-weight: bold;
-    font-size: 0.9rem;
 }
 
 .switch-btn {

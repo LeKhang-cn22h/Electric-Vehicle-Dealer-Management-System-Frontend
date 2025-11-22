@@ -35,6 +35,7 @@ const commonMenu = [
   { label: "Danh sách đơn hàng", to: "/user/orders" },
   { label: "Báo giá", to: "/user/quotations" },
   { label: "Khiếu nại", to: "/Customer/Feedback" },
+  { label: "Tạo hợp đồng", to: "/user/agreement" }, 
 ];
 const topLeftLinks = computed(() => commonMenu);
 
