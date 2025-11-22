@@ -28,6 +28,8 @@
 
                     <NuxtLink to="/dealer_manager/promotions" class="nav-item"> Quản lý khuyến mãi </NuxtLink>
 
+                    <NuxtLink to="/user/contracts" class="nav-item"> Quản lý hợp đồng </NuxtLink>
+
                     <NuxtLink to="/dealer_manager/receivables" class="nav-item"> Quản lý công nợ </NuxtLink>
 
                     <NuxtLink to="/manage_testDriver" class="nav-item"> Quản lý lịch lái </NuxtLink>
