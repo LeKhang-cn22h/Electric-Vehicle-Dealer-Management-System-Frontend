@@ -10,7 +10,6 @@
             </h1>
             <p class="text-gray-600 mt-1">Thông tin chi tiết của đơn hàng</p>
           </div>
-
           <button
             @click="goBack"
             class="text-gray-600 hover:text-gray-900 flex items-center gap-2"
@@ -136,6 +135,19 @@
             }}</span>
           </div>
         </section>
+
+        <div
+          class="flex justify-end mt-4"
+          v-if="(order as Record<string, any>)?.invoice_id"
+        >
+          <button
+            @click="goToInvoice"
+            class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-blue-600 text-blue-600 rounded hover:bg-blue-50 font-medium"
+          >
+            <Icon name="mdi:file-document-outline" size="18" />
+            Xem hóa đơn
+          </button>
+        </div>
       </div>
 
       <!-- Không có dữ liệu -->
@@ -188,7 +200,7 @@ const {
   create,
 } = useContract();
 
-const { createBill } = useBilling();
+const { createBill, getBill } = useBilling();
 const pending = ref(true);
 watch(
   () => order.value,
@@ -196,6 +208,18 @@ watch(
     console.log("order", order.value);
   }
 );
+
+const goToInvoice = () => {
+  const invoiceId =
+    (order.value as any)?.invoice_id || (order.value as any)?.invoiceId;
+
+  if (!invoiceId) {
+    alert("Đơn hàng này chưa có hóa đơn");
+    return;
+  }
+
+  router.push(`/user/invoices/${invoiceId}`);
+};
 
 // Lấy dữ liệu từ API
 onMounted(async () => {
@@ -242,6 +266,8 @@ const createOrder = async () => {
 };
 
 const HARD_DEALER_ID = "00000000-0000-0000-0000-000000000001";
+const HARD_DEALER_NAME = "EV Dealer";
+const HARD_DEALER_ADDRESS = "Tô Ký, Quận 12, TP.HCM";
 
 const mapOrderToBillPayload = (orderData: any): CreateBillPayload => {
   // Lấy dealer_id
@@ -262,6 +288,16 @@ const mapOrderToBillPayload = (orderData: any): CreateBillPayload => {
   if (!customer_id) {
     throw new Error("customer_id không hợp lệ hoặc không tồn tại");
   }
+
+  const dealerName =
+    (orderData.dealer && orderData.dealer.name) ||
+    localStorage.getItem("dealer_name") ||
+    HARD_DEALER_NAME;
+
+  const dealerAddress =
+    (orderData.dealer && orderData.dealer.address) ||
+    localStorage.getItem("dealer_address") ||
+    HARD_DEALER_ADDRESS;
 
   //  Map items: order.items + order.vehicles
   const items: BillItemPayload[] = (orderData.items || []).map((item: any) => {
@@ -297,6 +333,11 @@ const mapOrderToBillPayload = (orderData: any): CreateBillPayload => {
         phone: orderData.customer?.phone,
         email: orderData.customer?.email,
         address: orderData.customer?.adress,
+      },
+      dealer: {
+        id: dealer_id,
+        name: dealerName,
+        address: dealerAddress,
       },
     },
     items,
