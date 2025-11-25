@@ -30,11 +30,20 @@ export function useAuth() {
       const role = user?.user_metadata?.role;
 
       const userId = user?.id;
+      const dealerId = user?.user_metadata?.dealer_id;
 
       if (typeof localStorage !== "undefined") {
         localStorage.setItem("access_token", accessToken);
+        localStorage.setItem("refresh_token", refreshToken);
+        localStorage.setItem("role", role);
+        localStorage.setItem("access_token", accessToken);
         if (refreshToken) localStorage.setItem("refresh_token", refreshToken);
         if (userId) localStorage.setItem("user_id", userId);
+        if (dealerId) {
+          localStorage.setItem("dealer_id", dealerId);
+        } else {
+          localStorage.removeItem("dealer_id");
+        }
       }
 
       // (Optional) vẫn lưu vào cookie nếu muốn dùng ở SSR
