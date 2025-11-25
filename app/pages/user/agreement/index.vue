@@ -119,23 +119,52 @@
 
               <!-- Success Message -->
               <div v-if="successMessage" class="success-message">
-                <div class="success-icon"></div>
+                <div class="success-icon">✅</div>
                 <div class="success-content">
                   <h3>{{ successMessage }}</h3>
                   <p>Cảm ơn bạn đã gửi yêu cầu. Chúng tôi sẽ liên hệ với bạn trong thời gian sớm nhất.</p>
                 </div>
               </div>
-              <!-- Hiển thị thông tin tài khoản nếu có -->
+
+              <!-- Approval Info -->
               <div v-if="approvalInfo" class="approval-info">
-                <h3>Thông tin tài khoản được cấp</h3>
-                <p><strong>Email đăng nhập:</strong> {{ approvalInfo.email }}</p>
-                <p><strong>Mật khẩu:</strong> {{ approvalInfo.password }}</p>
-                <p>Vui lòng lưu lại thông tin này để đăng nhập.</p>
+                <div class="approval-header">
+                  <div class="approval-icon">🎉</div>
+                  <h3>Chúc mừng! Hợp đồng đã được phê duyệt</h3>
+                </div>
+                <div class="approval-content">
+                  <div class="info-item">
+                    <span class="label">Email đăng nhập:</span>
+                    <span class="value">{{ approvalInfo?.email || '' }}</span>
+                    <button @click="copyToClipboard(approvalInfo?.email)" class="copy-btn">
+                      📋 Copy
+                    </button>
+                  </div>
+                  <div class="info-item">
+                    <span class="label">Mật khẩu tạm thời:</span>
+                    <span class="value password">{{ approvalInfo?.password || '' }}</span>
+                    <button @click="copyToClipboard(approvalInfo?.password)" class="copy-btn">
+                      📋 Copy
+                    </button>
+                  </div>
+                  <div class="warning-box">
+                    <strong>⚠️ Lưu ý quan trọng:</strong>
+                    <p>Vui lòng lưu lại thông tin này ngay. Đây là mật khẩu tạm thời, bạn nên đổi mật khẩu sau khi đăng nhập lần đầu.</p>
+                  </div>
+                  <div class="action-buttons">
+                    <button @click="goToLogin" class="primary-btn">
+                      Đăng nhập ngay
+                    </button>
+                    <button @click="downloadCredentials" class="secondary-btn">
+                      📥 Tải thông tin
+                    </button>
+                  </div>
+                </div>
               </div>
 
               <!-- Error Message -->
               <div v-if="errorMessage" class="error-message-global">
-                <div class="error-icon"></div>
+                <div class="error-icon">❌</div>
                 <div class="error-content">
                   <h3>Có lỗi xảy ra</h3>
                   <p>{{ errorMessage }}</p>
@@ -148,26 +177,26 @@
           <div class="info-section">
             <div class="info-card">
               <div class="info-header">
-                <div class="info-icon"></div>
+                <div class="info-icon">ℹ️</div>
                 <h3>Lợi ích khi trở thành Đại lý EVM</h3>
               </div>
               <ul class="benefits-list">
                 <li>
-                  <span class="benefit-icon"></span>
+                  <span class="benefit-icon">💰</span>
                   <div>
                     <strong>Hoa hồng hấp dẫn</strong>
                     <p>Chính sách hoa hồng cạnh tranh và minh bạch</p>
                   </div>
                 </li>
                 <li>
-                  <span class="benefit-icon"></span>
+                  <span class="benefit-icon">🛠️</span>
                   <div>
                     <strong>Hỗ trợ kỹ thuật</strong>
                     <p>Đào tạo và hỗ trợ kỹ thuật từ đội ngũ chuyên gia</p>
                   </div>
                 </li>
                 <li>
-                  <span class="benefit-icon"></span>
+                  <span class="benefit-icon">📢</span>
                   <div>
                     <strong>Marketing & Quảng cáo</strong>
                     <p>Hỗ trợ chiến dịch marketing và quảng bá thương hiệu</p>
@@ -179,121 +208,34 @@
         </div>
       </div>
     </div>
+
+    <!-- Toast Notification -->
+    <Transition name="toast">
+      <div v-if="showToast" class="toast-notification">
+        <div class="toast-content">
+          <span class="toast-icon">🔔</span>
+          <div class="toast-text">
+            <strong>{{ toastTitle }}</strong>
+            <p>{{ toastMessage }}</p>
+          </div>
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
-
-<!-- <script>
-import { reactive } from 'vue'
-import { useDealerAgreement } from '~/composables/userDealerAgreement';
-
-export default {
-  setup() {
-    const formData = reactive({
-      dealer_name: '',
-      address: '',
-      phone: '',
-      email: ''
-    });
-
-    const errors = reactive({});
-    const {
-      pending: loading, // Map pending thành loading
-      createContractRequest: createAgreementRequest // Map tên hàm
-    } = useDealerAgreement();
-
-    // Tạo local success và error messages
-    const successMessage = ref('')
-    const errorMessage = ref('')
-
-    const validateForm = () => {
-      Object.keys(errors).forEach(key => {
-        delete errors[key];
-      });
-      
-      let valid = true;
-
-      if (!formData.dealer_name.trim()) {
-        errors.dealer_name = "Tên đại lý là bắt buộc";
-        valid = false;
-      }
-
-      if (!formData.address.trim()) {
-        errors.address = "Địa chỉ là bắt buộc";
-        valid = false;
-      }
-
-      if (!formData.phone.trim()) {
-        errors.phone = "Số điện thoại là bắt buộc";
-        valid = false;
-      } else if (!/^(0|\+84)[3|5|7|8|9][0-9]{8}$/.test(formData.phone.replace(/\s/g, ''))) {
-        errors.phone = "Số điện thoại không hợp lệ";
-        valid = false;
-      }
-
-      if (!formData.email.trim()) {
-        errors.email = "Email là bắt buộc";
-        valid = false;
-      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-        errors.email = "Email không hợp lệ";
-        valid = false;
-      }
-
-      return valid;
-    };
-
-    const resetForm = () => {
-      Object.keys(formData).forEach(key => {
-        formData[key] = '';
-      });
-      Object.keys(errors).forEach(key => {
-        delete errors[key];
-      });
-    };
-
-    const submitForm = async () => {
-      console.log('Submit started');
-      if (!validateForm()) {
-        console.log('Validation failed');
-        return;
-      }
-
-      try {
-        const result = await createAgreementRequest({ ...formData });
-        console.log('Request successful:', result);
-        successMessage.value = "Yêu cầu hợp tác đã được gửi thành công!";
-        resetForm();
-        
-        // Tự động ẩn success message sau 5 giây
-        setTimeout(() => {
-          successMessage.value = '';
-        }, 5000);
-      } catch (err) {
-        console.error('Request failed:', err);
-        errorMessage.value = "Có lỗi xảy ra khi gửi yêu cầu";
-        
-        // Tự động ẩn error message sau 5 giây
-        setTimeout(() => {
-          errorMessage.value = '';
-        }, 5000);
-      }
-    };
-
-    return {
-      formData,
-      errors,
-      loading,
-      errorMessage,
-      successMessage,
-      submitForm,
-    };
-  },
-};
-
-</script> -->
 <script setup>
-import { reactive, ref } from 'vue'
-import { useDealerAgreement } from '~/composables/userDealerAgreement'
+definePageMeta({
+  ssr: false
+})
+
+import { reactive, ref, onMounted } from 'vue'
+import { useNotificationStore } from '~/store/notification'
+import { useDealerAgreement } from '~/composables/useDealerAgreement'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+const notificationStore = useNotificationStore()
 
 const formData = reactive({
   dealer_name: '',
@@ -307,75 +249,440 @@ const { pending: loading, createContractRequest } = useDealerAgreement()
 
 const successMessage = ref('')
 const errorMessage = ref('')
-
-// Thông tin tài khoản được cấp sau duyệt
 const approvalInfo = ref(null)
 
-const validateForm = () => {
-  Object.keys(errors).forEach(key => delete errors[key])
-  let valid = true
+const showToast = ref(false)
+const toastTitle = ref('')
+const toastMessage = ref('')
 
-  if (!formData.dealer_name.trim()) {
-    errors.dealer_name = 'Tên đại lý là bắt buộc'
-    valid = false
-  }
-  if (!formData.address.trim()) {
-    errors.address = 'Địa chỉ là bắt buộc'
-    valid = false
-  }
-  if (!formData.phone.trim()) {
-    errors.phone = 'Số điện thoại là bắt buộc'
-    valid = false
-  } else if (!/^(0|\+84)[3|5|7|8|9][0-9]{8}$/.test(formData.phone.replace(/\s/g, ''))) {
-    errors.phone = 'Số điện thoại không hợp lệ'
-    valid = false
-  }
-  if (!formData.email.trim()) {
-    errors.email = 'Email là bắt buộc'
-    valid = false
-  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-    errors.email = 'Email không hợp lệ'
-    valid = false
-  }
-  return valid
-}
+// ✅ Thêm biến lưu user_id
+const currentUserId = ref(null)
 
-const resetForm = () => {
-  Object.keys(formData).forEach(key => (formData[key] = ''))
-  Object.keys(errors).forEach(key => delete errors[key])
-}
+// ✅ INIT FCM
+onMounted(async () => {
+  console.log('🎯 Component mounted');
+  
+  if (!process.client) return;
 
-const submitForm = async () => {
-  if (!validateForm()) return
+  // ✅ Lấy user_id từ JWT
+  const authToken = localStorage.getItem('access_token');
+  if (authToken && authToken !== 'null') {
+    try {
+      const payload = JSON.parse(atob(authToken.split('.')[1]));
+      currentUserId.value = payload.sub;
+      console.log('👤 Current user ID:', currentUserId.value);
+    } catch (e) {
+      console.error('❌ Cannot decode token:', e);
+    }
+  }
 
   try {
-    const result = await createContractRequest({ ...formData })
-
-    // Giả sử backend trả về dạng:
-    // { success: true, dealer_email: "...", dealer_password: "..." }
-    if (result.dealer_email && result.dealer_password) {
-      approvalInfo.value = {
-        email: result.dealer_email,
-        password: result.dealer_password,
-      }
-      successMessage.value = 'Yêu cầu hợp tác đã được phê duyệt!'
-      resetForm()
-    } else {
-      successMessage.value = 'Yêu cầu hợp tác đã được gửi thành công. Vui lòng chờ phê duyệt.'
+    console.log('🔧 Initializing FCM...');
+    const token = await notificationStore.initializeFCM();
+    
+    if (token) {
+      console.log('✅ FCM Token obtained!');
     }
 
+    // Listen for messages
+    notificationStore.onMessage((payload) => {
+      console.log('📩 Message:', payload);
 
-  } catch (err) {
-    errorMessage.value = 'Có lỗi xảy ra khi gửi yêu cầu'
-    setTimeout(() => {
-      errorMessage.value = ''
-    }, 5000)
+      if (payload.data?.type === 'CONTRACT_APPROVED') {
+        showToastNotification(
+          payload.notification?.title || 'Hợp đồng đã được phê duyệt!',
+          payload.notification?.body || ''
+        );
+
+        approvalInfo.value = {
+          dealerEmail: payload.data.dealerEmail || payload.data.email,
+          dealerPassword: payload.data.dealerTempPassword || payload.data.temporaryPassword,
+          contractId: payload.data.contractId,
+          dealerId: payload.data.dealerId,
+        };
+
+        successMessage.value = 'Hợp đồng đã được phê duyệt!';
+      }
+    });
+  } catch (error) {
+    console.error('❌ FCM init failed:', error);
   }
+});
+
+const showToastNotification = (title, message) => {
+  toastTitle.value = title
+  toastMessage.value = message
+  showToast.value = true
+  setTimeout(() => { showToast.value = false }, 5000)
 }
+
+const validateForm = () => {
+  Object.keys(errors).forEach(key => delete errors[key]);
+  let valid = true;
+
+  if (!formData.dealer_name?.trim()) {
+    errors.dealer_name = 'Tên đại lý là bắt buộc';
+    valid = false;
+  }
+  if (!formData.address?.trim()) {
+    errors.address = 'Địa chỉ là bắt buộc';
+    valid = false;
+  }
+  if (!formData.phone?.trim()) {
+    errors.phone = 'Số điện thoại là bắt buộc';
+    valid = false;
+  } else if (!/^(0|\+84)[3|5|7|8|9][0-9]{8}$/.test(formData.phone.replace(/\s/g, ''))) {
+    errors.phone = 'Số điện thoại không hợp lệ';
+    valid = false;
+  }
+  if (!formData.email?.trim()) {
+    errors.email = 'Email là bắt buộc';
+    valid = false;
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+    errors.email = 'Email không hợp lệ';
+    valid = false;
+  }
+  return valid;
+};
+
+const resetForm = () => {
+  Object.keys(formData).forEach(key => (formData[key] = ''));
+  Object.keys(errors).forEach(key => delete errors[key]);
+};
+
+// ✅ SUBMIT FORM với FCM token
+const submitForm = async () => {
+  if (!validateForm()) return;
+
+  try {
+    console.log('📤 Submitting contract request...');
+
+    // ✅ Lấy FCM token từ store
+    const fcmToken = notificationStore.fcmToken;
+    
+    console.log('User ID:', currentUserId.value);
+    console.log('FCM Token:', fcmToken?.substring(0, 30) + '...');
+
+    // ✅ Tạo request data với FCM token
+    const requestData = {
+      ...formData,
+      user_id: currentUserId.value,
+      fcm_token: fcmToken,
+      device_info: {
+        userAgent: navigator.userAgent,
+        platform: navigator.platform,
+        language: navigator.language,
+        timestamp: new Date().toISOString(),
+      }
+    };
+
+    console.log('📤 Request data:', {
+      ...requestData,
+      fcm_token: requestData.fcm_token?.substring(0, 30) + '...'
+    });
+
+    const result = await createContractRequest(requestData);
+    
+    console.log('✅ Contract request created:', result);
+
+    successMessage.value = 'Yêu cầu hợp tác đã được gửi thành công!';
+    showToastNotification('Thành công!', 'Yêu cầu đã được gửi. Bạn sẽ nhận thông báo khi được phê duyệt.');
+    resetForm();
+  } catch (err) {
+    console.error('❌ Submit error:', err);
+    errorMessage.value = err?.message || 'Có lỗi xảy ra';
+    showToastNotification('Lỗi!', errorMessage.value);
+    setTimeout(() => { errorMessage.value = '' }, 5000);
+  }
+};
+
+const copyToClipboard = async (text) => {
+  if (!text) return;
+  
+  try {
+    await navigator.clipboard.writeText(text);
+    showToastNotification('Đã sao chép!', 'Thông tin đã được copy');
+  } catch (err) {
+    console.error('Copy failed:', err);
+  }
+};
+
+const goToLogin = () => router.push('/login');
+
+const downloadCredentials = () => {
+  if (!approvalInfo.value) return;
+  
+  const content = `
+Thông tin đăng nhập Đại lý EVM
+================================
+Email Dealer: ${approvalInfo.value.dealerEmail || ''}
+Mật khẩu tạm: ${approvalInfo.value.dealerPassword || ''}
+Ngày tạo: ${new Date().toLocaleString('vi-VN')}
+
+⚠️ LƯU Ý:
+- Vui lòng chuyển tiếp thông tin này cho dealer
+- Dealer cần đăng nhập và đổi mật khẩu ngay
+  `.trim();
+
+  const blob = new Blob([content], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `EVM_Dealer_Credentials_${Date.now()}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToastNotification('Đã tải xuống!', 'File đã được lưu');
+};
 </script>
 
+<!-- Template giữ nguyên -->
+
+<!-- Template giữ nguyên -->
+<!-- Template và CSS giữ nguyên -->
+
+<!-- Giữ nguyên style -->
+<!-- <style scoped>
+/* ... giữ nguyên toàn bộ CSS ... */
+</style> -->
 
 <style scoped>
+.approval-info {
+  margin-top: 30px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  padding: 30px;
+  color: white;
+  animation: slideIn 0.5s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.approval-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 25px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.approval-icon {
+  font-size: 3rem;
+  animation: bounce 1s ease infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.approval-header h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.approval-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 15px;
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+}
+
+.info-item .label {
+  font-weight: 500;
+  min-width: 150px;
+}
+
+.info-item .value {
+  flex: 1;
+  font-family: 'Courier New', monospace;
+  font-size: 1.1rem;
+  font-weight: 600;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 8px 12px;
+  border-radius: 4px;
+}
+
+.info-item .value.password {
+  letter-spacing: 2px;
+}
+
+.copy-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 8px 15px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.copy-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
+}
+
+.warning-box {
+  background: rgba(255, 235, 59, 0.2);
+  border: 2px solid rgba(255, 235, 59, 0.5);
+  border-radius: 8px;
+  padding: 15px;
+  margin-top: 10px;
+}
+
+.warning-box strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 1.1rem;
+}
+
+.warning-box p {
+  margin: 0;
+  line-height: 1.5;
+  opacity: 0.95;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.primary-btn,
+.secondary-btn {
+  flex: 1;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  font-size: 1rem;
+}
+
+.primary-btn {
+  background: white;
+  color: #667eea;
+}
+
+.primary-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.secondary-btn {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 2px solid white;
+}
+
+.secondary-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+/* Toast Notification */
+.toast-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  padding: 20px;
+  max-width: 400px;
+  z-index: 10000;
+}
+
+.toast-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+}
+
+.toast-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.toast-text {
+  flex: 1;
+}
+
+.toast-text strong {
+  display: block;
+  color: #2c3e50;
+  font-size: 1.1rem;
+  margin-bottom: 5px;
+}
+
+.toast-text p {
+  color: #7f8c8d;
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+/* Toast Transitions */
+.toast-enter-active,
+.toast-leave-active {
+  transition: all 0.3s ease;
+}
+
+.toast-enter-from {
+  opacity: 0;
+  transform: translateX(100px);
+}
+
+.toast-leave-to {
+  opacity: 0;
+  transform: translateX(100px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .approval-info {
+    padding: 20px;
+  }
+
+  .info-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .info-item .label {
+    min-width: auto;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+  }
+
+  .toast-notification {
+    left: 20px;
+    right: 20px;
+    max-width: none;
+  }
+}
 .agreement-request-page {
   min-height: 100vh;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
