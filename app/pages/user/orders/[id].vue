@@ -146,7 +146,7 @@
 import { formatCurrency } from "@/utils/format";
 import ConfirmModal from "~/components/shared/ConfirmModal.vue";
 import StatusModal from "~/components/shared/StatusModal.vue";
-import { useBilling } from "~/composables/useBilling";
+import { useBilling, type BillItemPayload, type CreateBillPayload } from "~/composables/useBilling";
 
 definePageMeta({
     layout: false,
