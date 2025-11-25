@@ -116,8 +116,10 @@
                   </p>
                   <p class="address"> {{ request.address }}</p>
                   <p class="created-at" v-if="request.created_at">
+
                      {{ formatDate(request.created_at) }}
                   </p>
+                  <p class="fcm_token">{{ request.fcm_token }}</p>
                 </div>
                 <div class="request-status">
                   <span
@@ -166,6 +168,8 @@
             <p><strong>Email:</strong> {{ selectedRequest.email }}</p>
             <p><strong>Phone:</strong> {{ selectedRequest.phone }}</p>
             <p><strong>Address:</strong> {{ selectedRequest.address }}</p>
+            <p><strong>UserID:</strong>{{ selectedRequest.user_id }}</p>
+            <p><strong>FCM Token:</strong>{{ selectedRequest.fcm_token }}</p>
           </div>
           
           <form @submit.prevent="handleApproveRequest" class="approve-form">
@@ -267,6 +271,8 @@ const newRequest = reactive({
   address: '',
   phone: '',
   email: '',
+  user_id:'',
+  fcm_token:'',
 });
 
 const approvalData = reactive({
@@ -312,9 +318,11 @@ async function handleCreateRequest() {
     // Reset form
     Object.assign(newRequest, {
       dealer_name: '',
-      address: '',
+      address: '', 
       phone: '',
       email: '',
+      user_id: '',
+      fcm_token: '',
     });
     
     // Reload requests
