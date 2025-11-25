@@ -1,31 +1,45 @@
 <template>
     <div class="flex flex-col md:flex-row gap-4 mb-6">
-        <!-- Search -->
-        <SearchInput
-            :model-value="searchQuery"
-            placeholder="Tìm kiếm theo mã đơn, tên khách hàng..."
-            @update:model-value="onSearch"
-        />
+        <!-- Search with invisible label -->
+        <div class="flex flex-col flex-1">
+            <label class="text-sm font-medium text-gray-600 mb-1 opacity-0 select-none"> Tìm kiếm </label>
+            <SearchInput
+                :model-value="searchQuery"
+                placeholder="Tìm kiếm theo mã đơn, tên khách hàng..."
+                @update:model-value="onSearch"
+            />
+        </div>
 
         <!-- Filters -->
-        <div class="flex gap-3 flex-wrap">
-            <select
-                :value="statusFilter"
-                class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
-                @change="onStatusChange"
-            >
-                <option value="">Tất cả trạng thái</option>
-                <option value="pending">Đang xử lý</option>
-                <option value="confirmed">Đã xác nhận</option>
-                <option value="delivered">Đã giao hàng</option>
-                <option value="cancelled">Đã hủy</option>
-            </select>
+        <div class="flex gap-3 flex-wrap items-end">
+            <!-- Status -->
+            <div class="flex flex-col">
+                <label class="text-sm font-medium text-gray-600 mb-1">Trạng thái</label>
+                <select
+                    :value="statusFilter"
+                    class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
+                    @change="onStatusChange"
+                >
+                    <option value="">Tất cả trạng thái</option>
+                    <option v-for="status in statusOptions" :key="status.value" :value="status.value">
+                        {{ status.label }}
+                    </option>
+                </select>
+            </div>
 
-            <DatePicker :model-value="dateFrom" placeholder="Từ ngày" @update:model-value="onDateFromChange" />
+            <!-- Date From -->
+            <div class="flex flex-col">
+                <label class="text-sm font-medium text-gray-600 mb-1">Từ ngày</label>
+                <DatePicker :model-value="dateFrom" placeholder="Từ ngày" @update:model-value="onDateFromChange" />
+            </div>
 
-            <DatePicker :model-value="dateTo" placeholder="Đến ngày" @update:model-value="onDateToChange" />
+            <!-- Date To -->
+            <div class="flex flex-col">
+                <label class="text-sm font-medium text-gray-600 mb-1">Đến ngày</label>
+                <DatePicker :model-value="dateTo" placeholder="Đến ngày" @update:model-value="onDateToChange" />
+            </div>
 
-            <!-- Nút Xóa bộ lọc -->
+            <!-- Clear Button -->
             <button
                 @click="clearFilters"
                 class="px-4 py-2 border rounded-lg transition-colors flex items-center gap-2 bg-red-50 hover:bg-red-100 border-red-200 text-red-700"
@@ -59,6 +73,10 @@ const props = defineProps({
     dateTo: {
         type: String,
         default: "",
+    },
+    statusOptions: {
+        type: Array,
+        default: () => [], // [{ label, value }]
     },
 });
 
