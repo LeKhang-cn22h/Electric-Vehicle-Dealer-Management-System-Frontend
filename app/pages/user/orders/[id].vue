@@ -179,6 +179,7 @@ function addMonthsVN(months: number) {
 
 const createOrder = async () => {
     const dealerId = localStorage.getItem("user_id");
+    console.log("dealerId", dealerId);
     const now = addMonthsVN(0);
     order.value?.term;
     try {

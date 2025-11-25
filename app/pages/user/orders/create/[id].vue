@@ -265,6 +265,7 @@ const isSubmit = computed(() => {
 
 const createOrder = async () => {
     const createBy = localStorage.getItem("user_id");
+    console.log("createBy", createBy);
     try {
         const body: any = {
             ...payment,

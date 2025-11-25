@@ -74,6 +74,11 @@ const fieldsName = [
     { label: "Thao tác", key: "actions" },
 ];
 
+const fieldStatus = [
+    { label: "Nháp", value: "draft" },
+    { label: "Đã chuyển", value: "converted" },
+];
+
 const { loading, error, orders, fetchAll } = useOrders();
 
 const filteredOrders = (order: any) => {
