@@ -1,30 +1,5 @@
 <template>
   <div class="evm-staff-layout">
-    <!-- BỎ comment và đảm bảo file tồn tại -->
-    <DealerManagerTopbar />
-    
-    <main class="main-content">
-      <div class="content-wrapper">
-        <slot />
-      </div>
-    </main>
-  </div>
-</template>
-
-<script setup>
-import DealerManagerTopbar from '@/components/topbars/EVMStaffTopbar.vue'
-</script>
-
-
-<!-- 
-
-
-// Hoặc nếu dùng Vue Router thông thường
-// export default {
-//   layout: 'EVMStaffLayout'
-// }
-<template>
-  <div class="evm-staff-layout">
     <EVMStaffTopbar />
     <main class="main-content">
       <div class="content-wrapper">
@@ -35,7 +10,7 @@ import DealerManagerTopbar from '@/components/topbars/EVMStaffTopbar.vue'
 </template>
 
 <script setup>
-import EVMStaffTopbar from '@/components/topbars/EVMStaffTopbar.vue'
+import EVMStaffTopbar from "@/components/topbars/EVMStaffTopbar.vue";
 </script>
 
 <style scoped>
@@ -56,4 +31,4 @@ import EVMStaffTopbar from '@/components/topbars/EVMStaffTopbar.vue'
   margin: 0 auto;
   padding: 20px;
 }
-</style> -->
+</style>
