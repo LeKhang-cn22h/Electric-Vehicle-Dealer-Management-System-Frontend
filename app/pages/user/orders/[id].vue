@@ -185,7 +185,7 @@ definePageMeta({
   layout: false,
 });
 
-const { layoutName, applyLayout } = useRoleBasedLayout();
+const { applyLayout } = useRoleBasedLayout();
 applyLayout();
 
 const route = useRoute();

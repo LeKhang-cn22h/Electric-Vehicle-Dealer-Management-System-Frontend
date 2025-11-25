@@ -206,11 +206,29 @@
             </span>
           </div>
         </section>
-      </div>
+        <div class="mt-4 flex items-center gap-3 justify-end">
+          <p v-if="vnpError" class="text-sm text-red-600 mr-auto">
+            {{ vnpError }}
+          </p>
 
-      <!-- Không có dữ liệu -->
+          <button
+            v-if="showPayAction"
+            @click="handlePayVNPay"
+            :disabled="vnpLoading"
+            class="px-4 py-2 text-sm rounded text-white"
+            :class="
+              vnpLoading
+                ? 'bg-blue-300 cursor-not-allowed'
+                : 'bg-blue-600 hover:bg-blue-700'
+            "
+          >
+            <span v-if="!vnpLoading">Thanh toán VNPay</span>
+            <span v-else>Đang chuyển tới VNPay...</span>
+          </button>
+        </div>
+      </div>
       <div v-else class="text-center py-16 text-gray-500">
-        Không tìm thấy hóa đơn 📭
+        Không tìm thấy hóa đơn
       </div>
     </div>
   </div>
@@ -221,20 +239,20 @@ import { ref, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "#imports";
 import { formatCurrency, formatDate } from "@/utils/format";
 import { useBilling } from "~/composables/useBilling";
+import { useVNPay } from "~/composables/useVNPay";
 
 definePageMeta({
   layout: false,
 });
 
-// Layout theo role nếu cần
-const { layoutName, applyLayout } = useRoleBasedLayout?.() ?? {};
+const { applyLayout } = useRoleBasedLayout?.() ?? {};
 applyLayout && applyLayout();
 
 const route = useRoute();
-const router = useRouter();
 const invoiceId = route.params.id as string;
 
 const { getBill } = useBilling();
+const { loading: vnpLoading, error: vnpError, createPayment } = useVNPay();
 
 const invoice = ref<any | null>(null);
 const loading = ref(false);
@@ -302,7 +320,34 @@ const statusBadgeClass = computed(() => {
 const handlePrint = () => {
   window.print();
 };
+const showPayAction = computed(() => {
+  const s = invoice.value?.status;
+  return s === "unpaid" || s === "issued";
+});
 
+const handlePayVNPay = async () => {
+  if (!invoice.value?.id) {
+    alert("Không xác định được hóa đơn để thanh toán");
+    return;
+  }
+
+  try {
+    const res = await createPayment({ inv_id: invoice.value.id });
+
+    if (res.alreadyPaid) {
+      alert("Hóa đơn này đã được thanh toán trước đó.");
+      return;
+    }
+
+    if (res.payUrl) {
+      window.location.href = res.payUrl;
+    } else {
+      alert("Không nhận được đường dẫn thanh toán VNPay.");
+    }
+  } catch (e) {
+    console.error("[InvoiceDetail] handlePayVNPay error:", e);
+  }
+};
 onMounted(async () => {
   try {
     loading.value = true;
