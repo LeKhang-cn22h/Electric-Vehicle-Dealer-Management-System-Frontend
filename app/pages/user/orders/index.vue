@@ -71,7 +71,6 @@ const fieldsName = [
   { label: "Người tạo", key: "createdBy" },
   { label: "Tổng tiền", key: "totalAmount" },
   { label: "Trạng thái", key: "status" },
-  { label: "Trả trước", key: "down_payment" },
   { label: "Thanh toán", key: "paymentStatus" },
   { label: "Ngày tạo", key: "createdAt" },
   { label: "Thao tác", key: "actions" },

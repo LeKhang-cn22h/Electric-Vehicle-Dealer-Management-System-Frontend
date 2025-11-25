@@ -115,15 +115,12 @@
           <h2 class="text-lg font-semibold text-gray-800 mb-3">Thanh toán</h2>
           <p>
             <strong>Phương thức:</strong>
-            {{ order.payment_method === "cash" ? "Tiền mặt" : "Trả góp" }}
+            {{
+              order.payment_method === "cash"
+                ? "Tiền mặt"
+                : "Thanh toán bằng VNPay"
+            }}
           </p>
-          <p v-if="order.payment_method === 'bank_transfer'">
-            <strong>Đối tác ngân hàng:</strong> {{ order.bank }}
-          </p>
-          <p>
-            <strong>Trả trước:</strong> {{ formatCurrency(order.down_payment) }}
-          </p>
-          <p><strong>Kỳ hạn:</strong> {{ order.term }} tháng</p>
         </section>
 
         <!-- Tổng kết -->
@@ -140,19 +137,19 @@
           class="flex justify-end mt-4"
           v-if="(order as Record<string, any>)?.invoice_id"
         >
-          <button
-            @click="goToInvoice"
-            class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-blue-600 text-blue-600 rounded hover:bg-blue-50 font-medium"
-          >
-            <Icon name="mdi:file-document-outline" size="18" />
-            Xem hóa đơn
-          </button>
+          <div class="flex justify-end mt-4" v-if="hasInvoice">
+            <button
+              @click="goToInvoice"
+              class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-blue-600 text-blue-600 rounded hover:bg-blue-50 font-medium"
+            >
+              <Icon name="mdi:file-document-outline" size="18" />
+              Xem hóa đơn
+            </button>
+          </div>
         </div>
       </div>
-
-      <!-- Không có dữ liệu -->
       <div v-else class="text-center py-16 text-gray-500">
-        Không tìm thấy đơn hàng nào 📭
+        Không tìm thấy đơn hàng nào
       </div>
     </div>
     <ConfirmModal
@@ -209,17 +206,17 @@ watch(
   }
 );
 
-const goToInvoice = () => {
-  const invoiceId =
-    (order.value as any)?.invoice_id || (order.value as any)?.invoiceId;
+// const goToInvoice = () => {
+//   const invoiceId =
+//     (order.value as any)?.invoice_id || (order.value as any)?.invoiceId;
 
-  if (!invoiceId) {
-    alert("Đơn hàng này chưa có hóa đơn");
-    return;
-  }
+//   if (!invoiceId) {
+//     alert("Đơn hàng này chưa có hóa đơn");
+//     return;
+//   }
 
-  router.push(`/user/invoices/${invoiceId}`);
-};
+//   router.push(`/user/invoices/${invoiceId}`);
+// };
 
 // Lấy dữ liệu từ API
 onMounted(async () => {
@@ -383,17 +380,14 @@ const handleConfirm = async () => {
     }
     await attachInvoice(String(order.value.id), billRes.id);
     console.log("Gắn invoice vào order thành công");
-    // Tiền mặt xác nhận ngay
-
-    // await update(String(order.value.id), {
-    //   invoiceId: billRes.id,
-    //   paymentStatus: "paid",
-    // });
 
     // Cập nhật State local để UI đổi màu Badge ngay lập tức mà không cần reload
     if (order.value) {
-      order.value.payment_status = "paid";
-      (order.value as any).invoice_id = billRes.id;
+      order.value = {
+        ...order.value,
+        payment_status: "paid",
+        invoice_id: billRes.id,
+      };
     }
 
     console.log("Cập nhật trạng thái và gắn invoice thành công");
@@ -408,6 +402,25 @@ const handleConfirm = async () => {
   } finally {
     loadingContract.value = false;
   }
+};
+const hasInvoice = computed(() => {
+  const o = order.value as any;
+  return !!(o?.invoice_id || o?.invoiceId);
+});
+
+const getInvoiceId = () => {
+  const o = order.value as any;
+  return o?.invoice_id || o?.invoiceId || null;
+};
+const goToInvoice = () => {
+  const invoiceId = getInvoiceId();
+
+  if (!invoiceId) {
+    alert("Đơn hàng này chưa có hóa đơn");
+    return;
+  }
+
+  router.push(`/user/invoices/${invoiceId}`);
 };
 
 const visible = ref(false);

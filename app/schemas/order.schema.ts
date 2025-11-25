@@ -10,11 +10,12 @@ export interface OrderDetail {
   vehicles: ProductItemDetail[];
   promotions: Promotion[];
   payment_method: "cash" | "bank_transfer";
-  payment_status: "unpaid" | "paid" | "partial";
+  payment_status: "unpaid" | "paid";
   payment_amount: number;
   bank?: string;
   term?: number;
   down_payment: number;
   total_amount: number;
   status: "pending" | "confirmed" | "delivering" | "completed" | "cancelled";
+  invoice_id?: string | null;
 }

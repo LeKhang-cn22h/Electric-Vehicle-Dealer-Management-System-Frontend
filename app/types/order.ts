@@ -9,7 +9,7 @@ export interface Order {
   total_amount: number;
 
   paymentMethod: "cash" | "bank_transfer";
-  paymentStatus: "unpaid" | "paid" | "partial";
+  paymentStatus: "unpaid" | "paid";
   paymentAmount: number;
 
   bank: string;
@@ -51,4 +51,5 @@ export interface OrderDetailnotId extends Detail {
 }
 export interface OrderDetail extends OrderDetailnotId {
   id: string;
+  invoice_id?: string | null;
 }

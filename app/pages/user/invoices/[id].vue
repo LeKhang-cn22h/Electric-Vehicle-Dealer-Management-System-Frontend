@@ -87,7 +87,7 @@
             <p>
               <strong>Phương thức thanh toán:</strong>
               {{
-                invoice.meta?.payment_method === "online_vnpay"
+                invoice.meta?.payment_method === "bank_transfer"
                   ? "Thanh toán VNPay"
                   : invoice.meta?.payment_method === "cash"
                   ? "Tiền mặt"
@@ -112,9 +112,7 @@
           </div>
 
           <div>
-            <h2 class="text-lg font-semibold text-gray-800 mb-3">
-              Đại lý (Dealer)
-            </h2>
+            <h2 class="text-lg font-semibold text-gray-800 mb-3">Đại lý</h2>
             <p>
               <strong>Mã dealer:</strong>
               {{ dealerInfo.code || invoice.dealer_id || "-" }}
@@ -127,7 +125,7 @@
         <!-- Danh sách dòng hàng -->
         <section>
           <h2 class="text-lg font-semibold text-gray-800 mb-3">
-            Chi tiết sản phẩm / dịch vụ
+            Chi tiết sản phẩm và dịch vụ
           </h2>
 
           <div class="overflow-x-auto">
@@ -225,6 +223,21 @@
             <span v-if="!vnpLoading">Thanh toán VNPay</span>
             <span v-else>Đang chuyển tới VNPay...</span>
           </button>
+
+          <button
+            v-if="showCashConfirmButton"
+            @click="handleConfirmCashPayment"
+            :disabled="paymentLoading"
+            class="px-4 py-2 text-sm rounded text-white"
+            :class="
+              paymentLoading
+                ? 'bg-green-300 cursor-not-allowed'
+                : 'bg-green-600 hover:bg-green-700'
+            "
+          >
+            <span v-if="!paymentLoading">Xác nhận đã thanh toán</span>
+            <span v-else>Đang xử lý...</span>
+          </button>
         </div>
       </div>
       <div v-else class="text-center py-16 text-gray-500">
@@ -236,10 +249,11 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
-import { useRoute, useRouter } from "#imports";
+import { useRoute } from "#imports";
 import { formatCurrency, formatDate } from "@/utils/format";
 import { useBilling } from "~/composables/useBilling";
 import { useVNPay } from "~/composables/useVNPay";
+const { update } = useOrders();
 
 definePageMeta({
   layout: false,
@@ -251,7 +265,7 @@ applyLayout && applyLayout();
 const route = useRoute();
 const invoiceId = route.params.id as string;
 
-const { getBill } = useBilling();
+const { getBill, markBillPaid } = useBilling();
 const { loading: vnpLoading, error: vnpError, createPayment } = useVNPay();
 
 const invoice = ref<any | null>(null);
@@ -264,7 +278,7 @@ const fromCents = (cents?: number | null) => {
   return cents / 100;
 };
 
-// map từ billing_invoice_items(*) của Supabase
+// map từ billing_invoice_items của Supabase
 const lineItems = computed(() => {
   if (!invoice.value) return [];
   return invoice.value.billing_invoice_items || invoice.value.items || [];
@@ -322,7 +336,10 @@ const handlePrint = () => {
 };
 const showPayAction = computed(() => {
   const s = invoice.value?.status;
-  return s === "unpaid" || s === "issued";
+  return (
+    s === "unpaid" ||
+    (s === "issued" && invoice.value?.meta?.payment_method === "bank_transfer")
+  );
 });
 
 const handlePayVNPay = async () => {
@@ -330,7 +347,6 @@ const handlePayVNPay = async () => {
     alert("Không xác định được hóa đơn để thanh toán");
     return;
   }
-
   try {
     const res = await createPayment({ inv_id: invoice.value.id });
 
@@ -348,15 +364,51 @@ const handlePayVNPay = async () => {
     console.error("[InvoiceDetail] handlePayVNPay error:", e);
   }
 };
+
+const showCashConfirmButton = computed(() => {
+  const s = invoice.value?.status;
+  return (
+    s === "unpaid" ||
+    (s === "issued" && invoice.value?.meta?.payment_method === "cash")
+  );
+});
+
+const paymentLoading = ref(false);
+
+const handleConfirmCashPayment = async () => {
+  if (!invoice.value?.id) {
+    alert("Không xác định được hóa đơn để xác nhận thanh toán");
+    return;
+  }
+
+  try {
+    paymentLoading.value = true;
+
+    await update(invoice.value?.meta.order_id, { paymentStatus: "paid" });
+    await markBillPaid(invoice.value.id);
+    //reload invoice
+    const updatedInvoice = await getBill(invoice.value.id);
+    invoice.value = updatedInvoice;
+
+    alert("Xác nhận thanh toán thành công.");
+  } catch (e) {
+    console.error(" handleConfirmCashPayment error:", e);
+    alert("Xác nhận thanh toán thất bại.");
+  } finally {
+    paymentLoading.value = false;
+  }
+};
+
 onMounted(async () => {
   try {
     loading.value = true;
     error.value = null;
     const res = await getBill(invoiceId);
     invoice.value = res;
-    console.log("[InvoiceDetail] invoice:", res);
+    console.log("dfjokfldfds" + invoice.value.meta.order_id);
   } catch (e: any) {
     console.error("[InvoiceDetail] getBill error:", e);
+
     error.value = e?.message || "Không tải được hóa đơn";
   } finally {
     loading.value = false;
