@@ -8,7 +8,6 @@
                         <h1 class="text-2xl font-semibold text-gray-900">Chi tiết đơn hàng #{{ orderId }}</h1>
                         <p class="text-gray-600 mt-1">Thông tin chi tiết của đơn hàng</p>
                     </div>
-
                     <button @click="goBack" class="text-gray-600 hover:text-gray-900 flex items-center gap-2">
                         ← Quay lại danh sách
                     </button>
@@ -62,7 +61,9 @@
                         <tbody>
                             <tr v-for="item in order.vehicles" :key="item.id" class="border-t">
                                 <td class="px-4 py-2">{{ item.name }}</td>
-                                <td class="px-4 py-2">{{ order.items.find((i) => i.product_id === item.id)?.quantity || 0 }}</td>
+                                <td class="px-4 py-2">
+                                    {{ order.items.find((i) => i.product_id === item.id)?.quantity || 0 }}
+                                </td>
                                 <td class="px-4 py-2">{{ formatCurrency(item.price) }}</td>
                                 <td class="px-4 py-2">
                                     {{
@@ -93,10 +94,10 @@
                 <!-- Thanh toán -->
                 <section>
                     <h2 class="text-lg font-semibold text-gray-800 mb-3">Thanh toán</h2>
-                    <p><strong>Phương thức:</strong> {{ order.payment_method === "cash" ? "Tiền mặt" : "Trả góp" }}</p>
-                    <p v-if="order.payment_method === 'bank_transfer'"><strong>Đối tác ngân hàng:</strong> {{ order.bank }}</p>
-                    <p><strong>Trả trước:</strong> {{ formatCurrency(order.down_payment) }}</p>
-                    <p><strong>Kỳ hạn:</strong> {{ order.term }} tháng</p>
+                    <p>
+                        <strong>Phương thức:</strong>
+                        {{ order.payment_method === "cash" ? "Tiền mặt" : "Thanh toán bằng VNPay" }}
+                    </p>
                 </section>
 
                 <!-- Tổng kết -->
@@ -106,10 +107,20 @@
                         <span class="text-2xl font-bold text-blue-600">{{ formatCurrency(order.total_amount) }}</span>
                     </div>
                 </section>
-            </div>
 
-            <!-- Không có dữ liệu -->
-            <div v-else class="text-center py-16 text-gray-500">Không tìm thấy đơn hàng nào 📭</div>
+                <div class="flex justify-end mt-4" v-if="(order as Record<string, any>)?.invoice_id">
+                    <div class="flex justify-end mt-4" v-if="hasInvoice">
+                        <button
+                            @click="goToInvoice"
+                            class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-blue-600 text-blue-600 rounded hover:bg-blue-50 font-medium"
+                        >
+                            <Icon name="mdi:file-document-outline" size="18" />
+                            Xem hóa đơn
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div v-else class="text-center py-16 text-gray-500">Không tìm thấy đơn hàng nào</div>
         </div>
         <ConfirmModal
             v-model:show="showModal"
@@ -135,12 +146,13 @@
 import { formatCurrency } from "@/utils/format";
 import ConfirmModal from "~/components/shared/ConfirmModal.vue";
 import StatusModal from "~/components/shared/StatusModal.vue";
+import { useBilling } from "~/composables/useBilling";
 
 definePageMeta({
     layout: false,
 });
 
-const { layoutName, applyLayout } = useRoleBasedLayout();
+const { applyLayout } = useRoleBasedLayout();
 applyLayout();
 
 const route = useRoute();
@@ -148,8 +160,10 @@ const router = useRouter();
 const orderId = route.params.id as string;
 const userRole = useCookie<string>("role");
 // Trạng thái
-const { loading, error, fetchOne, order } = useOrders();
+const { attachInvoice, fetchOne, order, update } = useOrders();
 const { loading: loadingContract, error: errorContract, create } = useContract();
+
+const { createBill, getBill } = useBilling();
 const pending = ref(true);
 watch(
     () => order.value,
@@ -157,6 +171,18 @@ watch(
         console.log("order", order.value);
     }
 );
+
+// const goToInvoice = () => {
+//   const invoiceId =
+//     (order.value as any)?.invoice_id || (order.value as any)?.invoiceId;
+
+//   if (!invoiceId) {
+//     alert("Đơn hàng này chưa có hóa đơn");
+//     return;
+//   }
+
+//   router.push(`/user/invoices/${invoiceId}`);
+// };
 
 // Lấy dữ liệu từ API
 onMounted(async () => {
@@ -168,40 +194,108 @@ onMounted(async () => {
         pending.value = false;
     }
 });
-
-function addMonthsVN(months: number) {
-    const nowVN = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" }));
+function addMonthsVNISO(months: number) {
+    const now = new Date();
+    const nowVN = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" }));
 
     nowVN.setMonth(nowVN.getMonth() + months);
 
-    return nowVN.toDateString();
+    // Gửi ISO cho @IsDateString() – chuẩn nhất
+    return nowVN.toISOString(); // "2025-11-24T09:30:00.000Z"
 }
 
 const createOrder = async () => {
-    const dealerId = localStorage.getItem("user_id");
-    console.log("dealerId", dealerId);
-    const now = addMonthsVN(0);
-    order.value?.term;
-    try {
-        const body: any = {
-            orderId: order.value?.id,
-            dealerId: dealerId,
-            startDate: now,
-            endDate: addMonthsVN(order.value?.term ? order.value.term : 0),
-        };
-        console.log("body", body);
-        await create(body);
-        console.log("Tạo thành công");
-    } catch (err) {
-        console.error("Lỗi khi tạo báo giá:", err);
-        alert("Có lỗi xảy ra khi tạo báo giá, vui lòng thử lại!");
+    const dealerId = localStorage.getItem("dealer_id");
+
+    if (!order.value) {
+        throw new Error("Không có dữ liệu đơn hàng");
     }
+    if (!dealerId) {
+        throw new Error("Không tìm thấy dealer_id trong localStorage");
+    }
+
+    const body: any = {
+        orderId: order.value.id,
+        dealerId: dealerId,
+        startDate: addMonthsVNISO(0),
+        endDate: addMonthsVNISO(order.value.term ? order.value.term : 0),
+    };
+
+    console.log("body create contract", body);
+    const res = await create(body);
+    return res;
 };
+
+const HARD_DEALER_ID = "00000000-0000-0000-0000-000000000001";
+const HARD_DEALER_NAME = "EV Dealer";
+const HARD_DEALER_ADDRESS = "Tô Ký, Quận 12, TP.HCM";
+
+const mapOrderToBillPayload = (orderData: any): CreateBillPayload => {
+    // Lấy dealer_id
+    const dealer_id: string = orderData.dealerId || orderData.dealer_id || localStorage.getItem("dealer_id") || HARD_DEALER_ID;
+
+    // Lấy customer_id
+    const customer_id: number = orderData.customerId ?? orderData.customer_id ?? orderData.customer?.id;
+
+    if (!dealer_id) {
+        throw new Error("dealer_id không hợp lệ hoặc không tồn tại");
+    }
+
+    if (!customer_id) {
+        throw new Error("customer_id không hợp lệ hoặc không tồn tại");
+    }
+
+    const dealerName = (orderData.dealer && orderData.dealer.name) || localStorage.getItem("dealer_name") || HARD_DEALER_NAME;
+
+    const dealerAddress =
+        (orderData.dealer && orderData.dealer.address) || localStorage.getItem("dealer_address") || HARD_DEALER_ADDRESS;
+
+    //  Map items: order.items + order.vehicles
+    const items: BillItemPayload[] = (orderData.items || []).map((item: any) => {
+        const vehicle = (orderData.vehicles || []).find((v: any) => v.id === item.product_id);
+
+        const qty = item.quantity ?? item.qty ?? 1;
+        const priceVnd = item.unit_price_vnd ?? item.price_vnd ?? vehicle?.price ?? 0;
+
+        return {
+            product_code: vehicle?.code ?? vehicle?.modelCode ?? String(item.product_id),
+            description: vehicle?.name ?? item.product_name ?? "Sản phẩm",
+            qty,
+            unit_price_cents: priceVnd * 100, // VND -> cents
+            tax_rate_code: item.tax_rate_code ?? "VAT10",
+        };
+    });
+
+    return {
+        customer_id,
+        dealer_id,
+        currency: "VND",
+        issue_now: true,
+        meta: {
+            order_id: orderData.id,
+            payment_method: orderData.paymentMethod ?? orderData.payment_method,
+            total_amount: orderData.totalAmount ?? orderData.total_amount,
+            customer: {
+                name: orderData.customer?.name,
+                phone: orderData.customer?.phone,
+                email: orderData.customer?.email,
+                address: orderData.customer?.adress,
+            },
+            dealer: {
+                id: dealer_id,
+                name: dealerName,
+                address: dealerAddress,
+            },
+        },
+        items,
+    };
+};
+
 function goBack() {
     router.back();
 }
 function goToListContractDetail() {
-    router.push("/user/order");
+    router.push("/user/orders");
 }
 const showModal = ref(false);
 
@@ -209,14 +303,73 @@ const handleSubmit = () => {
     showModal.value = true;
 };
 
-const handleConfirm = () => {
-    console.log("Người dùng xác nhận hành động!");
-    // Gọi API hoặc thực hiện action ở đây
-    showModal.value = false; // đóng modal sau khi xác nhận
-    createOrder();
+const handleConfirm = async () => {
+    showModal.value = false;
+
+    if (!order.value) {
+        alert("Không có dữ liệu đơn hàng");
+        return;
+    }
+
+    try {
+        loadingContract.value = true;
+        errorContract.value = null;
+
+        console.log("Bắt đầu flow xác nhận đơn hàng (tạo hợp đồng + hóa đơn)");
+        await createOrder();
+        const billPayload = mapOrderToBillPayload(order.value);
+        console.log("billPayload gửi lên /billing/bills:", billPayload);
+
+        const idempotencyKey = `order-${order.value.id}`;
+        const billRes: any = await createBill(billPayload, idempotencyKey);
+        console.log("Tạo hóa đơn thành công:", billRes);
+
+        const invoiceId = billRes?.id;
+        if (!invoiceId) {
+            throw new Error("Không nhận được invoiceId từ Billing Service");
+        }
+        await attachInvoice(String(order.value.id), billRes.id);
+        console.log("Gắn invoice vào order thành công");
+
+        // Cập nhật State local để UI đổi màu Badge ngay lập tức mà không cần reload
+        if (order.value) {
+            order.value = {
+                ...order.value,
+                payment_status: "paid",
+                invoice_id: billRes.id,
+            };
+        }
+
+        console.log("Cập nhật trạng thái và gắn invoice thành công");
+
+        visible.value = true;
+    } catch (err: any) {
+        console.error("Lỗi khi tạo hợp đồng / hóa đơn:", err);
+        errorContract.value = err?.data?.message || err?.message || "Có lỗi xảy ra trong quá trình tạo hợp đồng / hóa đơn";
+    } finally {
+        loadingContract.value = false;
+    }
+};
+const hasInvoice = computed(() => {
+    const o = order.value as any;
+    return !!(o?.invoice_id || o?.invoiceId);
+});
+
+const getInvoiceId = () => {
+    const o = order.value as any;
+    return o?.invoice_id || o?.invoiceId || null;
+};
+const goToInvoice = () => {
+    const invoiceId = getInvoiceId();
+
+    if (!invoiceId) {
+        alert("Đơn hàng này chưa có hóa đơn");
+        return;
+    }
+
+    router.push(`/user/invoices/${invoiceId}`);
 };
 
-// State của modal
 const visible = ref(false);
 
 watch(

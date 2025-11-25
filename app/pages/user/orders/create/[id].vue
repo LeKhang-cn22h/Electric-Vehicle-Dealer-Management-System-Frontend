@@ -24,10 +24,22 @@
                 <section>
                     <h2 class="text-lg font-semibold text-gray-800 mb-3">Khách hàng</h2>
                     <p><strong>Tên:</strong> {{ quotation?.customer.name || "Không có" }}</p>
-                    <p><strong>Số điện thoại:</strong> {{ quotation?.customer.phone || "Không có" }}</p>
-                    <p><strong>Email:</strong> {{ quotation?.customer.email || "Không có" }}</p>
-                    <p><strong>Ngày sinh:</strong> {{ quotation?.customer.birth_day || "Không có" }}</p>
-                    <p><strong>Địa chỉ:</strong> {{ quotation?.customer.adress || "Không có" }}</p>
+                    <p>
+                        <strong>Số điện thoại:</strong>
+                        {{ quotation?.customer.phone || "Không có" }}
+                    </p>
+                    <p>
+                        <strong>Email:</strong>
+                        {{ quotation?.customer.email || "Không có" }}
+                    </p>
+                    <p>
+                        <strong>Ngày sinh:</strong>
+                        {{ quotation?.customer.birth_day || "Không có" }}
+                    </p>
+                    <p>
+                        <strong>Địa chỉ:</strong>
+                        {{ quotation?.customer.adress || "Không có" }}
+                    </p>
                 </section>
 
                 <!-- Sản phẩm -->
@@ -48,7 +60,9 @@
                                 <td class="px-4 py-2">
                                     {{ quotation.items.find((i) => i.product_id === item.id)?.quantity || 0 }}
                                 </td>
-                                <td v-if="item.price" class="px-4 py-2">{{ formatCurrency(item.price) }}</td>
+                                <td v-if="item.price" class="px-4 py-2">
+                                    {{ formatCurrency(item.price) }}
+                                </td>
                                 <td
                                     v-if="item.price && quotation.items.find((i) => i.product_id === item.id)?.quantity"
                                     class="px-4 py-2"
@@ -87,7 +101,7 @@
                             <label class="block text-sm text-gray-600 mb-1">Chọn phương thức</label>
                             <select v-model="payment.paymentMethod" class="w-full border rounded px-3 py-2">
                                 <option value="cash">Trả thẳng</option>
-                                <option value="bank_transfer">Trả góp / Chuyển khoản</option>
+                                <option value="bank_transfer">Chuyển khoản</option>
                             </select>
                         </div>
 
@@ -99,39 +113,6 @@
                                 min="0"
                                 v-model.number="payment.paymentAmount"
                                 placeholder="Nhập số tiền"
-                                class="w-full border rounded px-3 py-2"
-                            />
-                        </div>
-
-                        <!-- Nếu chọn trả góp -->
-                        <div v-if="payment.paymentMethod === 'bank_transfer'">
-                            <label class="block text-sm text-gray-600 mb-1">Ngân hàng</label>
-                            <input
-                                type="text"
-                                v-model="payment.bank"
-                                placeholder="Nhập tên ngân hàng"
-                                class="w-full border rounded px-3 py-2"
-                            />
-                        </div>
-
-                        <div v-if="payment.paymentMethod === 'bank_transfer'">
-                            <label class="block text-sm text-gray-600 mb-1">Kỳ hạn (tháng)</label>
-                            <input
-                                type="number"
-                                min="0"
-                                v-model.number="payment.term"
-                                placeholder="Nhập số tháng"
-                                class="w-full border rounded px-3 py-2"
-                            />
-                        </div>
-
-                        <div v-if="payment.paymentMethod === 'bank_transfer'">
-                            <label class="block text-sm text-gray-600 mb-1">Trả trước</label>
-                            <input
-                                type="number"
-                                min="0"
-                                v-model.number="payment.downPayment"
-                                placeholder="Nhập số tiền trả trước"
                                 class="w-full border rounded px-3 py-2"
                             />
                         </div>
@@ -257,7 +238,7 @@ const itemsTotal = computed(() => {
 });
 
 const isSubmit = computed(() => {
-    if (payment.paymentMethod === "cash") return false;
+    if (payment.paymentMethod === "cash" || payment.paymentMethod === "bank_transfer") return false;
     else {
         return !(payment.term > 0 && payment.bank != "");
     }
@@ -265,7 +246,6 @@ const isSubmit = computed(() => {
 
 const createOrder = async () => {
     const createBy = localStorage.getItem("user_id");
-    console.log("createBy", createBy);
     try {
         const body: any = {
             ...payment,
