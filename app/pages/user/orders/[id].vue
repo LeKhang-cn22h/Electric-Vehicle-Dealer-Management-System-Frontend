@@ -193,7 +193,7 @@ const router = useRouter();
 const orderId = route.params.id as string;
 const userRole = useCookie<string>("role");
 // Trạng thái
-const { attachInvoice, fetchOne, order } = useOrders();
+const { attachInvoice, fetchOne, order, update } = useOrders();
 const {
   loading: loadingContract,
   error: errorContract,
@@ -383,6 +383,20 @@ const handleConfirm = async () => {
     }
     await attachInvoice(String(order.value.id), billRes.id);
     console.log("Gắn invoice vào order thành công");
+    // Tiền mặt xác nhận ngay
+
+    // await update(String(order.value.id), {
+    //   invoiceId: billRes.id,
+    //   paymentStatus: "paid",
+    // });
+
+    // Cập nhật State local để UI đổi màu Badge ngay lập tức mà không cần reload
+    if (order.value) {
+      order.value.payment_status = "paid";
+      (order.value as any).invoice_id = billRes.id;
+    }
+
+    console.log("Cập nhật trạng thái và gắn invoice thành công");
 
     visible.value = true;
   } catch (err: any) {
