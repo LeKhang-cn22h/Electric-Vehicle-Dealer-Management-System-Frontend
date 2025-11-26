@@ -2,7 +2,7 @@ import { ref } from "vue";
 import {
   VehicleService,
   type VehicleSummary,
-} from "~/services/vehicle.service";
+} from "~/services/vehicles/vehicle.service";
 import type { Vehicle } from "~/types/vehicle";
 
 // Định nghĩa interface cho filters
