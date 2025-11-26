@@ -82,6 +82,32 @@
             </tr>
           </thead>
           <tbody>
+            <!-- GIÁ BÁN - THÊM MỚI -->
+            <tr class="border-b hover:bg-gray-50 transition-colors bg-blue-50">
+              <td class="p-4 font-bold bg-blue-100 text-gray-800">
+               Giá bán
+              </td>
+              <td 
+                v-for="car in compareData" 
+                :key="`price-${car.id}`" 
+                class="p-4 text-center"
+              >
+                <!-- Loading price -->
+                <div v-if="priceLoading" class="text-sm text-gray-500">
+                  <div class="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                </div>
+                <!-- Error loading price -->
+                <div v-else-if="priceErrors.has(car.id)" class="text-sm text-red-500">
+                  Liên hệ
+                </div>
+                <!-- Display price -->
+                <div v-else class="text-lg font-bold text-blue-600">
+                  {{ formatCurrency(vehiclePrices.get(car.id) || 0) }}
+                </div>
+              </td>
+            </tr>
+
+            <!-- CÁC THÔNG SỐ KHÁC -->
             <tr 
               v-for="(spec, key) in specs" 
               :key="key" 
@@ -91,11 +117,11 @@
                 {{ spec.label }}
               </td>
               <td 
-                v-for="(car, carIndex) in compareData" 
-                :key="car.id" 
+                v-for="car in compareData" 
+                :key="`${car.id}-${spec.key}`" 
                 class="p-4 text-center text-gray-600"
               >
-                {{ car[spec.key] || '-' }}
+                {{ formatSpecValue(car[spec.key], spec.key) }}
               </td>
             </tr>
           </tbody>
@@ -136,15 +162,19 @@ interface CompareVehicle {
   seats?: string
   origin?: string
   status?: string
+  fuel_type?: string
   [key: string]: any
 }
 
 // Composables
-const { loading, error, compareVehicles } = useVehicle()
+const { loading, error, compareVehicles, getListVehiclePrice } = useVehicle()
 const compareStore = useCompareStore()
 
 // State
 const compareData = ref<CompareVehicle[]>([])
+const vehiclePrices = ref<Map<number, number>>(new Map())
+const priceLoading = ref<boolean>(false)
+const priceErrors = ref<Set<number>>(new Set())
 
 // Load compare data
 const loadCompareData = async () => {
@@ -161,10 +191,12 @@ const loadCompareData = async () => {
     const response = await compareVehicles(ids)
     console.log('[Compare] Backend response:', response)
     
-    // ✅ FIX: Lấy vehicles từ response object
     if (response && response.vehicles) {
       compareData.value = response.vehicles
       console.log('[Compare] Loaded vehicles:', compareData.value)
+      
+      // Load prices after loading vehicle data
+      await loadPrices(ids)
     } else {
       console.error('[Compare] Invalid response format:', response)
       compareData.value = []
@@ -173,6 +205,69 @@ const loadCompareData = async () => {
     console.error('[Compare] Error loading data:', err)
     compareData.value = []
   }
+}
+
+// Load prices for all vehicles
+const loadPrices = async (vehicleIds: number[]) => {
+  try {
+    priceLoading.value = true
+    priceErrors.value.clear()
+    
+    console.log('[Compare] Loading prices for IDs:', vehicleIds)
+    
+    const priceData = await getListVehiclePrice(vehicleIds)
+    console.log('[Compare] Price data response:', priceData)
+    
+    if (priceData?.data && Array.isArray(priceData.data)) {
+      const newPrices = new Map<number, number>()
+      
+      priceData.data.forEach((item: any) => {
+        // Ưu tiên selling_price, fallback về price
+        const price = item.selling_price ?? item.price ?? 0
+        newPrices.set(item.id, price)
+      })
+      
+      vehiclePrices.value = newPrices
+      console.log('[Compare] Loaded prices:', Object.fromEntries(newPrices))
+    } else {
+      console.error('[Compare] Invalid price data format:', priceData)
+      // Mark all as error
+      vehicleIds.forEach(id => priceErrors.value.add(id))
+    }
+  } catch (err) {
+    console.error('[Compare] Error loading prices:', err)
+    // Mark all as error
+    vehicleIds.forEach(id => priceErrors.value.add(id))
+  } finally {
+    priceLoading.value = false
+  }
+}
+
+// Format currency
+const formatCurrency = (value: number): string => {
+  if (!value || value === 0) return 'Liên hệ'
+  
+  return new Intl.NumberFormat('vi-VN', {
+    style: 'currency',
+    currency: 'VND',
+  }).format(value)
+}
+
+// Format spec values
+const formatSpecValue = (value: any, key: string): string => {
+  if (!value) return '-'
+  
+  // Xử lý màu sắc nếu là array
+  if (key === 'color' && Array.isArray(value)) {
+    return value.join(', ')
+  }
+  
+  // Xử lý số km
+  if (key === 'mileage' && typeof value === 'number') {
+    return `${value.toLocaleString('vi-VN')} km`
+  }
+  
+  return String(value)
 }
 
 // Lifecycle

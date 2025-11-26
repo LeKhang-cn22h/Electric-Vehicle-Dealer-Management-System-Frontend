@@ -4,7 +4,12 @@ import { useRoute } from "vue-router";
 import { formatCurrency } from "../../utils/format";
 import { CalendarClock, Gauge, Settings, Fuel } from "lucide-vue-next";
 import { useVehicle } from "~/composables/useVehicle";
+definePageMeta({
+  layout: false,
+});
 
+const { layoutName, applyLayout } = useRoleBasedLayout();
+applyLayout();
 const route = useRoute();
 const id = computed(() => Number(route.params.id));
 const { vehicle, loading, error, fetchOne, getSimilarVehicles } = useVehicle();
