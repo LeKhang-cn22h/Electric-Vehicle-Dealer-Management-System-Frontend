@@ -1,5 +1,6 @@
 import { ref } from "vue";
 import { CustomerService } from "~/services/customer/profile-customer.service";
+import { FeedbackService } from "~/services/customer/feedback.service";
 import { 
   CreateCustomerSchema, 
   UpdateCustomerSchema,
@@ -10,9 +11,10 @@ import type {
   CustomerSummary,
   AutoLinkPayload,
   Feedback,
+  
 } from "~/types/profile";
 import { ZodError } from "zod";
-
+import type { FeedbackSummary } from "~/types/feedback";
 export function useCustomer() {
   // ===== STATE =====
   const customers = ref<CustomerSummary[]>([]);
@@ -53,6 +55,8 @@ const feedbacks = ref<Feedback[]>([]);
 
   // ===== FETCH LIST =====
   const fetchAll = async () => {
+  // ===== FETCH LIST =====
+  const fetchAll = async () => {
     loading.value = true;
     error.value = null;
     try {
@@ -62,7 +66,10 @@ const feedbacks = ref<Feedback[]>([]);
     } catch (e: any) {
       error.value = e.message || "Error fetching customers";
       throw e;
+      error.value = e.message || "Error fetching customers";
+      throw e;
     } finally {
+      loading.value = false;
       loading.value = false;
     }
   };
@@ -103,10 +110,10 @@ const feedbacks = ref<Feedback[]>([]);
       if (e.name === 'ZodError') {
         handleZodError(e as ZodError);
         error.value = "Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.";
-        console.error("❌ Validation errors (create):", validationErrors.value);
+        console.error(" Validation errors (create):", validationErrors.value);
       } else {
         error.value = e.message || "Error creating customer";
-        console.error("❌ Create error:", e);
+        console.error(" Create error:", e);
       }
       throw e;
     } finally {
@@ -138,10 +145,10 @@ const feedbacks = ref<Feedback[]>([]);
       if (e.name === 'ZodError') {
         handleZodError(e as ZodError);
         error.value = "Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.";
-        console.error("❌ Validation errors (update):", validationErrors.value);
+        console.error(" Validation errors (update):", validationErrors.value);
       } else {
         error.value = e.message || "Error updating customer";
-        console.error("❌ Update error:", e);
+        console.error(" Update error:", e);
       }
       throw e;
     } finally {
@@ -171,10 +178,10 @@ const feedbacks = ref<Feedback[]>([]);
       if (e.name === 'ZodError') {
         handleZodError(e as ZodError);
         error.value = "Trạng thái không hợp lệ";
-        console.error("❌ Validation errors (status):", validationErrors.value);
+        console.error(" Validation errors (status):", validationErrors.value);
       } else {
         error.value = e.message || "Error updating status";
-        console.error("❌ Status update error:", e);
+        console.error(" Status update error:", e);
       }
       throw e;
     } finally {
@@ -197,63 +204,92 @@ const feedbacks = ref<Feedback[]>([]);
   };
 
   // ===== FEEDBACK =====
-  const fetchAllFeedbacks = async () => {
-    loading.value = true;
-    error.value = null;
-    try {
-      const res = await CustomerService.getAllFeedbacks();
-      feedbacks.value = res.data.data || [];
-      return res.data;
-    } catch (e: any) {
-      error.value = e.message || "Error fetching feedbacks";
-      throw e;
-    } finally {
-      loading.value = false;
-    }
-  };
+const fetchAllFeedbacks = async (params?: { status?: string; customer_uid?: string }) => {
+  loading.value = true;
+  error.value = null;
+  try {
+    const res = await FeedbackService.findAll(params);
+const feedbacks = ref<(Feedback | FeedbackSummary)[]>([]);
+    return res.data;
+  } catch (e: any) {
+    error.value = e.message || "Error fetching feedbacks";
+    throw e;
+  } finally {
+    loading.value = false;
+  }
+};
 
-  const createFeedback = async (data: Partial<Feedback>) => {
-    loading.value = true;
-    error.value = null;
-    try {
-      const res = await CustomerService.createFeedback(data);
-      return res.data;
-    } catch (e: any) {
-      error.value = e.message || "Error creating feedback";
-      throw e;
-    } finally {
-      loading.value = false;
-    }
-  };
+const fetchAllUserFeedbacks = async () => {
+  loading.value = true;
+  error.value = null;
+  try {
+    const res = await FeedbackService.findAllUser();
+const feedbacks = ref<(Feedback | FeedbackSummary)[]>([]);
+    return res.data;
+  } catch (e: any) {
+    error.value = e.message || "Error fetching user feedbacks";
+    throw e;
+  } finally {
+    loading.value = false;
+  }
+};
 
-  const replyFeedback = async (id: number, reply: string) => {
-    loading.value = true;
-    error.value = null;
-    try {
-      const res = await CustomerService.replyFeedback(id, { reply });
-      return res.data;
-    } catch (e: any) {
-      error.value = e.message || "Error replying feedback";
-      throw e;
-    } finally {
-      loading.value = false;
-    }
-  };
+const fetchFeedbacksByCustomer = async (uid: string) => {
+  loading.value = true;
+  error.value = null;
+  try {
+    const res = await FeedbackService.getFeedbacksByCustomer(uid);
+const feedbacks = ref<(Feedback | FeedbackSummary)[]>([]);
+    return res.data;
+  } catch (e: any) {
+    error.value = e.message || "Error fetching customer feedbacks";
+    throw e;
+  } finally {
+    loading.value = false;
+  }
+};
 
-  const deleteFeedback = async (id: number) => {
-    loading.value = true;
-    error.value = null;
-    try {
-      const res = await CustomerService.deleteFeedback(id);
-      return res.data;
-    } catch (e: any) {
-      error.value = e.message || "Error deleting feedback";
-      throw e;
-    } finally {
-      loading.value = false;
-    }
-  };
+const createFeedback = async (data: Partial<Feedback>) => {
+  loading.value = true;
+  error.value = null;
+  try {
+    const res = await FeedbackService.createFeedback(data);
+    return res.data;
+  } catch (e: any) {
+    error.value = e.message || "Error creating feedback";
+    throw e;
+  } finally {
+    loading.value = false;
+  }
+};
 
+const replyFeedback = async (id: number, reply: string) => {
+  loading.value = true;
+  error.value = null;
+  try {
+    const res = await FeedbackService.replyFeedback(id, { reply });
+    return res.data;
+  } catch (e: any) {
+    error.value = e.message || "Error replying feedback";
+    throw e;
+  } finally {
+    loading.value = false;
+  }
+};
+
+const deleteFeedback = async (id: number) => {
+  loading.value = true;
+  error.value = null;
+  try {
+    const res = await FeedbackService.deleteFeedback(id);
+    return res.data;
+  } catch (e: any) {
+    error.value = e.message || "Error deleting feedback";
+    throw e;
+  } finally {
+    loading.value = false;
+  }
+};
   // ===== AUTO LINK =====
   const autoLinkProfile = async (payload: AutoLinkPayload) => {
     loading.value = true;
@@ -291,27 +327,33 @@ const feedbacks = ref<Feedback[]>([]);
   };
 
   return {
-    // state
-    customers,
-    customer,
-    feedbacks,
-    loading,
-    error,
-    validationErrors, 
+  // state
+  customers,
+  customer,
+  feedbacks,
+  loading,
+  error,
+  validationErrors, 
 
-    // methods
-    fetchAll,
-    fetchOne,
-    create,
-    update,
-    updateStatus, 
-    remove,
-    fetchAllFeedbacks,
-    createFeedback,
-    replyFeedback,
-    deleteFeedback,
-    autoLinkProfile,
-    reset,
-    clearValidationErrors, 
-  };
+  // methods
+  fetchAll,
+  fetchOne,
+  create,
+  update,
+  updateStatus, 
+  remove,
+  
+  // Feedback methods
+  fetchAllFeedbacks,
+  fetchAllUserFeedbacks,        
+  fetchFeedbacksByCustomer,     
+  createFeedback,
+  replyFeedback,
+  deleteFeedback,
+  
+  autoLinkProfile,
+  reset,
+  clearValidationErrors, 
+};
+}
 }

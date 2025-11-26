@@ -15,6 +15,8 @@ interface CreateContractRequestData {
   address: string
   phone: string
   email: string
+  user_id?: string;       // thêm user_id (tùy chọn)
+  fcm_token?: string;  
 }
 
 interface ApproveRequestData {
@@ -59,36 +61,36 @@ export const useEvmStaffAgreement = () => {
   }
 
   const createContractRequest = async (requestData: CreateContractRequestData): Promise<any> => {
-    loading.value = true
-    error.value = null
-    
-    try {
-      const response = await fetch('http://localhost:4000/evm-staff-agreement/contract-requests', {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(requestData)
-      })
+  loading.value = true;
+  error.value = null;
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
+  try {
+    const response = await fetch('http://localhost:4000/evm-staff-agreement/contract-requests', {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(requestData),
+    });
 
-      const data = await response.json()
-      return data
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : 'An error occurred'
-      throw err
-    } finally {
-      loading.value = false
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
+
+    const data = await response.json();
+    return data;
+  } catch (err) {
+    error.value = err instanceof Error ? err.message : 'An error occurred';
+    throw err;
+  } finally {
+    loading.value = false;
   }
+};
 
   const approveContractRequest = async (requestId: number, approveData: ApproveRequestData): Promise<any> => {
     loading.value = true
     error.value = null
     
     try {
-      const response = await fetch(`http://localhost:4000/evm-staff-agreement/contract-requests/${requestId}/approve`, {
+      const response = await fetch(`http://localhost:4000/evm-staff-agreement/contract-requests/${requestId}/approve-and-create-dealer`, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify(approveData)
@@ -107,12 +109,42 @@ export const useEvmStaffAgreement = () => {
       loading.value = false
     }
   }
+  interface SaveFcmTokenData {
+  fcmToken: string;
+  deviceInfo?: any;
+}
+
+const saveFcmToken = async (data: SaveFcmTokenData): Promise<any> => {
+  loading.value = true;
+  error.value = null;
+
+  try {
+    const response = await fetch('http://localhost:4000/evm-staff-agreement/save-fcm-token', {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (err) {
+    error.value = err instanceof Error ? err.message : 'An error occurred';
+    throw err;
+  } finally {
+    loading.value = false;
+  }
+};
+
 
   return {
     loading,
-    error,
-    getAllContractRequests,
-    createContractRequest,
-    approveContractRequest
+  error,
+  getAllContractRequests,
+  createContractRequest,
+  approveContractRequest,
+  saveFcmToken,
   }
 }

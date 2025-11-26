@@ -486,7 +486,6 @@ const form = reactive({
   origin: "Việt Nam",
   status: "Còn hàng",
   description: "",
-  quantity:0,
   color: [] as string[],
   benefits: [] as any[],
   features: [] as any[]
@@ -659,7 +658,7 @@ async function handleSubmit() {
   showCreateConfirm.value = false;
   showNotification('Tạo sản phẩm thành công!', 'success');
   
-  setTimeout(() => router.push('/admin/products'), 1500);
+  setTimeout(() => router.push('/manage_product'), 1500);
 }
 
 definePageMeta({

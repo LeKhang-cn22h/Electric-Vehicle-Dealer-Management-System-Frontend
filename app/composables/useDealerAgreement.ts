@@ -1,8 +1,11 @@
+
+// app/composables/useDealerAgreement.ts
 import { ref } from "vue";
+
 export function useDealerAgreement() {
   const pending = ref(false);
 
-  const API = "http://localhost:4000/dealer-agreement/contract-request";
+  const API = "http://localhost:4000/evm-staff-agreement/contract-requests";
 
   async function createContractRequest(dto: any) {
     pending.value = true;
@@ -25,9 +28,14 @@ export function useDealerAgreement() {
 }
 
 function useAuthHeader() {
-  const token = localStorage.getItem("access_token");
+  // Check if running on client-side
+  if (process.client) {
+    const token = localStorage.getItem("access_token");
+    return {
+      Authorization: `Bearer ${token || ''}`,
+    };
+  }
   return {
-    Authorization: `Bearer ${token}`,
+    Authorization: '',
   };
-  
 }
