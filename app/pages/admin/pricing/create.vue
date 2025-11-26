@@ -118,6 +118,9 @@ const resetForm = () => {
         endDate: "",
         status: "draft",
     });
+    if (confirm("Bạn có chắc muốn hủy? Dữ liệu sẽ không được lưu.")) {
+        router.back();
+    }
 };
 const goToListQuote = () => {
     router.push("/user/quotations");
