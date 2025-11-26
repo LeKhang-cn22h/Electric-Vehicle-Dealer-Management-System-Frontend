@@ -9,8 +9,8 @@ export interface OrderDetail {
   items: ProductItem[];
   vehicles: ProductItemDetail[];
   promotions: Promotion[];
-  payment_method: "cash" | "bank_transfer";
-  payment_status: "unpaid" | "paid";
+  payment_method: "cash" | "bank_transfer" | "installment";
+  payment_status: "unpaid" | "paid" | "partial";
   payment_amount: number;
   bank?: string;
   term?: number;

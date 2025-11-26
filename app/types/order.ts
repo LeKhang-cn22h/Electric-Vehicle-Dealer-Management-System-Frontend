@@ -8,7 +8,7 @@ export interface Order {
   totalAmount: number;
   total_amount: number;
 
-  paymentMethod: "cash" | "bank_transfer";
+  paymentMethod: "cash" | "bank_transfer" | "installment";
   paymentStatus: "unpaid" | "paid";
   paymentAmount: number;
 
@@ -38,7 +38,7 @@ export interface OrderTable {
 export interface OrderDetailnotId extends Detail {
   createdBy: string;
 
-  paymentMethod: "cash" | "bank_transfer";
+  paymentMethod: "cash" | "bank_transfer" | "installment";
   paymentStatus: "unpaid" | "paid" | "partial";
   paymentAmount: number;
 

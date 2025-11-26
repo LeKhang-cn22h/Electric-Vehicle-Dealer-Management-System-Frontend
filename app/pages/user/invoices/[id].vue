@@ -91,6 +91,8 @@
                   ? "Thanh toán VNPay"
                   : invoice.meta?.payment_method === "cash"
                   ? "Tiền mặt"
+                  : invoice.meta?.payment_method === "installment"
+                  ? "Trả góp"
                   : invoice.meta?.payment_method || "Không rõ"
               }}
             </p>
@@ -98,6 +100,39 @@
               <strong>Trạng thái thanh toán:</strong>
               {{ statusLabel }}
             </p>
+
+            <!-- trả Góp -->
+
+            <div v-if="isInstallment">
+              <div class="flex justify-between mb-2">
+                <span class="text-gray-600">Tổng giá trị:</span>
+                <span class="font-medium">{{
+                  formatCurrency(fromCents(invoice.total_cents))
+                }}</span>
+              </div>
+              <div class="flex justify-between mb-2 items-center">
+                <span class="text-gray-600 font-bold">Số tiền trả trước:</span>
+                <span class="font-bold text-green-600 text-lg">
+                  {{ formatCurrency(downPaymentAmount) }}
+                </span>
+              </div>
+
+              <div class="flex justify-between mb-2">
+                <span class="text-gray-600">Kỳ hạn:</span>
+                <span>{{ invoice.meta?.term || 0 }} tháng</span>
+              </div>
+
+              <div class="flex justify-between pt-2 border-t border-blue-200">
+                <span class="text-gray-600">Còn nợ (Vay):</span>
+                <span class="font-medium text-red-600">
+                  {{
+                    formatCurrency(
+                      fromCents(invoice.total_cents) - downPaymentAmount
+                    )
+                  }}
+                </span>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -198,12 +233,99 @@
             </span>
           </div>
           <div class="flex justify-between w-full max-w-sm border-t pt-2 mt-2">
-            <span class="text-gray-800 font-semibold">Tổng cộng:</span>
+            <span class="text-gray-800 font-semibold">
+              {{ isInstallment ? "Số tiền còn lại" : "Tổng cộng" }}:
+            </span>
             <span class="text-xl font-bold text-blue-600">
-              {{ formatCurrency(fromCents(invoice.total_cents || 0)) }}
+              {{ formatCurrency(totalToBePaid) }}
             </span>
           </div>
         </section>
+        <section v-if="isInstallment && installmentPlan.length" class="mt-8">
+          <h2 class="text-lg font-semibold text-gray-800 mb-3">
+            Kế hoạch trả góp từng tháng
+          </h2>
+
+          <div class="overflow-x-auto">
+            <table class="w-full border border-gray-200 rounded-lg text-sm">
+              <thead class="bg-gray-100">
+                <tr>
+                  <th class="px-4 py-2 text-left">Kỳ</th>
+                  <th class="px-4 py-2 text-left">Ngày đến hạn</th>
+                  <th class="px-4 py-2 text-right">Số tiền phải trả</th>
+                  <th class="px-4 py-2 text-left">Trạng thái</th>
+                  <th class="px-4 py-2 text-right">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="ins in installmentPlan"
+                  :key="ins.sequence"
+                  class="border-t"
+                >
+                  <td class="px-4 py-2">Kỳ {{ ins.sequence }}</td>
+                  <td class="px-4 py-2">
+                    {{ formatDate(ins.dueDate) }}
+                  </td>
+                  <td class="px-4 py-2 text-right">
+                    {{ formatCurrency(ins.amount) }}
+                  </td>
+                  <td class="px-4 py-2">
+                    <span
+                      class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+                      :class="
+                        ins.status === 'paid'
+                          ? 'bg-green-50 text-green-700 border border-green-200'
+                          : ins.status === 'overdue'
+                          ? 'bg-red-50 text-red-700 border border-red-200'
+                          : 'bg-yellow-50 text-yellow-700 border border-yellow-200'
+                      "
+                    >
+                      {{
+                        ins.status === "paid"
+                          ? "Đã thanh toán"
+                          : ins.status === "overdue"
+                          ? "Quá hạn"
+                          : "Chưa thanh toán"
+                      }}
+                    </span>
+                  </td>
+                  <td class="px-4 py-2 text-right">
+                    <button
+                      v-if="ins.status !== 'paid'"
+                      @click="handleConfirmInstallmentPayment(ins)"
+                      :disabled="
+                        installmentActionLoading === String(ins.sequence)
+                      "
+                      class="px-3 py-1.5 text-xs rounded text-white"
+                      :class="
+                        installmentActionLoading === String(ins.sequence)
+                          ? 'bg-blue-300 cursor-not-allowed'
+                          : 'bg-blue-600 hover:bg-blue-700'
+                      "
+                    >
+                      <span
+                        v-if="installmentActionLoading !== String(ins.sequence)"
+                      >
+                        Xác nhận đã trả
+                      </span>
+                      <span v-else>Đang xử lý...</span>
+                    </button>
+
+                    <span v-else class="text-xs text-gray-500">
+                      {{
+                        ins.paidAt
+                          ? "Thanh toán " + formatDate(ins.paidAt)
+                          : "Đã thanh toán"
+                      }}
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
         <div class="mt-4 flex items-center gap-3 justify-end">
           <p v-if="vnpError" class="text-sm text-red-600 mr-auto">
             {{ vnpError }}
@@ -253,6 +375,7 @@ import { useRoute } from "#imports";
 import { formatCurrency, formatDate } from "@/utils/format";
 import { useBilling } from "~/composables/useBilling";
 import { useVNPay } from "~/composables/useVNPay";
+import { is } from "zod/v4/locales";
 const { update } = useOrders();
 
 definePageMeta({
@@ -265,7 +388,8 @@ applyLayout && applyLayout();
 const route = useRoute();
 const invoiceId = route.params.id as string;
 
-const { getBill, markBillPaid } = useBilling();
+const { getBill, markBillPaid, markInstallmentPaid } = useBilling();
+
 const { loading: vnpLoading, error: vnpError, createPayment } = useVNPay();
 
 const invoice = ref<any | null>(null);
@@ -282,6 +406,17 @@ const fromCents = (cents?: number | null) => {
 const lineItems = computed(() => {
   if (!invoice.value) return [];
   return invoice.value.billing_invoice_items || invoice.value.items || [];
+});
+
+const isInstallment = computed(() => {
+  return (
+    invoice.value?.meta?.payment_method === "installment" ||
+    invoice.value?.meta?.is_installment === true
+  );
+});
+
+const downPaymentAmount = computed(() => {
+  return Number(invoice.value?.meta?.downPayment || 0);
 });
 
 const customerInfo = computed(() => {
@@ -386,7 +521,7 @@ const handleConfirmCashPayment = async () => {
 
     await update(invoice.value?.meta.order_id, { paymentStatus: "paid" });
     await markBillPaid(invoice.value.id);
-    //reload invoice
+
     const updatedInvoice = await getBill(invoice.value.id);
     invoice.value = updatedInvoice;
 
@@ -399,13 +534,34 @@ const handleConfirmCashPayment = async () => {
   }
 };
 
+const totalToBePaid = computed(() => {
+  if (!invoice.value) return 0;
+
+  const total = fromCents(invoice.value.total_cents || 0);
+  const downPayment = downPaymentAmount.value;
+
+  if (isInstallment.value) {
+    const paidInstallments = installmentPlan.value.filter(
+      (x) => x.status === "paid"
+    );
+
+    const paidAmount = paidInstallments.reduce(
+      (sum, item) => sum + item.amount,
+      0
+    );
+
+    return Math.max(total - downPayment - paidAmount, 0);
+  }
+
+  return total;
+});
+
 onMounted(async () => {
   try {
     loading.value = true;
     error.value = null;
     const res = await getBill(invoiceId);
     invoice.value = res;
-    console.log("dfjokfldfds" + invoice.value.meta.order_id);
   } catch (e: any) {
     console.error("[InvoiceDetail] getBill error:", e);
 
@@ -414,4 +570,66 @@ onMounted(async () => {
     loading.value = false;
   }
 });
+
+interface InstallmentPlanItem {
+  sequence: number;
+  amount: number;
+  dueDate: Date;
+  status: string;
+  paidAt?: string | null;
+  id?: string;
+}
+
+const term = computed(() => Number(invoice.value?.meta?.term || 0));
+
+const loanAmount = computed(() => {
+  if (!invoice.value) return 0;
+  const total = fromCents(invoice.value.total_cents || 0);
+  return Math.max(total - downPaymentAmount.value, 0);
+});
+
+// Lấy raw từ DB: ar_installment_schedules(*)
+const rawInstallments = computed<any[]>(() => {
+  return (invoice.value?.ar_installment_schedules as any[]) || [];
+});
+
+// Map ra format dùng cho UI
+const installmentPlan = computed<InstallmentPlanItem[]>(() => {
+  if (!isInstallment.value) return [];
+
+  return rawInstallments.value
+    .map((row) => ({
+      id: row.id,
+      sequence: row.installment_no ?? row.sequence ?? row.no,
+      amount: fromCents(row.amount_cents ?? row.amount ?? 0),
+      dueDate: new Date(row.due_date),
+      status: row.status || "pending",
+      paidAt: row.paid_at ?? null,
+    }))
+    .sort((a, b) => a.sequence - b.sequence);
+});
+
+const installmentActionLoading = ref<string | null>(null);
+
+const handleConfirmInstallmentPayment = async (ins: InstallmentPlanItem) => {
+  if (!invoice.value?.id) {
+    alert("Không xác định được hóa đơn để xác nhận trả góp");
+    return;
+  }
+  try {
+    installmentActionLoading.value = String(ins.sequence);
+
+    // Gọi BE để mark kỳ này đã thanh toán
+    await markInstallmentPaid(invoice.value.id, ins.sequence);
+    const updated = await getBill(invoice.value.id);
+    invoice.value = updated;
+
+    alert(`Xác nhận thanh toán kỳ ${ins.sequence} thành công.`);
+  } catch (e) {
+    console.error("handleConfirmInstallmentPayment error:", e);
+    alert(`Xác nhận thanh toán kỳ ${ins.sequence} thất bại.`);
+  } finally {
+    installmentActionLoading.value = null;
+  }
+};
 </script>
