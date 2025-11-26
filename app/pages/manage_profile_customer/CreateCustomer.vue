@@ -154,7 +154,12 @@ const {
   create,
   clearValidationErrors
 } = useCustomer();
+definePageMeta({
+  layout: false,
+});
 
+const { layoutName, applyLayout } = useRoleBasedLayout();
+applyLayout();
 const form = ref<Partial<Customer>>({
   name: "",
   email: "",

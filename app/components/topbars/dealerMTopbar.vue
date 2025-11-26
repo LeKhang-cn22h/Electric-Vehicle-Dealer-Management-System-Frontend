@@ -18,36 +18,39 @@
             Đơn hàng của tôi
           </NuxtLink>
 
-          <NuxtLink to="/dealer_staff/test-drives" class="nav-item">
+          <NuxtLink to="/manage_testDriver" class="nav-item">
             Lịch lái thử
+          </NuxtLink>
+          <NuxtLink to="/manage_product" class="nav-item">
+            Sản phẩm
           </NuxtLink>
 
           <NuxtLink to="/manage_profile_customer" class="nav-item">
-            Hồ sơ khách hàng
+            Khách hàng
           </NuxtLink>
         </template>
 
         <template v-if="isDealerManager">
           <NuxtLink to="/dealer_manager/promotions" class="nav-item">
-            Quản lý khuyến mãi
+            Khuyến mãi
           </NuxtLink>
           <NuxtLink to="/user/contracts" class="nav-item">
-            Quản lý hợp đồng
+            Hợp đồng
           </NuxtLink>
 
           <NuxtLink to="/dealer_manager/receivables" class="nav-item">
-            Quản lý công nợ
+            Công nợ
           </NuxtLink>
 
           <NuxtLink to="/manage_testDriver" class="nav-item">
-            Quản lý lịch lái
+            Lịch lái
           </NuxtLink>
 
           <NuxtLink to="/manage_profile_customer" class="nav-item">
-            Quản lý hồ sơ
+            Hồ sơ
           </NuxtLink>
-                    <NuxtLink to="/manage_Feedback" class="nav-item"> Quản lý khiếu nại</NuxtLink>
-                    <NuxtLink to="/vehicle_unit" class="nav-item"> Xe Unit </NuxtLink>
+                    <NuxtLink to="/manage_Feedback" class="nav-item"> Khiếu nại</NuxtLink>
+                    <NuxtLink to="/vehicle_unit" class="nav-item"> Điều phối </NuxtLink>
           <NuxtLink to="/dealer_manager/ManageDealerStaff" class="nav-item">
             Quản lý Dealer Staff
           </NuxtLink>

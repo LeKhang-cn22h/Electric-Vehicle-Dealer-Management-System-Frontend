@@ -29,7 +29,12 @@ import CustomerTable from '~/components/manage-profile-customer/CustomerTable.vu
 import CustomerFilter from '~/components/manage-profile-customer/CustomerFilter.vue'
 
 const router = useRouter()
+definePageMeta({
+  layout: false,
+});
 
+const { layoutName, applyLayout } = useRoleBasedLayout();
+applyLayout();
 const goToCreate = () => {
   router.push('/manage_profile_customer/CreateCustomer')
 }

@@ -204,7 +204,12 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAppointment } from '~/composables/useAppointments'
 import { useVehicle } from '~/composables/useVehicle'
+definePageMeta({
+  layout: false,
+});
 
+const { layoutName, applyLayout } = useRoleBasedLayout();
+applyLayout();
 const route = useRoute()
 const router = useRouter()
 const slotId = parseInt(route.params.id as string)

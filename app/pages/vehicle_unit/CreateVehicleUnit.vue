@@ -145,7 +145,12 @@ import { useVehicle } from '~/composables/useVehicle'
 import { useVehicleUnit } from '~/composables/useVehicleUnit'
 import type { CreateVehicleUnitDto } from '~/types/vehicle_unit'
 import type { Vehicle } from '~/types/vehicle'
+definePageMeta({
+  layout: false,
+});
 
+const { layoutName, applyLayout } = useRoleBasedLayout();
+applyLayout();
 const router = useRouter()
 
 // ===============================
@@ -260,9 +265,7 @@ const handleSubmit = async () => {
     
     alert('Tạo xe thành công!')
     
-    // Redirect to detail page hoặc list page
-    router.push(`/admin/vehicle-units/${result.unit.id}`)
-    // Hoặc: router.push('/admin/vehicle-units')
+    router.push(`/vehicle_unit`)
   } catch (err: any) {
     console.error('Error creating vehicle unit:', err)
     

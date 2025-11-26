@@ -130,6 +130,7 @@ export interface AutoLinkPayload {
 }
 
 export interface AutoLinkResponse {
+  [x: string]: any;
   success: boolean;
   customer?: CustomerSummary | null;
   message: string;

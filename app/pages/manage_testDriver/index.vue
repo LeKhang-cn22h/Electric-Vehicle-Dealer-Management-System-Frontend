@@ -72,7 +72,12 @@ import SlotFilter from '~/components/test-drive/SlotFilter.vue'
 import SlotTable from '~/components/test-drive/SlotTable.vue'
 
 const router = useRouter()
+definePageMeta({
+  layout: false,
+});
 
+const { layoutName, applyLayout } = useRoleBasedLayout();
+applyLayout();
 // ===============================
 // COMPOSABLE
 // ===============================

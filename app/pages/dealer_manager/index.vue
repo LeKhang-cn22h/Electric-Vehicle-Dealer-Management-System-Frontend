@@ -50,7 +50,7 @@
         <div class="quick-actions">
             <h2>Quick Actions</h2>
             <div class="actions-grid">
-                <button class="action-btn" @click="navigateTo('vehicles')">
+                <button class="action-btn" @click="navigateTo('manage_product')">
                     <span class="action-icon"></span>
                     <span>Manage Vehicles</span>
                 </button>
@@ -62,7 +62,7 @@
                     <span class="action-icon"></span>
                     <span>Update Pricing</span>
                 </button>
-                <button class="action-btn" @click="navigateTo('test-drive')">
+                <button class="action-btn" @click="navigateTo('manage_testDriver')">
                     <span class="action-icon"></span>
                     <span>Schedule Test Drives</span>
                 </button>

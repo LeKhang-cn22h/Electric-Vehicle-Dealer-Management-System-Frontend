@@ -662,6 +662,9 @@ async function handleSubmit() {
 }
 
 definePageMeta({
-  layout: "admin",
+  layout: false,
 });
+
+const { layoutName, applyLayout } = useRoleBasedLayout();
+applyLayout();
 </script>

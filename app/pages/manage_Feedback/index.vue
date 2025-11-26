@@ -37,7 +37,12 @@ import ManageFeedbackTable from '~/components/feedback/Manage_FeedbackTable.vue'
 
 const router = useRouter();
 const { me } = useMe();
+definePageMeta({
+  layout: false,
+});
 
+const { layoutName, applyLayout } = useRoleBasedLayout();
+applyLayout();
 // Composable
 const { feedbacks, loading, error, fetchAll } = useFeedback()
 
@@ -63,7 +68,4 @@ function viewFeedbackDetail(id: number) {
   console.log('Click xem chi tiết id:', id)
   router.push(`/manage_Feedback/${id}`)
 }
-definePageMeta({
-  layout: false,
-});
 </script>

@@ -8,7 +8,12 @@ import { useCompareStore } from '~/store/compareStore';
 import PriceFilter from '~/components/ProductCustomer/PriceFilter.vue';
 import { useRouter } from 'vue-router';
 import type { CompareCar, Vehicle } from '~/types/vehicle';
+definePageMeta({
+  layout: false,
+});
 
+const { layoutName, applyLayout } = useRoleBasedLayout();
+applyLayout();
 const router = useRouter();
 
 // Stores và composables

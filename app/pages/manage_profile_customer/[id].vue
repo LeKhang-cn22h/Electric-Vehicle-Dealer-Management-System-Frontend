@@ -259,6 +259,12 @@ const {
   clearValidationErrors
 } = useCustomer()
 
+definePageMeta({
+  layout: false,
+});
+
+const { layoutName, applyLayout } = useRoleBasedLayout();
+applyLayout();
 const goBack = () => router.push('/manage_profile_customer')
 
 const formatDate = (dateStr?: string) => {

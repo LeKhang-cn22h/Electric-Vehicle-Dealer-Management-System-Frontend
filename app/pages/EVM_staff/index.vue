@@ -50,7 +50,7 @@
       <div class="quick-actions">
         <h2>Quick Actions</h2>
         <div class="actions-grid">
-          <button class="action-btn" @click="navigateTo('vehicles')">
+          <button class="action-btn" @click="navigateTo('manage_product')">
             <span class="action-icon">🚙</span>
             <span>Manage Vehicles</span>
           </button>
@@ -121,7 +121,7 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 
 const navigateTo = (route) => {
-  router.push(`/EVM_staff/${route}`)
+  router.push(`${route}`)
 }
 </script>
 <style scoped>

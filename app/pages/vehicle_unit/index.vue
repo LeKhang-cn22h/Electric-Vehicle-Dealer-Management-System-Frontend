@@ -18,10 +18,16 @@
 <script setup lang="ts">
 import { onMounted } from "vue"
 import { useRouter } from "#app"
-
 import VehicleUnitTable  from "~/components/vehicle_unit/VehicleUnitTable.vue"
 import ProductFilter from "~/components/manage_product/ProductFilter.vue"
 import { useVehicle } from "~/composables/useVehicle"
+definePageMeta({
+  layout: false,
+});
+
+const { layoutName, applyLayout } = useRoleBasedLayout();
+applyLayout();
+
 // router
 const router = useRouter()
 
@@ -39,7 +45,5 @@ onMounted(() => {
 const handleFilter = (filters: any) => {
   fetchAll(filters)
 }
-definePageMeta({
-  layout: "dealer-manager-layout",
-});
+
 </script>

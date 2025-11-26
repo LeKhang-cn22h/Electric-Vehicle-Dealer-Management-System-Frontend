@@ -99,7 +99,12 @@ import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from '#app'
 import { useFeedback } from '@/composables/useFeedback'
 import { useNotification } from '@/composables/useNotification'
+definePageMeta({
+  layout: false,
+});
 
+const { layoutName, applyLayout } = useRoleBasedLayout();
+applyLayout();
 const router = useRouter()
 const route = useRoute()
 const { showNotification } = useNotification()

@@ -149,7 +149,12 @@ import type { CreateTestDriveSlotDto } from '~/types/appointment'
 import type { Vehicle } from '~/types/vehicle'
 
 const router = useRouter()
+definePageMeta({
+  layout: false,
+});
 
+const { layoutName, applyLayout } = useRoleBasedLayout();
+applyLayout();
 // ===============================
 // COMPOSABLES
 // ===============================

@@ -110,6 +110,12 @@ import type { UpdateAppointmentDto } from '~/types/appointment'
 
 const route = useRoute()
 const router = useRouter()
+definePageMeta({
+  layout: false,
+});
+
+const { layoutName, applyLayout } = useRoleBasedLayout();
+applyLayout();
 const appointmentId = parseInt(route.params.id as string)
 
 // ===============================

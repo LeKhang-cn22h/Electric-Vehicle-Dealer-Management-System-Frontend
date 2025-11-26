@@ -172,7 +172,12 @@ const {
   fetchSlot,
   updateSlot
 } = useAppointment()
+definePageMeta({
+  layout: false,
+});
 
+const { layoutName, applyLayout } = useRoleBasedLayout();
+applyLayout();
 // ===============================
 // STATE
 // ===============================

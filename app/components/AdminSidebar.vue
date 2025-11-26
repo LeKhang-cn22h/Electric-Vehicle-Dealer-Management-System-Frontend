@@ -19,6 +19,10 @@
         <Car :size="20" class="nav-icon" />
         <span v-if="sidebarOpen" class="nav-text">Sản phẩm</span>
       </NuxtLink>
+      <NuxtLink to="/vehicle_unit" class="nav-item" active-class="active">
+        <Car :size="20" class="nav-icon" />
+        <span v-if="sidebarOpen" class="nav-text">Điều phối</span>
+      </NuxtLink>
 
       <NuxtLink to="/admin/promotions" class="nav-item" active-class="active">
         <TicketPercent :size="20" class="nav-icon" />
