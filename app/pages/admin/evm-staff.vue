@@ -9,7 +9,9 @@
       </div>
 
       <button class="btn-refresh" @click="loadStaff" :disabled="loading">
-        <span class="refresh-icon" :class="{ spinning: loading }">🔄</span>
+        <span class="refresh-icon" :class="{ spinning: loading }">
+          <RefreshCcw
+        /></span>
         {{ loading ? "Đang tải..." : "Làm mới" }}
       </button>
     </header>
@@ -19,7 +21,7 @@
         <div class="card-header">
           <h2>Danh sách EVM Staff</h2>
           <div class="search-wrapper">
-            <span class="search-icon">🔍</span>
+            <span class="search-icon"><Search /></span>
             <input
               v-model="search"
               type="text"
@@ -104,7 +106,8 @@
                         class="spinner-small"
                       ></span>
                       <span v-else>
-                        {{ u.status === "active" ? "🔒" : "🔓" }}
+                        <Lock v-if="u.status === 'active'" />
+                        <KeySquare v-else />
                       </span>
                     </button>
 
@@ -113,7 +116,7 @@
                       @click="prefillEdit(u)"
                       title="Chỉnh sửa"
                     >
-                      ✏️
+                      <Pencil />
                     </button>
                   </div>
                 </td>
@@ -207,11 +210,11 @@
           </div>
 
           <div v-if="errorMsg" class="alert alert-error">
-            <span class="alert-icon">⚠️</span>
+            <span class="alert-icon"> <TriangleAlert /></span>
             {{ errorMsg }}
           </div>
           <div v-if="successMsg" class="alert alert-success">
-            <span class="alert-icon">✅</span>
+            <span class="alert-icon"><Check /></span>
             {{ successMsg }}
           </div>
 
@@ -227,15 +230,15 @@
               }}
             </button>
 
-            <button
+            <CircleX
               v-if="editingId"
               type="button"
               class="btn-cancel"
               @click="resetForm"
               :disabled="submitting"
             >
-              ✕ Hủy
-            </button>
+            </CircleX
+            >Hủy
           </div>
         </form>
       </div>
@@ -250,7 +253,16 @@ import {
   type CreateEvmStaffPayload,
   type UpdateEvmStaffPayload,
 } from "@/composables/useEvmStaff";
-
+import {
+  Search,
+  RefreshCcw,
+  KeySquare,
+  Lock,
+  Pencil,
+  TriangleAlert,
+  Check,
+  CircleX,
+} from "lucide-vue-next";
 definePageMeta({
   layout: "admin",
 });

@@ -8,9 +8,7 @@
       </div>
 
       <div class="nav-section">
-        <router-link to="/dealer_staff/EVM_staff" class="nav-item"
-          >Trang chủ</router-link
-        >
+        <router-link to="/EVM_staff" class="nav-item">Trang chủ</router-link>
         <router-link to="/EVM_staff/vehicle-coordination" class="nav-item"
           >Điều phối</router-link
         >
