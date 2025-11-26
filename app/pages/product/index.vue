@@ -1,23 +1,21 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch, type Ref } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import SearchBar from '@/components/ProductCustomer/SearchBar.vue';
 import ModelFilter from '@/components/ProductCustomer/ModelFilter.vue';
 import ProductCard from '@/components/ProductCustomer/ProductCard.vue';
-import CompareModal from '@/components/ProductCustomer/CompareModal.vue';
 import { useVehicle } from '~/composables/useVehicle';
 import { useCompareStore } from '~/store/compareStore';
 import PriceFilter from '~/components/ProductCustomer/PriceFilter.vue';
-import { useRouter } from 'vue-router'
-
-// Import types thông thường thay vì import type
+import { useRouter } from 'vue-router';
 import type { CompareCar, Vehicle } from '~/types/vehicle';
-const router = useRouter()
+
+const router = useRouter();
 
 // Stores và composables
 const compareStore = useCompareStore();
-const { vehicles, loading, error, fetchAll, searchAll, filterByModel } = useVehicle();
+const { vehicles, loading, error, fetchAll, searchAll, filterByModel, getListVehiclePrice } = useVehicle();
 
-// Interfaces cho filters
+// Interfaces
 interface Filters {
   model?: string;
   price?: {
@@ -26,13 +24,24 @@ interface Filters {
   };
 }
 
-// State với TypeScript types
+interface PriceFilterData {
+  min?: number;
+  max?: number;
+}
+
+// State
 const keyword = ref<string>('');
 const filters = ref<Filters>({});
 const showCompare = ref<boolean>(false);
 
-// Computed properties với types
+// ========== STATE CHO GIÁ ==========
+const vehiclePrices = ref<Map<number, number>>(new Map());
+const priceLoading = ref<boolean>(false);
+
+// Computed properties
 const compareList = computed<CompareCar[]>(() => compareStore.selectedCars);
+
+// ✅ LỌC GIÁ - CLIENT SIDE
 const filteredCars = computed<Vehicle[]>(() => {
   const list = vehicles.value;
   if (!Array.isArray(list)) return [];
@@ -46,44 +55,94 @@ const filteredCars = computed<Vehicle[]>(() => {
       !filters.value.model ||
       car.model?.toLowerCase().includes(filters.value.model.toLowerCase());
 
-    return matchesSearch && matchesModel;
+    // ✅ Lọc theo giá - CLIENT SIDE
+    const matchesPrice = checkPriceFilter(car);
+
+    return matchesSearch && matchesModel && matchesPrice;
   });
 });
 
-// Load tất cả xe
-onMounted(async (): Promise<void> => {
-  await fetchAll();
-});
+// ✅ Kiểm tra price filter
+const checkPriceFilter = (car: Vehicle): boolean => {
+  if (!filters.value.price) return true;
+  
+  const carPrice = vehiclePrices.value.get(car.id) || 0;
+  const { min, max } = filters.value.price;
+  
+  if (min === undefined && max === undefined) return true;
+  
+  if (min !== undefined && carPrice < min) return false;
+  if (max !== undefined && carPrice > max) return false;
+  
+  return true;
+};
 
-// Watch keyword + filters
-watch([keyword, filters], async ([newKeyword, newFilters]: [string, Filters]) => {
-  await applyFilters(newKeyword, newFilters);
-}, { deep: true });
+// ========== LOAD GIÁ ==========
+const loadAllPrices = async () => {
+  if (vehicles.value.length === 0) return;
 
-// Áp dụng bộ lọc
-const applyFilters = async (searchKeyword: string, appliedFilters: Filters): Promise<void> => {
-  const hasKeyword = searchKeyword && searchKeyword.length > 0;
-  const hasModelFilter = appliedFilters.model && appliedFilters.model.length > 0;
-
-  // Nếu chỉ search
-  if (hasKeyword && !hasModelFilter) {
-    await searchAll(searchKeyword);
-  }
-  // Chỉ filter theo model
-  else if (hasModelFilter && !hasKeyword) {
-    await filterByModel(appliedFilters.model ?? "");
-  }
-  // Kết hợp
-  else {
-    const apiFilters = {
-      keyword: searchKeyword || undefined,
-      model: appliedFilters.model || undefined,
-    };
-    await fetchAll(apiFilters);
+  try {
+    priceLoading.value = true;
+    const vehicleIds = vehicles.value.map((v: Vehicle) => v.id);
+    
+    console.log('[ProductIndex] Loading prices for', vehicleIds.length, 'vehicles');
+    
+    const priceData = await getListVehiclePrice(vehicleIds);
+    
+    if (priceData?.data && Array.isArray(priceData.data)) {
+      const newPrices = new Map<number, number>();
+      
+      priceData.data.forEach((item: any) => {
+        const price = item.selling_price ?? item.price ?? 0;
+        newPrices.set(item.id, price);
+      });
+      
+      vehiclePrices.value = newPrices;
+      console.log('[ProductIndex] Loaded', newPrices.size, 'prices');
+    }
+  } catch (err) {
+    console.error('[ProductIndex] Error loading prices:', err);
+  } finally {
+    priceLoading.value = false;
   }
 };
 
-// Event handlers
+// Load xe và giá khi mount
+onMounted(async (): Promise<void> => {
+  await fetchAll();
+  await loadAllPrices();
+});
+
+// Watch vehicles để reload giá
+watch(vehicles, async (newVehicles) => {
+  if (newVehicles && newVehicles.length > 0) {
+    await loadAllPrices();
+  }
+}, { deep: true });
+
+// ✅ CHỈ WATCH keyword + model (KHÔNG watch price)
+watch([keyword, () => filters.value.model], async ([newKeyword, newModel]: [string, string | undefined]) => {
+  const hasKeyword = newKeyword && newKeyword.length > 0;
+  const hasModelFilter = newModel && newModel.length > 0;
+
+  if (hasKeyword && !hasModelFilter) {
+    await searchAll(newKeyword);
+  } else if (hasModelFilter && !hasKeyword) {
+    await filterByModel(newModel);
+  } else if (hasKeyword || hasModelFilter) {
+    const apiFilters = {
+      keyword: newKeyword || undefined,
+      model: newModel || undefined,
+    };
+    await fetchAll(apiFilters);
+  } else {
+    await fetchAll();
+  }
+  
+  await loadAllPrices();
+});
+
+// ✅ Event handlers
 const onSearch = (val: string): void => {
   keyword.value = val;
 };
@@ -99,17 +158,31 @@ const onModelFilterChange = (filterData: ModelFilterData): void => {
   };
 };
 
-const resetAllFilters = (): void => {
+// ✅ Price filter - CHỈ CẬP NHẬT filters, KHÔNG GỌI API
+const onPriceFilterChange = (priceData: PriceFilterData): void => {
+  filters.value = {
+    ...filters.value,
+    price: {
+      min: priceData.min,
+      max: priceData.max
+    }
+  };
+  // Không cần gọi API, filteredCars sẽ tự động update
+};
+
+const resetAllFilters = async (): Promise<void> => {
   keyword.value = '';
   filters.value = {};
-  fetchAll();
+  await fetchAll();
+  await loadAllPrices();
 };
 
 const addToCompare = (car: CompareCar): void => {
-  compareStore.addCar(car)
-if (router.currentRoute.value.path !== '/compare') {
-  router.push('/compare');
-}}
+  compareStore.addCar(car);
+  if (router.currentRoute.value.path !== '/compare') {
+    router.push('/compare');
+  }
+};
 
 const closeCompareModal = (): void => {
   showCompare.value = false;
@@ -124,7 +197,7 @@ const closeCompareModal = (): void => {
         <SearchBar @update:search="onSearch" />
         <ModelFilter @filter-change="onModelFilterChange" />
       </div>
-      <PriceFilter />
+      <PriceFilter @price-change="onPriceFilterChange" />
     </div>
 
     <!-- Badge so sánh -->
@@ -132,13 +205,12 @@ const closeCompareModal = (): void => {
       <span class="text-blue-700 font-medium">
         Đã chọn {{ compareList.length }} xe để so sánh
       </span>
-      
     </div>
 
     <!-- Loading -->
-    <div v-if="loading" class="text-center py-12">
+    <div v-if="loading || priceLoading" class="text-center py-12">
       <div class="animate-spin h-12 w-12 border-b-2 border-gray-900 rounded-full mx-auto"></div>
-      <p class="mt-4 text-gray-600">Đang tải...</p>
+      <p class="mt-4 text-gray-600">{{ priceLoading ? 'Đang tải giá...' : 'Đang tải...' }}</p>
     </div>
 
     <!-- Error -->
@@ -169,6 +241,7 @@ const closeCompareModal = (): void => {
         v-for="car in filteredCars"
         :key="car.id"
         :car="car"
+        :price="vehiclePrices.get(car.id) || 0"
         :is-in-compare="compareStore.selectedCars.some((c: CompareCar) => c.id === car.id)"
         @compare="addToCompare"
       />
