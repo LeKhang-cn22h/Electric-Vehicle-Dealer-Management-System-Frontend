@@ -1,13 +1,13 @@
 <template>
   <div class="evm-staff-page">
     <div class="header">
-      <h1>EVM Staff - Agreement Management</h1>
-      <p>Manage contract requests and approvals</p>
+      <h1 style="font-size: 32px; font-weight: bold;">EVM Staff - Yêu cầu làm hợp đồng</h1>
+      <!-- <p>Manage contract requests and approvals</p> -->
     </div>
 
     <div class="content">
       <!-- Create New Contract Request -->
-      <div class="card">
+      <!-- <div class="card">
         <div class="card-header">
           <h2>Create New Contract Request</h2>
         </div>
@@ -71,13 +71,13 @@
             </div>
           </form>
         </div>
-      </div>
+      </div> -->
 
       <!-- Contract Requests List -->
       <div class="card">
         <div class="card-header">
           <div class="header-actions">
-            <h2>Contract Requests</h2>
+            
             <button
               @click="loadRequests"
               :disabled="loading"
@@ -94,7 +94,7 @@
           </div>
 
           <div v-else-if="requests.length === 0" class="empty-state">
-            <div class="empty-icon">📋</div>
+            <div class="empty-icon"></div>
             <h3>No Contract Requests</h3>
             <p>Create your first contract request to get started</p>
           </div>
@@ -119,7 +119,7 @@
 
                      {{ formatDate(request.created_at) }}
                   </p>
-                  <p class="fcm_token">{{ request.fcm_token }}</p>
+                  <!-- <p class="fcm_token">{{ request.fcm_token }}</p> -->
                 </div>
                 <div class="request-status">
                   <span
@@ -221,7 +221,7 @@
     <!-- Error Toast -->
     <div v-if="error" class="error-toast">
       <div class="toast-content">
-        <span class="toast-icon">⚠️</span>
+        <span class="toast-icon"></span>
         <span class="toast-message">{{ error }}</span>
         <button @click="clearError" class="toast-close">&times;</button>
       </div>
@@ -230,7 +230,7 @@
     <!-- Success Toast -->
     <div v-if="successMessage" class="success-toast">
       <div class="toast-content">
-        <span class="toast-icon">✅</span>
+        <span class="toast-icon"></span>
         <span class="toast-message">{{ successMessage }}</span>
         <button @click="successMessage = ''" class="toast-close">&times;</button>
       </div>
@@ -362,27 +362,16 @@ async function handleApproveRequest() {
   if (!selectedRequest.value) return;
 
   try {
-    // 1. approve request trước
-    await approveContractRequest(selectedRequest.value.id, { ...approvalData });
+    // ✅ CHỈ GỌI 1 LẦN - API approveContractRequest đã tạo dealer + contract + gửi notification
+    const result = await approveContractRequest(selectedRequest.value.id, { ...approvalData });
 
-    // 2. Tạo dealer mới từ request vừa approve
-    // Giả sử Dealer interface có:
-    // name, phone, address, user_email, user_password, user_full_name?, user_phone?
-    // Ở đây cần user_password mới (ví dụ tự tạo mật khẩu mặc định hoặc form nhập thêm)
-    const newDealer = {
-      name: selectedRequest.value.dealer_name,
-      phone: selectedRequest.value.phone,
-      address: selectedRequest.value.address,
-      status: 'active', // nếu cần
-      user_email: selectedRequest.value.email,
-      user_password: 'defaultPassword123!', // Hoặc tạo password random, hoặc cho user nhập thêm trước
-      user_full_name: selectedRequest.value.dealer_name, // nếu bạn muốn
-      user_phone: selectedRequest.value.phone,
-    };
+    // ✅ Hiển thị thông tin credentials
+    if (result?.credentials) {
+      successMessage.value = `Approved! Email: ${result.credentials.email}, Password: ${result.credentials.temporaryPassword}`;
+    } else {
+      successMessage.value = 'Contract request approved successfully!';
+    }
 
-    await createDealer(newDealer);
-
-    successMessage.value = 'Contract request approved and dealer created successfully!';
     closeApproveModal();
     await loadRequests();
   } catch (err) {
