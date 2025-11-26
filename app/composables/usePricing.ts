@@ -1,10 +1,10 @@
 import { ref } from "vue";
-import { PromotionService } from "~/services/sales/promotion.service";
-import type { Promotion } from "~/types/promotion";
+import { PricingService } from "~/services/sales/pricing.service";
+import type { Pricing } from "~/types/pricing";
 
-export function usePromotions() {
-    const promotions = ref<Promotion[]>([]);
-    const promotion = ref<Promotion | null>(null);
+export function usePricing() {
+    const pricings = ref<Pricing[]>([]);
+    const pricing = ref<Pricing | null>(null);
 
     const loading = ref(false);
     const error = ref<string | null>(null);
@@ -16,12 +16,12 @@ export function usePromotions() {
         loading.value = true;
         error.value = null;
         try {
-            const response = await PromotionService.findAll();
-            promotions.value = response || [];
+            const response = await PricingService.findAll();
+            pricings.value = response || [];
             return response;
         } catch (e: any) {
-            error.value = e.message || "Error fetching promotions";
-            console.error("[usePromotions] fetchAll error:", e);
+            error.value = e.message || "Error fetching pricings";
+            console.error("[usePricings] fetchAll error:", e);
             throw e;
         } finally {
             loading.value = false;
@@ -35,33 +35,17 @@ export function usePromotions() {
         loading.value = true;
         error.value = null;
         try {
-            const res = await PromotionService.findOne(id);
-            promotion.value = res;
+            const res = await PricingService.findOne(id);
+            pricing.value = res;
             return res;
         } catch (e: any) {
-            error.value = e.message || "Error fetching promotion";
-            console.error("[usePromotions] fetchOne error:", e);
+            error.value = e.message || "Error fetching pricing";
+            console.error("[usePricings] fetchOne error:", e);
             throw e;
         } finally {
             loading.value = false;
         }
     };
-
-    async function fetchAplied(minOrderValue?: number, minQuantity?: number) {
-        loading.value = true;
-        error.value = null;
-        try {
-            const response = await PromotionService.findAllApplied();
-            promotions.value = response || [];
-            return response;
-        } catch (e: any) {
-            error.value = e.message || "Error fetching promotions";
-            console.error("[usePromotions] fetchAll error:", e);
-            throw e;
-        } finally {
-            loading.value = false;
-        }
-    }
 
     // ===============================
     // CREATE
@@ -70,12 +54,12 @@ export function usePromotions() {
         loading.value = true;
         error.value = null;
         try {
-            const res = await PromotionService.create(data);
-            console.log("[usePromotions] Created:", res);
+            const res = await PricingService.create(data);
+            console.log("[usePricings] Created:", res);
             return res;
         } catch (e: any) {
-            error.value = e.message || "Error creating promotion";
-            console.error("[usePromotions] create error:", e);
+            error.value = e.message || "Error creating pricing";
+            console.error("[usePricings] create error:", e);
             throw e;
         } finally {
             loading.value = false;
@@ -89,12 +73,12 @@ export function usePromotions() {
         loading.value = true;
         error.value = null;
         try {
-            const res = await PromotionService.update(id, data);
-            console.log("[usePromotions] Updated:", res);
+            const res = await PricingService.update(id, data);
+            console.log("[usePricings] Updated:", res);
             return res;
         } catch (e: any) {
-            error.value = e.message || "Error updating promotion";
-            console.error("[usePromotions] update error:", e);
+            error.value = e.message || "Error updating pricing";
+            console.error("[usePricings] update error:", e);
             throw e;
         } finally {
             loading.value = false;
@@ -108,12 +92,12 @@ export function usePromotions() {
         loading.value = true;
         error.value = null;
         try {
-            const res = await PromotionService.remove(id);
-            console.log("[usePromotions] Removed:", res);
+            const res = await PricingService.remove(id);
+            console.log("[usePricings] Removed:", res);
             return res;
         } catch (e: any) {
-            error.value = e.message || "Error removing promotion";
-            console.error("[usePromotions] remove error:", e);
+            error.value = e.message || "Error removing pricing";
+            console.error("[usePricings] remove error:", e);
             throw e;
         } finally {
             loading.value = false;
@@ -124,22 +108,21 @@ export function usePromotions() {
     // RESET STATE
     // ===============================
     const reset = () => {
-        promotions.value = [];
-        promotion.value = null;
+        pricings.value = [];
+        pricing.value = null;
         error.value = null;
     };
 
     return {
         // state
-        promotions,
-        promotion,
+        pricings,
+        pricing,
         loading,
         error,
 
         // methods
         fetchAll,
         fetchOne,
-        fetchAplied,
         create,
         update,
         remove,
