@@ -17,13 +17,12 @@
           <NuxtLink to="/user/orders" class="nav-item">
             Đơn hàng của tôi
           </NuxtLink>
+          <NuxtLink to="/inventory" class="nav-item"> Quản lý kho </NuxtLink>
 
           <NuxtLink to="/manage_testDriver" class="nav-item">
             Lịch lái thử
           </NuxtLink>
-          <NuxtLink to="/manage_product" class="nav-item">
-            Sản phẩm
-          </NuxtLink>
+          <NuxtLink to="/manage_product" class="nav-item"> Sản phẩm </NuxtLink>
 
           <NuxtLink to="/manage_profile_customer" class="nav-item">
             Khách hàng
@@ -34,9 +33,7 @@
           <NuxtLink to="/dealer_manager/promotions" class="nav-item">
             Khuyến mãi
           </NuxtLink>
-          <NuxtLink to="/user/contracts" class="nav-item">
-            Hợp đồng
-          </NuxtLink>
+          <NuxtLink to="/user/contracts" class="nav-item"> Hợp đồng </NuxtLink>
 
           <NuxtLink to="/dealer_manager/receivables" class="nav-item">
             Công nợ
@@ -49,12 +46,15 @@
           <NuxtLink to="/manage_profile_customer" class="nav-item">
             Hồ sơ
           </NuxtLink>
-                    <NuxtLink to="/manage_Feedback" class="nav-item"> Khiếu nại</NuxtLink>
-                    <NuxtLink to="/vehicle_unit" class="nav-item"> Điều phối </NuxtLink>
+          <NuxtLink to="/inventory" class="btn btn-secondary">
+            Quản lý kho
+          </NuxtLink>
+
+          <NuxtLink to="/manage_Feedback" class="nav-item"> Khiếu nại</NuxtLink>
+          <NuxtLink to="/vehicle_unit" class="nav-item"> Điều phối </NuxtLink>
           <NuxtLink to="/dealer_manager/ManageDealerStaff" class="nav-item">
             Quản lý Dealer Staff
           </NuxtLink>
-
         </template>
       </div>
 
