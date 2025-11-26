@@ -18,7 +18,7 @@
 
                     <NuxtLink to="/dealer_staff/test-drives" class="nav-item"> Lịch lái thử </NuxtLink>
 
-                    <NuxtLink to="/dealer_staff/customers" class="nav-item"> Hồ sơ khách hàng </NuxtLink>
+                    <NuxtLink to="/manage_profile_customer" class="nav-item"> Hồ sơ khách hàng </NuxtLink>
                 </template>
 
                 <template v-if="isDealerManager">
@@ -34,8 +34,10 @@
                     <NuxtLink to="/manage_testDriver" class="nav-item"> Quản lý lịch lái </NuxtLink>
 
                     <NuxtLink to="/manage_profile_customer" class="nav-item"> Quản lý hồ sơ </NuxtLink>
-
+                    <NuxtLink to="/manage_Feedback" class="nav-item"> Quản lý khiếu nại</NuxtLink>
+                    <NuxtLink to="/vehicle_unit" class="nav-item"> Xe Unit </NuxtLink>
                     <NuxtLink to="/dealer_manager/ManageDealerStaff" class="nav-item"> Quản lý Dealer Staff </NuxtLink>
+
                 </template>
             </div>
 
