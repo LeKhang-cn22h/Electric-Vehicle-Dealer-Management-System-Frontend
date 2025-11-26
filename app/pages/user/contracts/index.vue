@@ -67,7 +67,8 @@ const filteredContracts = (order: any) => {
     const query = filters.searchQuery.toLowerCase();
     const matchesSearch =
         !query || order.customerName.toLowerCase().includes(query) || order.orderCode.toLowerCase().includes(query);
-    return matchesSearch;
+    const matchesStatus = !filters.status || order.status === filters.status;
+    return matchesSearch && matchesStatus;
 };
 
 const handlePrint = (order: any) => {

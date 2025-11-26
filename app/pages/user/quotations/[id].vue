@@ -35,8 +35,8 @@
                     <p><strong>Tên:</strong> {{ quotation?.customer.name || "Không có" }}</p>
                     <p><strong>Số điện thoại:</strong> {{ quotation?.customer.phone || "Không có" }}</p>
                     <p><strong>Email:</strong> {{ quotation?.customer.email || "Không có" }}</p>
-                    <p><strong>Ngày sinh:</strong> {{ quotation?.customer.birth_day || "Không có" }}</p>
-                    <p><strong>Địa chỉ:</strong> {{ quotation?.customer.adress || "Không có" }}</p>
+                    <!-- <p><strong>Ngày sinh:</strong> {{ quotation?.customer.birth_day || "Không có" }}</p>
+                    <p><strong>Địa chỉ:</strong> {{ quotation?.customer.adress || "Không có" }}</p> -->
                 </section>
 
                 <!-- Sản phẩm -->
@@ -135,7 +135,7 @@ onMounted(async () => {
         await fetchOne(quoteId);
         console.log("quotation", toRaw(quotation));
     } catch (error) {
-        console.error("Lỗi khi tải đơn hàng:", error);
+        console.error("Lỗi khi tải báo giá:", error);
     } finally {
         pending.value = false;
     }
