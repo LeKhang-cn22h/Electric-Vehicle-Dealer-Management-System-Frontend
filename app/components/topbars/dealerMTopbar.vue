@@ -17,6 +17,7 @@
           <NuxtLink to="/user/orders" class="nav-item">
             Đơn hàng của tôi
           </NuxtLink>
+          <NuxtLink to="/inventory" class="nav-item"> Quản lý kho </NuxtLink>
 
           <NuxtLink to="/dealer_staff/test-drives" class="nav-item">
             Lịch lái thử
@@ -34,17 +35,15 @@
           <NuxtLink to="/user/contracts" class="nav-item">
             Quản lý hợp đồng
           </NuxtLink>
-
-          <NuxtLink to="/dealer_manager/receivables" class="nav-item">
-            Quản lý công nợ
-          </NuxtLink>
-
           <NuxtLink to="/manage_testDriver" class="nav-item">
             Quản lý lịch lái
           </NuxtLink>
 
           <NuxtLink to="/manage_profile_customer" class="nav-item">
             Quản lý hồ sơ
+          </NuxtLink>
+          <NuxtLink to="/inventory" class="btn btn-secondary">
+            Quản lý kho
           </NuxtLink>
 
           <NuxtLink to="/dealer_manager/ManageDealerStaff" class="nav-item">
