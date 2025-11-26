@@ -21,6 +21,7 @@
                     {{ order?.status === "pending" ? "Xác nhận" : "Đã xử lý" }}
                 </button>
                 <span
+                    v-else
                     class="mt-2 inline-flex items-center px-4 py-2 rounded-md text-sm font-medium"
                     :class="order?.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'"
                 >
@@ -38,9 +39,9 @@
                 <!-- Thông tin khách hàng -->
                 <section>
                     <h2 class="text-lg font-semibold text-gray-800 mb-3">Khách hàng</h2>
-                    <p><strong>Tên:</strong> {{ order.customer.name }}</p>
-                    <p><strong>Số điện thoại:</strong> {{ order.customer.phone }}</p>
-                    <p><strong>Email:</strong> {{ order.customer.email }}</p>
+                    <p><strong>Tên:</strong> {{ order.customer?.name }}</p>
+                    <p><strong>Số điện thoại:</strong> {{ order.customer?.phone }}</p>
+                    <p><strong>Email:</strong> {{ order.customer?.email }}</p>
                     <p><strong>Địa chỉ:</strong> {{ order.customer.adress }}</p>
                 </section>
 
@@ -92,17 +93,96 @@
                 <!-- Thanh toán -->
                 <section>
                     <h2 class="text-lg font-semibold text-gray-800 mb-3">Thanh toán</h2>
+
                     <p>
                         <strong>Phương thức:</strong>
-                        {{ order.payment_method === "cash" ? "Tiền mặt" : "Thanh toán bằng VNPay" }}
+                        {{
+                            order.payment_method === "cash"
+                                ? "Tiền mặt"
+                                : order.payment_method === "bank_transfer"
+                                ? "Chuyển khoản"
+                                : "Trả góp"
+                        }}
                     </p>
+
+                    <p>
+                        <strong>Trạng thái thanh toán:</strong>
+                        {{
+                            order.payment_status === "paid"
+                                ? "Đã thanh toán"
+                                : order.payment_status === "partial"
+                                ? "Thanh toán một phần"
+                                : "Chưa thanh toán"
+                        }}
+                    </p>
+
+                    <p>
+                        <strong>Số tiền thanh toán:</strong>
+                        {{ formatCurrency(order.payment_amount ?? order.total_amount) }}
+                    </p>
+
+                    <!-- Thông tin chi tiết trả góp -->
+                    <!-- <div
+            v-if="order.payment_method === 'installment'"
+            class="mt-3 bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-gray-700 space-y-1"
+          >
+            <p>
+              <strong>Trả trước:</strong>
+              {{ formatCurrency(order.down_payment || 0) }}
+            </p>
+
+            <p>
+              <strong>Kỳ hạn:</strong>
+              {{ order.term || 0 }} tháng
+            </p>
+
+            <p v-if="remainingAmount">
+              <strong>Số tiền còn lại cần góp:</strong>
+              {{ formatCurrency(remainingAmount) }}
+            </p>
+
+            <p v-if="monthlyInstallment">
+              <strong>Dự kiến trả mỗi tháng (chưa tính lãi):</strong>
+              {{ formatCurrency(monthlyInstallment) }}
+            </p>
+          </div> -->
                 </section>
 
-                <!-- Tổng kết -->
-                <section class="border-t pt-4">
-                    <div class="flex justify-between items-center">
-                        <span class="text-lg font-semibold text-gray-700">Tổng tiền:</span>
-                        <span class="text-2xl font-bold text-blue-600">{{ formatCurrency(order.total_amount) }}</span>
+                <!-- Tổng kết đơn hàng -->
+                <section class="border-t pt-4 mt-6 space-y-2 text-gray-700">
+                    <div
+                        v-if="order.payment_method === 'installment'"
+                        class="bg-blue-50 border border-blue-200 rounded p-4 space-y-1 text-sm"
+                    >
+                        <p>
+                            <strong>Trả trước:</strong>
+                            {{ formatCurrency(order.down_payment || 0) }}
+                        </p>
+                        <p>
+                            <strong>Số tiền còn lại cần góp:</strong>
+                            {{ formatCurrency(order.total_amount - (order.down_payment || 0)) }}
+                        </p>
+                        <p v-if="order.term">
+                            <strong>Góp mỗi tháng:</strong>
+                            {{ formatCurrency((order.total_amount - (order.down_payment || 0)) / order.term) }}
+                            × {{ order.term }} tháng
+                        </p>
+                    </div>
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-gray-700">Tổng tiền đơn hàng:</span>
+                        <span class="font-medium text-blue-600 text-lg">
+                            {{ formatCurrency(order.total_amount) }}
+                        </span>
+                    </div>
+
+                    <div
+                        v-if="order.payment_method === 'installment'"
+                        class="flex justify-between items-center text-sm text-gray-700"
+                    >
+                        <span>Còn lại cần góp:</span>
+                        <span class="font-medium text-red-500">
+                            {{ formatCurrency(order.total_amount - (order.down_payment || 0)) }}
+                        </span>
                     </div>
                 </section>
 
@@ -161,7 +241,7 @@ const userRole = useCookie<string>("role");
 const { attachInvoice, fetchOne, order, update } = useOrders();
 const { loading: loadingContract, error: errorContract, create } = useContract();
 
-const { createBill, getBill } = useBilling();
+const { createBill, getBill, ensureInstallmentSchedule } = useBilling();
 const pending = ref(true);
 watch(
     () => order.value,
@@ -169,6 +249,28 @@ watch(
         console.log("order", order.value);
     }
 );
+
+const remainingAmount = computed(() => {
+    const o = order.value as any;
+    if (!o) return 0;
+    if (o.payment_method !== "installment") return 0;
+
+    const total = o.payment_amount ?? o.total_amount ?? 0;
+    const down = o.down_payment ?? 0;
+
+    return Math.max(total - down, 0);
+});
+
+const monthlyInstallment = computed(() => {
+    const o = order.value as any;
+    if (!o) return 0;
+    if (o.payment_method !== "installment") return 0;
+
+    const term = o.term ?? 0;
+    if (!term || term <= 0) return 0;
+
+    return Math.ceil(remainingAmount.value / term);
+});
 
 // const goToInvoice = () => {
 //   const invoiceId =
@@ -279,6 +381,9 @@ const mapOrderToBillPayload = (orderData: any): CreateBillPayload => {
                 email: orderData.customer?.email,
                 address: orderData.customer?.adress,
             },
+            term: orderData.term || 0,
+            downPayment: orderData.down_payment || orderData.downPayment || 0,
+            is_installment: (orderData.paymentMethod ?? orderData.payment_method) === "installment",
             dealer: {
                 id: dealer_id,
                 name: dealerName,
@@ -328,6 +433,10 @@ const handleConfirm = async () => {
         }
         await attachInvoice(String(order.value.id), billRes.id);
         console.log("Gắn invoice vào order thành công");
+
+        if (order.value.payment_method === "installment") {
+            await ensureInstallmentSchedule(invoiceId);
+        }
 
         // Cập nhật State local để UI đổi màu Badge ngay lập tức mà không cần reload
         if (order.value) {

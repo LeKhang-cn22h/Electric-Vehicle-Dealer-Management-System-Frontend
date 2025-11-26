@@ -1,110 +1,96 @@
-// composables/useDealerCoordination.ts
-import { ref } from 'vue'
-import axios from 'axios'
+// app/composables/useDealerCoordination.ts
+import { ref } from "vue";
 
-const API_URL = '/api/dealer-coordination'
-
-interface Vehicle {
-  model: string
-  color: string
-  quantity: number
+export interface CreateVehicleRequestDto {
+  dealer_name: string;
+  email: string;
+  address: string;
+  quantity: number;
 }
 
-interface CreateRequestPayload {
-  dealer_id: string
-  dealer_name: string
-  request_type: 'new' | 'transfer'
-  vehicles: Vehicle[]
-}
-
-interface VehicleRequest {
-  id: string
-  dealer_id: string
-  dealer_name: string
-  request_type: string
-  model: string
-  color: string
-  quantity: number
-  created_at?: string
+export interface VehicleRequest {
+  id: string;
+  dealer_name: string;
+  email: string;
+  address: string;
+  quantity: number;
+  user_id: string | null;
+  status?: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export function useDealerCoordination() {
-  const requests = ref<VehicleRequest[]>([])
-  const loading = ref(false)
-  const error = ref<string | null>(null)
+  const pending = ref(false);
+  const requests = ref<VehicleRequest[]>([]);
 
-  // Tạo yêu cầu điều phối
-  const createRequest = async (payload: CreateRequestPayload) => {
-    loading.value = true
-    error.value = null
+  const API = "http://localhost:4000/dealer-coordination/requests";
+
+  // Tạo vehicle request mới
+  async function createVehicleRequest(dto: CreateVehicleRequestDto) {
+    pending.value = true;
     try {
-      const { data } = await axios.post(`${API_URL}/requests`, payload)
-      return data
-    } catch (err: any) {
-      error.value = err.response?.data?.message || 'Lỗi tạo yêu cầu'
-      throw err
+      const res = await $fetch(API, {
+        method: "POST",
+        body: dto,
+        headers: useAuthHeader(),
+      });
+      return res;
     } finally {
-      loading.value = false
+      pending.value = false;
     }
   }
 
-  // Lấy tất cả yêu cầu
-  const getAllRequests = async () => {
-    loading.value = true
-    error.value = null
+  // Lấy tất cả requests
+  async function getAllRequests() {
+    pending.value = true;
     try {
-      const { data } = await axios.get(`${API_URL}/requests`)
-      requests.value = data.data || []
-      return data
-    } catch (err: any) {
-      error.value = err.response?.data?.message || 'Lỗi tải dữ liệu'
-      throw err
+      const res = await $fetch<{ data: VehicleRequest[] }>(API, {
+        method: "GET",
+        headers: useAuthHeader(),
+      });
+      requests.value = res.data || [];
+      return res;
     } finally {
-      loading.value = false
+      pending.value = false;
     }
   }
 
-  // Lấy yêu cầu theo dealer_id
-  const getRequestsByDealerId = async (dealerId: string) => {
-    loading.value = true
-    error.value = null
+  // Lấy requests theo dealer_name
+  async function getRequestsByDealerName(dealer_name: string) {
+    pending.value = true;
     try {
-      const { data } = await axios.get(`${API_URL}/requests/${dealerId}`)
-      requests.value = data.data || []
-      return data
-    } catch (err: any) {
-      error.value = err.response?.data?.message || 'Lỗi tải dữ liệu'
-      throw err
+      const res = await $fetch<{ data: VehicleRequest[] }>(
+        `${API}?dealer_name=${encodeURIComponent(dealer_name)}`,
+        {
+          method: "GET",
+          headers: useAuthHeader(),
+        }
+      );
+      requests.value = res.data || [];
+      return res;
     } finally {
-      loading.value = false
-    }
-  }
-
-  // Lấy yêu cầu theo dealer_name
-  const getRequestsByDealerName = async (dealerName: string) => {
-    loading.value = true
-    error.value = null
-    try {
-      const { data } = await axios.get(`${API_URL}/requests`, {
-        params: { dealer_name: dealerName }
-      })
-      requests.value = data.data || []
-      return data
-    } catch (err: any) {
-      error.value = err.response?.data?.message || 'Lỗi tải dữ liệu'
-      throw err
-    } finally {
-      loading.value = false
+      pending.value = false;
     }
   }
 
   return {
+    pending,
     requests,
-    loading,
-    error,
-    createRequest,
+    createVehicleRequest,
     getAllRequests,
-    getRequestsByDealerId,
-    getRequestsByDealerName
+    getRequestsByDealerName,
+  };
+}
+
+function useAuthHeader() {
+  if (process.client) {
+    const token = localStorage.getItem("access_token");
+    return {
+      Authorization: `Bearer ${token || ""}`,
+    };
   }
+  return {
+    Authorization: "",
+  };
 }

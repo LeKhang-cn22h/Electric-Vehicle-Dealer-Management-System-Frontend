@@ -18,14 +18,14 @@
                 </div>
             </div>
 
-            <div class="stat-card">
-                <div class="stat-icon"></div>
-                <div class="stat-info">
-                    <h3>Yêu cầu điều phối xe</h3>
-                    <p class="stat-number">56</p>
-                    <span class="stat-trend warning">+5%</span>
-                </div>
-            </div>
+            <NuxtLink to="/dealer_manager/coordination" class="stat-card">
+                    <div class="stat-icon"></div>
+                    <div class="stat-info">
+                        <h3>Yêu cầu điều phối xe</h3>
+                        <p class="stat-number">56</p>
+                        <span class="stat-trend warning">+5%</span>
+                    </div>
+                    </NuxtLink>
 
             <div class="stat-card">
                 <div class="stat-icon"></div>

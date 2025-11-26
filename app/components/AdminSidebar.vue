@@ -48,11 +48,6 @@
         <TrendingUp :size="20" class="nav-icon" />
         <span v-if="sidebarOpen" class="nav-text">Dự báo AI</span>
       </NuxtLink>
-
-      <NuxtLink to="/admin/settings" class="nav-item" active-class="active">
-        <Settings :size="20" class="nav-icon" />
-        <span v-if="sidebarOpen" class="nav-text">Cài đặt</span>
-      </NuxtLink>
     </nav>
   </aside>
 </template>

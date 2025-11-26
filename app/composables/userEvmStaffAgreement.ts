@@ -90,7 +90,7 @@ export const useEvmStaffAgreement = () => {
     error.value = null
     
     try {
-      const response = await fetch(`http://localhost:4000/evm-staff-agreement/contract-requests/${requestId}/approve`, {
+      const response = await fetch(`http://localhost:4000/evm-staff-agreement/contract-requests/${requestId}/approve-and-create-dealer`, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify(approveData)

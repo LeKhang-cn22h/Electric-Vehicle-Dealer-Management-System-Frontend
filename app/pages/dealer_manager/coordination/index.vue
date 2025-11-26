@@ -1,3 +1,4 @@
+<!-- pages/dealer_manager/coordination/index.vue -->
 <template>
   <div class="coordination-page">
     <div class="page-header">
@@ -25,67 +26,47 @@
       <div class="form-card">
         <div class="form-row">
           <div class="form-group">
-            <label>Mã Dealer</label>
-            <input v-model="form.dealer_id" placeholder="VD: DL001" />
+            <label>Tên Dealer <span class="required">*</span></label>
+            <input 
+              v-model="form.dealer_name" 
+              placeholder="VD: Honda Bình Dương" 
+            />
           </div>
           <div class="form-group">
-            <label>Tên Dealer</label>
-            <input v-model="form.dealer_name" placeholder="VD: Honda Bình Dương" />
+            <label>Email <span class="required">*</span></label>
+            <input 
+              v-model="form.email" 
+              type="email"
+              placeholder="VD: dealer@example.com" 
+            />
           </div>
         </div>
 
-        <div class="form-group">
-          <label>Loại yêu cầu</label>
-          <select v-model="form.request_type">
-            <option value="new">Xe mới</option>
-            <option value="transfer">Điều chuyển</option>
-          </select>
-        </div>
-
-        <!-- Danh sách xe -->
-        <div class="vehicles-section">
-          <div class="section-header">
-            <label>Danh sách xe</label>
-            <button class="btn-link" @click="addVehicle">+ Thêm xe</button>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Địa chỉ <span class="required">*</span></label>
+            <input 
+              v-model="form.address" 
+              placeholder="VD: 123 Nguyễn Văn Linh, Q.7, TP.HCM" 
+            />
           </div>
-
-          <div 
-            v-for="(vehicle, index) in form.vehicles" 
-            :key="index"
-            class="vehicle-row"
-          >
+          <div class="form-group">
+            <label>Số lượng xe <span class="required">*</span></label>
             <input 
-              v-model="vehicle.model" 
-              placeholder="Model (VD: Civic)"
-              class="flex-1"
-            />
-            <input 
-              v-model="vehicle.color" 
-              placeholder="Màu"
-              class="w-28"
-            />
-            <input 
-              v-model.number="vehicle.quantity" 
+              v-model.number="form.quantity" 
               type="number" 
               min="1"
-              class="w-20"
+              placeholder="VD: 10" 
             />
-            <button 
-              v-if="form.vehicles.length > 1"
-              class="btn-remove"
-              @click="removeVehicle(index)"
-            >
-              ✕
-            </button>
           </div>
         </div>
 
         <button 
           class="btn-primary"
-          :disabled="loading"
+          :disabled="pending || !isFormValid"
           @click="handleSubmit"
         >
-          {{ loading ? 'Đang xử lý...' : 'Tạo Yêu Cầu Điều Phối' }}
+          {{ pending ? 'Đang xử lý...' : 'Tạo Yêu Cầu Điều Phối' }}
         </button>
 
         <div v-if="message" class="message success">{{ message }}</div>
@@ -96,12 +77,22 @@
     <!-- Tab: Danh sách -->
     <div v-if="activeTab === 'list'" class="tab-content">
       <div class="list-header">
+        <div class="search-box">
+          <input 
+            v-model="searchDealerName" 
+            placeholder="Tìm theo tên dealer..."
+            @keyup.enter="handleSearch"
+          />
+          <button class="btn-search" @click="handleSearch">
+            🔍 Tìm
+          </button>
+        </div>
         <button class="btn-refresh" @click="fetchRequests">
           🔄 Tải lại
         </button>
       </div>
 
-      <div v-if="loading" class="loading">Đang tải...</div>
+      <div v-if="pending" class="loading">Đang tải...</div>
       
       <div v-else-if="requests.length === 0" class="empty">
         Chưa có yêu cầu nào
@@ -109,17 +100,32 @@
 
       <div v-else class="request-list">
         <div 
-          v-for="(req, index) in requests" 
-          :key="index"
+          v-for="req in requests" 
+          :key="req.id"
           class="request-card"
         >
           <div class="card-header">
             <span class="dealer-name">{{ req.dealer_name }}</span>
-            <span class="dealer-id">{{ req.dealer_id }}</span>
+            <span class="request-date">{{ formatDate(req.created_at) }}</span>
           </div>
           <div class="card-body">
-            <p><strong>Loại:</strong> {{ req.request_type === 'new' ? 'Xe mới' : 'Điều chuyển' }}</p>
-            <p><strong>Model:</strong> {{ req.model }} | <strong>Màu:</strong> {{ req.color }} | <strong>SL:</strong> {{ req.quantity }}</p>
+            <div class="info-row">
+              <span class="label">Email:</span>
+              <span class="value">{{ req.email }}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Địa chỉ:</span>
+              <span class="value">{{ req.address }}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Số lượng:</span>
+              <span class="value quantity">{{ req.quantity }} xe</span>
+            </div>
+          </div>
+          <div class="card-footer">
+            <span :class="['status', getStatusClass(req.status)]">
+              {{ getStatusText(req.status) }}
+            </span>
           </div>
         </div>
       </div>
@@ -128,50 +134,127 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+definePageMeta({
+    layout: "dealer-manager-layout",
+});
+import { ref, reactive, computed } from 'vue'
 import { useDealerCoordination } from '~/composables/useDealerCoordination'
 
-const { requests, loading, error, createRequest, getAllRequests } = useDealerCoordination()
+const { 
+  pending, 
+  requests, 
+  createVehicleRequest, 
+  getAllRequests,
+  getRequestsByDealerName 
+} = useDealerCoordination()
 
 const activeTab = ref('create')
 const message = ref('')
+const error = ref('')
+const searchDealerName = ref('')
 
 const form = reactive({
-  dealer_id: '',
   dealer_name: '',
-  request_type: 'new' as 'new' | 'transfer',
-  vehicles: [{ model: '', color: '', quantity: 1 }]
+  email: '',
+  address: '',
+  quantity: 1
 })
 
-const addVehicle = () => {
-  form.vehicles.push({ model: '', color: '', quantity: 1 })
-}
+// Validate form
+const isFormValid = computed(() => {
+  return (
+    form.dealer_name.trim() !== '' &&
+    form.email.trim() !== '' &&
+    form.address.trim() !== '' &&
+    form.quantity > 0
+  )
+})
 
-const removeVehicle = (index: number) => {
-  form.vehicles.splice(index, 1)
-}
-
+// Reset form
 const resetForm = () => {
-  form.dealer_id = ''
   form.dealer_name = ''
-  form.request_type = 'new'
-  form.vehicles = [{ model: '', color: '', quantity: 1 }]
+  form.email = ''
+  form.address = ''
+  form.quantity = 1
 }
 
+// Submit form
 const handleSubmit = async () => {
   message.value = ''
+  error.value = ''
+  
   try {
-    const result = await createRequest(form)
-    message.value = `✓ Tạo thành công ${result.total} yêu cầu`
+    await createVehicleRequest({
+      dealer_name: form.dealer_name,
+      email: form.email,
+      address: form.address,
+      quantity: form.quantity
+    })
+    message.value = ' Tạo yêu cầu điều phối thành công!'
     resetForm()
-  } catch (err) {
-    // error đã được set trong composable
+  } catch (err: any) {
+    error.value = err.message || 'Có lỗi xảy ra, vui lòng thử lại'
   }
 }
 
+// Fetch all requests
 const fetchRequests = async () => {
   message.value = ''
-  await getAllRequests()
+  error.value = ''
+  searchDealerName.value = ''
+  
+  try {
+    await getAllRequests()
+  } catch (err: any) {
+    error.value = err.message || 'Không thể tải danh sách'
+  }
+}
+
+// Search by dealer name
+const handleSearch = async () => {
+  error.value = ''
+  
+  try {
+    if (searchDealerName.value.trim()) {
+      await getRequestsByDealerName(searchDealerName.value)
+    } else {
+      await getAllRequests()
+    }
+  } catch (err: any) {
+    error.value = err.message || 'Không thể tìm kiếm'
+  }
+}
+
+// Format date
+const formatDate = (dateString: string) => {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  return date.toLocaleDateString('vi-VN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
+// Status helpers
+const getStatusClass = (status?: string) => {
+  switch (status) {
+    case 'approved': return 'status-approved'
+    case 'rejected': return 'status-rejected'
+    case 'processing': return 'status-processing'
+    default: return 'status-pending'
+  }
+}
+
+const getStatusText = (status?: string) => {
+  switch (status) {
+    case 'approved': return 'Đã duyệt'
+    case 'rejected': return 'Từ chối'
+    case 'processing': return 'Đang xử lý'
+    default: return 'Chờ duyệt'
+  }
 }
 </script>
 
@@ -188,6 +271,7 @@ const fetchRequests = async () => {
   margin-bottom: 20px;
 }
 
+/* Tabs */
 .tabs {
   display: flex;
   border-bottom: 2px solid #e5e7eb;
@@ -201,6 +285,11 @@ const fetchRequests = async () => {
   cursor: pointer;
   font-size: 14px;
   color: #6b7280;
+  transition: all 0.2s;
+}
+
+.tab:hover {
+  color: #1a56db;
 }
 
 .tab.active {
@@ -209,6 +298,7 @@ const fetchRequests = async () => {
   margin-bottom: -2px;
 }
 
+/* Form */
 .form-card {
   background: white;
   padding: 24px;
@@ -231,60 +321,31 @@ const fetchRequests = async () => {
   font-size: 14px;
   font-weight: 500;
   margin-bottom: 6px;
+  color: #374151;
+}
+
+.required {
+  color: #ef4444;
 }
 
 .form-group input,
 .form-group select {
   width: 100%;
-  padding: 10px;
+  padding: 10px 12px;
   border: 1px solid #d1d5db;
   border-radius: 6px;
   font-size: 14px;
+  transition: border-color 0.2s;
 }
 
-.vehicles-section {
-  margin: 20px 0;
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #1a56db;
+  box-shadow: 0 0 0 3px rgba(26, 86, 219, 0.1);
 }
 
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.btn-link {
-  background: none;
-  border: none;
-  color: #1a56db;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.vehicle-row {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.vehicle-row input {
-  padding: 10px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-}
-
-.vehicle-row .flex-1 { flex: 1; }
-.vehicle-row .w-28 { width: 100px; }
-.vehicle-row .w-20 { width: 80px; }
-
-.btn-remove {
-  background: none;
-  border: none;
-  color: #ef4444;
-  cursor: pointer;
-  padding: 0 8px;
-}
-
+/* Buttons */
 .btn-primary {
   width: 100%;
   padding: 12px;
@@ -293,39 +354,101 @@ const fetchRequests = async () => {
   border: none;
   border-radius: 6px;
   font-size: 16px;
+  font-weight: 500;
   cursor: pointer;
+  transition: background 0.2s;
 }
 
-.btn-primary:hover { background: #1e40af; }
-.btn-primary:disabled { background: #9ca3af; }
+.btn-primary:hover:not(:disabled) { 
+  background: #1e40af; 
+}
 
+.btn-primary:disabled { 
+  background: #9ca3af; 
+  cursor: not-allowed;
+}
+
+/* Messages */
 .message {
   margin-top: 16px;
-  padding: 12px;
+  padding: 12px 16px;
   border-radius: 6px;
+  font-size: 14px;
 }
 
-.message.success { background: #d1fae5; color: #065f46; }
-.message.error { background: #fee2e2; color: #991b1b; }
+.message.success { 
+  background: #d1fae5; 
+  color: #065f46; 
+  border: 1px solid #a7f3d0;
+}
 
+.message.error { 
+  background: #fee2e2; 
+  color: #991b1b; 
+  border: 1px solid #fecaca;
+}
+
+/* List Header */
 .list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 16px;
+  gap: 12px;
+}
+
+.search-box {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+}
+
+.search-box input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.btn-search {
+  padding: 10px 16px;
+  background: #1a56db;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn-search:hover {
+  background: #1e40af;
 }
 
 .btn-refresh {
-  padding: 8px 16px;
+  padding: 10px 16px;
   background: #f3f4f6;
   border: 1px solid #d1d5db;
   border-radius: 6px;
   cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s;
 }
 
+.btn-refresh:hover {
+  background: #e5e7eb;
+}
+
+/* Loading & Empty */
 .loading, .empty {
   text-align: center;
   color: #6b7280;
   padding: 40px;
+  background: white;
+  border-radius: 8px;
 }
 
+/* Request List */
 .request-list {
   display: flex;
   flex-direction: column;
@@ -337,21 +460,110 @@ const fetchRequests = async () => {
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   padding: 16px;
+  transition: box-shadow 0.2s;
+}
+
+.request-card:hover {
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 8px;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f3f4f6;
 }
 
-.dealer-name { font-weight: 600; }
-.dealer-id { color: #6b7280; font-size: 14px; }
+.dealer-name { 
+  font-weight: 600; 
+  font-size: 16px;
+  color: #1f2937;
+}
+
+.request-date { 
+  color: #6b7280; 
+  font-size: 13px;
+}
 
 .card-body {
   font-size: 14px;
   color: #4b5563;
 }
 
-.card-body p { margin: 4px 0; }
+.info-row {
+  display: flex;
+  margin-bottom: 8px;
+}
+
+.info-row .label {
+  font-weight: 500;
+  width: 80px;
+  color: #6b7280;
+}
+
+.info-row .value {
+  flex: 1;
+  color: #1f2937;
+}
+
+.info-row .quantity {
+  font-weight: 600;
+  color: #1a56db;
+}
+
+.card-footer {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #f3f4f6;
+}
+
+/* Status */
+.status {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-processing {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.status-approved {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.status-rejected {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .list-header {
+    flex-direction: column;
+  }
+  
+  .search-box {
+    width: 100%;
+  }
+  
+  .btn-refresh {
+    width: 100%;
+  }
+}
 </style>

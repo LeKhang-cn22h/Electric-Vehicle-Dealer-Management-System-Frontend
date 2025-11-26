@@ -159,6 +159,25 @@ export function useBilling() {
       loading.value = false;
     }
   };
+  const ensureInstallmentSchedule = async (invoiceId: string) => {
+    return await $fetch(
+      `${apiBase}/billing/bills/${invoiceId}/installments/ensure`,
+      {
+        method: "POST",
+        credentials: "include",
+      }
+    );
+  };
+
+  const markInstallmentPaid = async (invoiceId: string, sequence: number) => {
+    return await $fetch(`${apiBase}/billing/installments/pay`, {
+      method: "POST",
+      body: {
+        invoiceId,
+        sequence,
+      },
+    });
+  };
 
   return {
     loading,
@@ -168,5 +187,7 @@ export function useBilling() {
     getBill,
     markBillPaid,
     voidBill,
+    markInstallmentPaid,
+    ensureInstallmentSchedule,
   };
 }
