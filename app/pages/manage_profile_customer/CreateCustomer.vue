@@ -7,16 +7,40 @@
 
     <h1 class="text-3xl font-bold mb-6">Tạo hồ sơ khách hàng</h1>
 
+    <!-- Loading state -->
+    <div v-if="loading" class="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded mb-4">
+      Đang xử lý...
+    </div>
+
+    <!-- Error state -->
+    <div v-if="error" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+      {{ error }}
+    </div>
+
+    <!-- ✅ Validation Errors Display -->
+    <div v-if="Object.keys(validationErrors).length > 0" class="bg-red-50 border border-red-200 rounded p-4 mb-4">
+      <h3 class="font-semibold text-red-700 mb-2">❌ Lỗi xác thực:</h3>
+      <ul class="list-disc list-inside text-red-600 space-y-1">
+        <li v-for="(msg, field) in validationErrors" :key="field">
+          <strong>{{ getFieldLabel(field) }}:</strong> {{ msg }}
+        </li>
+      </ul>
+    </div>
+
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
 
       <!-- Tên -->
       <div class="bg-white p-4 rounded shadow">
-        <h2 class="font-semibold mb-2">Tên khách hàng</h2>
+        <h2 class="font-semibold mb-2">Tên khách hàng <span class="text-red-500">*</span></h2>
         <input 
           v-model="form.name" 
           class="border p-2 w-full rounded"
+          :class="{ 'border-red-500': validationErrors.name }"
           placeholder="Nhập tên"
         />
+        <p v-if="validationErrors.name" class="text-red-500 text-sm mt-1">
+          {{ validationErrors.name }}
+        </p>
       </div>
 
       <!-- Email -->
@@ -24,39 +48,56 @@
         <h2 class="font-semibold mb-2">Email</h2>
         <input 
           v-model="form.email" 
+          type="email"
           class="border p-2 w-full rounded"
+          :class="{ 'border-red-500': validationErrors.email }"
           placeholder="example@gmail.com"
         />
+        <p v-if="validationErrors.email" class="text-red-500 text-sm mt-1">
+          {{ validationErrors.email }}
+        </p>
       </div>
 
       <!-- Số điện thoại -->
       <div class="bg-white p-4 rounded shadow">
-        <h2 class="font-semibold mb-2">Số điện thoại</h2>
+        <h2 class="font-semibold mb-2">Số điện thoại <span class="text-red-500">*</span></h2>
         <input 
           v-model="form.phone" 
           class="border p-2 w-full rounded"
-          placeholder="0909xxxxxx"
+          :class="{ 'border-red-500': validationErrors.phone }"
+          placeholder="0909xxxxxx (10-11 số)"
         />
+        <p v-if="validationErrors.phone" class="text-red-500 text-sm mt-1">
+          {{ validationErrors.phone }}
+        </p>
       </div>
 
       <!-- Địa chỉ -->
       <div class="bg-white p-4 rounded shadow">
         <h2 class="font-semibold mb-2">Địa chỉ</h2>
         <input 
-          v-model="form.address" 
+          v-model="form.adress" 
           class="border p-2 w-full rounded"
+          :class="{ 'border-red-500': validationErrors.adress }"
           placeholder="Nhập địa chỉ"
         />
+        <p v-if="validationErrors.adress" class="text-red-500 text-sm mt-1">
+          {{ validationErrors.adress }}
+        </p>
       </div>
 
       <!-- Ngày sinh -->
       <div class="bg-white p-4 rounded shadow">
         <h2 class="font-semibold mb-2">Ngày sinh</h2>
         <input 
-          v-model="form.birthDate" 
+          v-model="form.birth_day" 
           type="date" 
           class="border p-2 w-full rounded"
+          :class="{ 'border-red-500': validationErrors.birth_day }"
         />
+        <p v-if="validationErrors.birth_day" class="text-red-500 text-sm mt-1">
+          {{ validationErrors.birth_day }}
+        </p>
       </div>
 
       <!-- Giới tính -->
@@ -65,11 +106,16 @@
         <select 
           v-model="form.gender"
           class="border p-2 w-full rounded"
+          :class="{ 'border-red-500': validationErrors.gender }"
         >
           <option value="">Chọn giới tính</option>
           <option value="Nam">Nam</option>
           <option value="Nữ">Nữ</option>
+          <option value="Khác">Khác</option>
         </select>
+        <p v-if="validationErrors.gender" class="text-red-500 text-sm mt-1">
+          {{ validationErrors.gender }}
+        </p>
       </div>
 
     </div>
@@ -78,14 +124,16 @@
     <div class="flex gap-4">
       <button
         @click="submit"
-        class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700"
+        :disabled="loading"
+        class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        Tạo hồ sơ
+        {{ loading ? 'Đang tạo...' : 'Tạo hồ sơ' }}
       </button>
 
       <button
         @click="goBack"
-        class="bg-gray-400 text-white px-6 py-2 rounded hover:bg-gray-500"
+        :disabled="loading"
+        class="bg-gray-400 text-white px-6 py-2 rounded hover:bg-gray-500 disabled:opacity-50"
       >
         Hủy
       </button>
@@ -96,46 +144,70 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useRouter } from "vue-router";
-
-// Router
+import { useCustomer } from "~/composables/useCustomer";
+import type { Customer } from "~/types/profile";
 const router = useRouter();
+const { 
+  loading, 
+  error, 
+  validationErrors,
+  create,
+  clearValidationErrors
+} = useCustomer();
 
-// Form dữ liệu
-const form = ref({
+const form = ref<Partial<Customer>>({
   name: "",
   email: "",
   phone: "",
-  address: "",
-  birthDate: "",
+  adress: "",
+  birth_day: "",
   gender: "",
-  status: true,               // mặc định là Hoạt động
-  createdAt: new Date().toISOString().slice(0, 10),  // auto set ngày tạo
 });
 
 // Quay lại danh sách
-const goBack = () => router.push("/manage_profile_customer");
-
-// Validate đơn giản
-const validate = () => {
-  if (!form.value.name) return "Vui lòng nhập tên";
-  if (!form.value.email) return "Vui lòng nhập email";
-  if (!form.value.phone) return "Vui lòng nhập số điện thoại";
-  return null;
+const goBack = () => {
+  clearValidationErrors();
+  router.push("/manage_profile_customer");
 };
 
-// Submit tạo hồ sơ
-const submit = () => {
-  const error = validate();
-  if (error) {
-    alert(error);
-    return;
+// ✅ Helper để hiển thị tên field tiếng Việt
+const getFieldLabel = (field: string): string => {
+  const labels: Record<string, string> = {
+    'name': 'Tên',
+    'email': 'Email',
+    'phone': 'Số điện thoại',
+    'adress': 'Địa chỉ',
+    'birth_day': 'Ngày sinh',
+    'gender': 'Giới tính',
   }
+  return labels[field] || field
+}
 
-  // Sau này thay bằng API createCustomer
-  console.log("Dữ liệu gửi lên:", form.value);
+//  Submit với validation Zod
+const submit = async () => {
+  // Clear errors trước khi submit
+  clearValidationErrors();
 
-  alert("Tạo hồ sơ khách hàng thành công!");
+  try {
+    console.log("📤 Dữ liệu gửi lên:", form.value);
 
-  router.push("/manage_profile_customer");
+    // Gọi create - sẽ tự validate trong composable
+    await create(form.value);
+
+    console.log(" Tạo hồ sơ thành công!");
+
+    alert("Tạo hồ sơ khách hàng thành công!");
+    
+    // Redirect về danh sách
+    router.push("/manage_profile_customer");
+  } catch (e: any) {
+    console.error(" Lỗi khi tạo:", e);
+    
+    // Validation errors đã được xử lý trong composable
+    // Chỉ show alert nếu không phải validation error
+    if (!Object.keys(validationErrors.value).length) {
+      alert("Có lỗi xảy ra: " + (e.message || "Unknown error"));
+    }
+  }
 };
 </script>

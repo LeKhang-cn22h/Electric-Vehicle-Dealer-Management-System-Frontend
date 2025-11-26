@@ -38,9 +38,9 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-
+import type { Customer } from '~/types/profile';
 const props = defineProps<{
-  customers: any[]
+  customers:Customer[] ;
 }>()
 
 const router = useRouter()
