@@ -77,8 +77,8 @@ const fieldsName = [
 ];
 
 const fieldStatus = [
-    { label: "Nháp", value: "draft" },
-    { label: "Đã chuyển", value: "converted" },
+  { label: "Nháp", value: "draft" },
+  { label: "Đã chuyển", value: "converted" },
 ];
 
 const { loading, error, orders, fetchAll } = useOrders();
