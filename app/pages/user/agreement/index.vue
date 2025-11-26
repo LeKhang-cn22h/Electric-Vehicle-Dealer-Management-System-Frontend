@@ -137,18 +137,18 @@
                     <span class="label">Email đăng nhập:</span>
                     <span class="value">{{ approvalInfo?.email || '' }}</span>
                     <button @click="copyToClipboard(approvalInfo?.email)" class="copy-btn">
-                      📋 Copy
+                       Copy
                     </button>
                   </div>
                   <div class="info-item">
                     <span class="label">Mật khẩu tạm thời:</span>
                     <span class="value password">{{ approvalInfo?.password || '' }}</span>
                     <button @click="copyToClipboard(approvalInfo?.password)" class="copy-btn">
-                      📋 Copy
+                       Copy
                     </button>
                   </div>
                   <div class="warning-box">
-                    <strong>⚠️ Lưu ý quan trọng:</strong>
+                    <strong>Lưu ý quan trọng:</strong>
                     <p>Vui lòng lưu lại thông tin này ngay. Đây là mật khẩu tạm thời, bạn nên đổi mật khẩu sau khi đăng nhập lần đầu.</p>
                   </div>
                   <div class="action-buttons">
@@ -156,7 +156,7 @@
                       Đăng nhập ngay
                     </button>
                     <button @click="downloadCredentials" class="secondary-btn">
-                      📥 Tải thông tin
+                       Tải thông tin
                     </button>
                   </div>
                 </div>
@@ -164,7 +164,7 @@
 
               <!-- Error Message -->
               <div v-if="errorMessage" class="error-message-global">
-                <div class="error-icon">❌</div>
+                <div class="error-icon"></div>
                 <div class="error-content">
                   <h3>Có lỗi xảy ra</h3>
                   <p>{{ errorMessage }}</p>
@@ -177,12 +177,12 @@
           <div class="info-section">
             <div class="info-card">
               <div class="info-header">
-                <div class="info-icon">ℹ️</div>
+                <div class="info-icon"></div>
                 <h3>Lợi ích khi trở thành Đại lý EVM</h3>
               </div>
               <ul class="benefits-list">
                 <li>
-                  <span class="benefit-icon">💰</span>
+                  <span class="benefit-icon"></span>
                   <div>
                     <strong>Hoa hồng hấp dẫn</strong>
                     <p>Chính sách hoa hồng cạnh tranh và minh bạch</p>
@@ -281,7 +281,7 @@ onMounted(async () => {
     const token = await notificationStore.initializeFCM();
     
     if (token) {
-      console.log('✅ FCM Token obtained!');
+      console.log('FCM Token obtained!');
     }
 
     // Listen for messages
@@ -305,7 +305,7 @@ onMounted(async () => {
       }
     });
   } catch (error) {
-    console.error('❌ FCM init failed:', error);
+    console.error(' FCM init failed:', error);
   }
 });
 
@@ -355,7 +355,7 @@ const submitForm = async () => {
   if (!validateForm()) return;
 
   try {
-    console.log('📤 Submitting contract request...');
+    console.log(' Submitting contract request...');
 
     // ✅ Lấy FCM token từ store
     const fcmToken = notificationStore.fcmToken;
@@ -389,10 +389,10 @@ const submitForm = async () => {
     showToastNotification('Thành công!', 'Yêu cầu đã được gửi. Bạn sẽ nhận thông báo khi được phê duyệt.');
     resetForm();
   } catch (err) {
-    console.error('❌ Submit error:', err);
+    console.error('Submit error:', err);
     errorMessage.value = err?.message || 'Có lỗi xảy ra';
     showToastNotification('Lỗi!', errorMessage.value);
-    setTimeout(() => { errorMessage.value = '' }, 5000);
+    
   }
 };
 

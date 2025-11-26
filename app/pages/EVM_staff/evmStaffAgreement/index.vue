@@ -6,73 +6,7 @@
     </div>
 
     <div class="content">
-      <!-- Create New Contract Request -->
-      <!-- <div class="card">
-        <div class="card-header">
-          <h2>Create New Contract Request</h2>
-        </div>
-        <div class="card-body">
-          <form @submit.prevent="handleCreateRequest" class="request-form">
-            <div class="form-row">
-              <div class="form-group">
-                <label for="dealer_name">Dealer Name *</label>
-                <input
-                  id="dealer_name"
-                  v-model="newRequest.dealer_name"
-                  type="text"
-                  placeholder="Enter dealer name"
-                  required
-                >
-              </div>
-              <div class="form-group">
-                <label for="email">Email *</label>
-                <input
-                  id="email"
-                  v-model="newRequest.email"
-                  type="email"
-                  placeholder="Enter email address"
-                  required
-                >
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label for="phone">Phone *</label>
-                <input
-                  id="phone"
-                  v-model="newRequest.phone"
-                  type="tel"
-                  placeholder="Enter phone number"
-                  required
-                >
-              </div>
-              <div class="form-group full-width">
-                <label for="address">Address *</label>
-                <textarea
-                  id="address"
-                  v-model="newRequest.address"
-                  placeholder="Enter complete address"
-                  rows="3"
-                  required
-                ></textarea>
-              </div>
-            </div>
-
-            <div class="form-actions">
-              <button
-                type="submit"
-                :disabled="loading"
-                class="btn-primary"
-              >
-                <span v-if="loading">Creating...</span>
-                <span v-else>Create Contract Request</span>
-              </button>
-            </div>
-          </form>
-        </div>
-      </div> -->
-
+    
       <!-- Contract Requests List -->
       <div class="card">
         <div class="card-header">
