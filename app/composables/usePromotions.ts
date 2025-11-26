@@ -1,5 +1,5 @@
 import { ref } from "vue";
-import { PromotionService } from "~/services/sales/pricing-promotion.service";
+import { PromotionService } from "~/services/sales/promotion.service";
 import type { Promotion } from "~/types/promotion";
 
 export function usePromotions() {

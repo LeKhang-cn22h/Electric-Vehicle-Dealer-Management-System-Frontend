@@ -1,3 +1,4 @@
+<!-- Gốc -->
 <template>
     <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
         <!-- Header -->
@@ -33,8 +34,9 @@
                 :fields-name="fieldsName"
                 :basePath="convertLink(createLink)"
                 :data="paginatedItems"
+                :can-remove="canRemove"
                 row-key="id"
-                @print="onPrint"
+                @remove="onRemove"
             >
                 <!-- Forward toàn bộ slot xuống component con -->
                 <template v-for="(_, name) in $slots" #[name]="slotProps">
@@ -83,6 +85,7 @@ const props = withDefaults(
         data: BaseItem[];
         showToolbar?: boolean;
         isActiveBtnCreate?: boolean;
+        canRemove?: (row: any) => boolean;
         filterFunction?: (item: BaseItem) => boolean;
     }>(),
     {
@@ -91,7 +94,7 @@ const props = withDefaults(
 );
 
 const emit = defineEmits<{
-    (e: "print", item: BaseItem): void;
+    (e: "remove", item: BaseItem): void;
 }>();
 
 const pending = ref(true);
@@ -122,7 +125,7 @@ function convertLink(path: string): string {
 
 const changePage = (page: number) => (currentPage.value = page);
 
-const onPrint = (item: BaseItem) => emit("print", item);
+const onRemove = (item: BaseItem) => emit("remove", item);
 
 watch(
     () => props.data,

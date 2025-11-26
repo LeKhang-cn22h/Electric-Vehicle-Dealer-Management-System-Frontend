@@ -22,15 +22,9 @@ export function formatDate(date: Date | string | null | undefined): string {
     return `${day}/${month}/${year}`;
 }
 
-export function toProductItem(product: CatalogProduct): ProductItem {
-    return {
-        id: product.id,
-        productName: product.name,
-        skuCode: product.sku,
-        color: product.colors[0] ?? "Không xác định màu",
-        unitPrice: product.price,
-        quantity: 1,
-    };
+export function toDateOnly(dateStr: string) {
+    const d = new Date(dateStr);
+    return d.toISOString().slice(0, 10); // "YYYY-MM-DD"
 }
 
 export function notiSuccess(message: string): void {

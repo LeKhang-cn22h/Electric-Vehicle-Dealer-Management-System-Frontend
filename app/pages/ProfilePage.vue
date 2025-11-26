@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import { useMe } from "~/composables/useMe";
+import { useCustomer } from "~/composables/useCustomer"; 
 import type { Profile } from "~/types/profile";
+import type { Customer } from "~/types/profile"; 
 import AdminLayout from "~/layouts/admin.vue";
 import DealerManagerLayout from "~/layouts/dealer-manager-layout.vue";
 import EvmStaffLayout from "~/layouts/evm-staff-layout.vue";
 import DefaultLayout from "~/layouts/default.vue";
+
 definePageMeta({
   layout: false,
 });
@@ -13,10 +16,16 @@ definePageMeta({
 type PasswordForm = { current: string; next: string; confirm: string };
 
 const { me, refreshMe } = useMe();
+const { autoLinkProfile, customer, loading: customerLoading, error: customerError } = useCustomer(); // ✅ THÊM
+
 const isSubmitting = ref(false);
 const isLoading = ref(true);
 const msg = ref<string | null>(null);
 const err = ref<string | null>(null);
+
+//  State cho customer profile
+const showCustomerProfile = ref(false);
+const linkedCustomer = ref<Customer | null>(null);
 
 const role = computed(() => {
   const u: any = me.value;
@@ -197,6 +206,59 @@ async function changePassword() {
     isSubmitting.value = false;
   }
 }
+
+//  Function để toggle customer profile
+async function toggleCustomerProfile() {
+  if (showCustomerProfile.value) {
+    // Nếu đang hiển thị thì ẩn đi
+    showCustomerProfile.value = false;
+    return;
+  }
+
+  // Nếu chưa hiển thị thì tìm và liên kết profile
+  if (!me.value?.email && !me.value?.user_metadata?.phone) {
+    flash(false, "Không có email hoặc số điện thoại để tìm profile");
+    return;
+  }
+
+  // ✅ Kiểm tra có UID không
+  if (!me.value?.id) {
+    flash(false, "Không tìm thấy UID người dùng");
+    return;
+  }
+
+  try {
+    // ✅ THÊM uid vào payload
+    const payload = {
+      uid: me.value.id, // ✅ QUAN TRỌNG: Backend yêu cầu uid
+      email: me.value.email || undefined,
+      phone: me.value.user_metadata?.phone || me.value.phone || undefined,
+    };
+
+    console.log("📤 Payload gửi đi:", payload);
+
+    const result = await autoLinkProfile(payload);
+    
+    console.log("📥 Response nhận về:", result);
+    console.log("📥 result.customer:", result.customer);
+    
+    // ✅ Kiểm tra nhiều trường hợp
+    const customerData = result.customer || result.data?.customer || customer.value;
+    
+    if (customerData && customerData.id !== 0) {
+      linkedCustomer.value = customerData as Customer;
+      showCustomerProfile.value = true;
+      flash(true, "Đã tìm thấy và liên kết profile khách hàng!");
+    } else {
+      console.error("❌ Không tìm thấy customer trong response");
+      console.error("Full result:", result);
+      flash(false, "Không tìm thấy profile khách hàng phù hợp");
+    }
+  } catch (e: any) {
+    console.error("❌ Lỗi khi auto-link:", e);
+    flash(false, e.message || "Lỗi khi tìm profile khách hàng");
+  }
+}
 </script>
 
 <template>
@@ -219,6 +281,61 @@ async function changePassword() {
         <template v-else>
           <div v-if="err" class="alert error" role="alert">{{ err }}</div>
           <div v-if="msg" class="alert success" role="status">{{ msg }}</div>
+
+          <div class="customer-link-section">
+            <button
+              @click="toggleCustomerProfile"
+              :disabled="customerLoading"
+              class="btn secondary"
+              type="button"
+            >
+              <span v-if="!customerLoading">
+                {{ showCustomerProfile ? ' Ẩn hồ sơ khách hàng' : '🔗 Liên kết hồ sơ khách hàng' }}
+              </span>
+              <span v-else class="loading">
+                <span class="spinner"></span>Đang tìm...
+              </span>
+            </button>
+          </div>
+
+          <!--  Hiển thị thông tin customer khi tìm thấy -->
+          <transition name="slide-fade">
+            <section v-if="showCustomerProfile && linkedCustomer" class="card customer-card">
+              <h2 class="title">📋 Hồ sơ khách hàng của bạn</h2>
+              <div class="customer-info">
+                <div class="info-row">
+                  <span class="label">Tên:</span>
+                  <span class="value">{{ linkedCustomer.name }}</span>
+                </div>
+                <div class="info-row">
+                  <span class="label">Email:</span>
+                  <span class="value">{{ linkedCustomer.email || 'Chưa có' }}</span>
+                </div>
+                <div class="info-row">
+                  <span class="label">Số điện thoại:</span>
+                  <span class="value">{{ linkedCustomer.phone }}</span>
+                </div>
+                <div class="info-row">
+                  <span class="label">Địa chỉ:</span>
+                  <span class="value">{{ linkedCustomer.adress || 'Chưa có' }}</span>
+                </div>
+                <div class="info-row">
+                  <span class="label">Ngày sinh:</span>
+                  <span class="value">{{ linkedCustomer.birth_day || 'Chưa có' }}</span>
+                </div>
+                <div class="info-row">
+                  <span class="label">Giới tính:</span>
+                  <span class="value">{{ linkedCustomer.gender || 'Chưa có' }}</span>
+                </div>
+                <div class="info-row">
+                  <span class="label">Trạng thái:</span>
+                  <span :class="['badge', linkedCustomer.status ? 'active' : 'inactive']">
+                    {{ linkedCustomer.status ? 'Hoạt động' : 'Không hoạt động' }}
+                  </span>
+                </div>
+              </div>
+            </section>
+          </transition>
 
           <div class="grid">
             <section class="card">
@@ -389,6 +506,7 @@ async function changePassword() {
     </div>
   </component>
 </template>
+
 
 <style scoped>
 :root {

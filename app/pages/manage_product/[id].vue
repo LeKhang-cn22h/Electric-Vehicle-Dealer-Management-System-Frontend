@@ -334,6 +334,7 @@ import { useRoute, useRouter } from "vue-router";
 import { useNotification } from "@/composables/useNotification.js";
 import { useVehicle } from '~/composables/useVehicle'
 
+
 const route = useRoute();
 const router = useRouter();
 const { showNotification } = useNotification();
@@ -625,8 +626,10 @@ function handleSubmit() {
   // TODO: Gọi API để cập nhật dữ liệu lên server
   // await updateVehicle(vehicle.value.id, vehicle.value);
 }
-
 definePageMeta({
-  layout: "admin",
+  layout: false,
 });
+
+const { layoutName, applyLayout } = useRoleBasedLayout();
+applyLayout();
 </script>

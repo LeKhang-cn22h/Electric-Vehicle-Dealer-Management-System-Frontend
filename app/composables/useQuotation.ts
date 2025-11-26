@@ -9,7 +9,11 @@ export function useQuotations() {
     const quotationsByCreator = ref<QuotationTableResponse[]>([]);
 
     const loading = ref(false);
+    const loadingFetchOne = ref(false);
+    const loadingRemove = ref(false);
+
     const error = ref<string | null>(null);
+    const errorRemove = ref<string | null>(null);
 
     // ===============================
     // FETCH ALL
@@ -35,7 +39,7 @@ export function useQuotations() {
     // FETCH ONE
     // ===============================
     async function fetchOne(id: string) {
-        loading.value = true;
+        loadingFetchOne.value = true;
         error.value = null;
 
         try {
@@ -47,7 +51,7 @@ export function useQuotations() {
             console.error("[useQuotations] fetchOne error:", e);
             throw e;
         } finally {
-            loading.value = false;
+            loadingFetchOne.value = false;
         }
     }
 
@@ -113,7 +117,7 @@ export function useQuotations() {
     // REMOVE
     // ===============================
     async function remove(id: string) {
-        loading.value = true;
+        loadingRemove.value = true;
         error.value = null;
 
         try {
@@ -124,7 +128,7 @@ export function useQuotations() {
             console.error("[useQuotations] remove error:", e);
             throw e;
         } finally {
-            loading.value = false;
+            loadingRemove.value = false;
         }
     }
 
@@ -143,7 +147,10 @@ export function useQuotations() {
         quotation,
         quotationsByCreator,
         loading,
+        loadingFetchOne,
+        loadingRemove,
         error,
+        errorRemove,
 
         // methods
         fetchAll,

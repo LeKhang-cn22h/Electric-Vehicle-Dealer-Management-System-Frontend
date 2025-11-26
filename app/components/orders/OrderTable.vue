@@ -1,4 +1,5 @@
 <!-- components/common/BaseTable.vue -->
+<!-- Gốc -->
 <template>
     <div class="border border-gray-300 rounded-lg overflow-hidden">
         <table class="w-full">
@@ -27,17 +28,19 @@
                         <div v-if="field.key === 'actions'" class="flex gap-2 justify-center">
                             <NuxtLink
                                 :to="`/${basePath}/${row[rowKey]}`"
-                                class="text-gray-400 hover:text-black transition-colors"
                                 title="Xem chi tiết"
+                                class="inline-flex items-center justify-center w-9 h-9 rounded-md bg-blue-600 text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 transition"
                             >
                                 <Eye class="w-5 h-5" />
                             </NuxtLink>
+
                             <button
-                                class="text-gray-400 hover:text-black transition-colors"
-                                title="In hóa đơn"
-                                @click="$emit('print', row)"
+                                v-if="canRemove?.(row)"
+                                title="Xóa"
+                                @click="$emit('remove', row)"
+                                class="inline-flex items-center justify-center w-9 h-9 rounded-md bg-red-600 text-white hover:bg-red-700 focus:ring-2 focus:ring-red-500 transition"
                             >
-                                <Printer class="w-5 h-5" />
+                                <Trash2 class="w-5 h-5" />
                             </button>
                         </div>
 
@@ -65,19 +68,20 @@
 </template>
 
 <script setup lang="ts">
-import { Eye, Printer, FileText } from "lucide-vue-next";
+import { Eye, Printer, FileText, PencilLine, Trash2 } from "lucide-vue-next";
 
 interface Column {
     label: string;
     key: string;
 }
 
-defineEmits(["print"]);
+defineEmits(["remove"]);
 
 defineProps<{
     fieldsName: Column[];
-    data: [];
+    data: any[];
     rowKey: string;
-    basePath?: string; // ví dụ: 'orders' -> link thành /orders/:id
+    basePath?: string;
+    canRemove?: (row: any) => boolean;
 }>();
 </script>

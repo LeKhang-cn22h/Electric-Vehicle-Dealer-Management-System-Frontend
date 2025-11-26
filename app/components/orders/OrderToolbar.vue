@@ -83,22 +83,22 @@ const props = defineProps({
 const emit = defineEmits(["update:searchQuery", "update:statusFilter", "update:dateFrom", "update:dateTo", "filterChange"]);
 
 const onSearch = (value) => {
-    emit("update:searchQuery", value);
+    emit("update:search-query", value);
     emit("filterChange");
 };
 
 const onStatusChange = (event) => {
-    emit("update:statusFilter", event.target.value);
+    emit("update:status-filter", event.target.value);
     emit("filterChange");
 };
 
 const onDateFromChange = (value) => {
-    emit("update:dateFrom", value);
+    emit("update:date-from", value);
     emit("filterChange");
 };
 
 const onDateToChange = (value) => {
-    emit("update:dateTo", value);
+    emit("update:date-to", value);
     emit("filterChange");
 };
 

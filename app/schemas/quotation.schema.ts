@@ -1,4 +1,5 @@
 import type { ProductItem, ProductItemDetail } from "~/types/product-item";
+// import type { Customer } from "~/types/profile";
 import type { Customer } from "./customer.schema";
 import type { Promotion } from "~/types/promotion";
 // import type { ProductItem } from "./product-item.schema";
