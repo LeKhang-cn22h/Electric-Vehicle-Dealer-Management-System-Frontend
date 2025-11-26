@@ -20,14 +20,12 @@
                 >
                     {{ order?.status === "pending" ? "Xác nhận" : "Đã xử lý" }}
                 </button>
-                <button
-                    v-else
-                    class="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed"
-                    @click=""
-                    :disabled="false"
+                <span
+                    class="mt-2 inline-flex items-center px-4 py-2 rounded-md text-sm font-medium"
+                    :class="order?.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'"
                 >
                     {{ order?.status === "pending" ? "Chờ xác nhận" : "Đã xử lý" }}
-                </button>
+                </span>
             </header>
 
             <!-- Loading -->
