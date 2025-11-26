@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useMe } from "~/composables/useMe";
-import { VehicleService } from "~/services/vehicle.service";
+import { VehicleService } from "~/services/vehicles/vehicle.service";
 definePageMeta({ alias: ["/use/home"] });
 import ProductCard from "~/components/ProductCustomer/ProductCard.vue";
 type User = { id: number; firstName: string; lastName: string; age: number };
