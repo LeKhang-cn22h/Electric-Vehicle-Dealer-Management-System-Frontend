@@ -76,6 +76,14 @@
 
     <!-- Tab: Danh sách -->
     <div v-if="activeTab === 'list'" class="tab-content">
+      <!-- Debug Info -->
+      <!-- <div class="debug-info" style="background: #f5f5f5; padding: 10px; margin-bottom: 15px; border-radius: 5px;">
+        <p><strong>Debug:</strong> Requests: {{ requests.length }}, Pending: {{ pending }}, Error: {{ error }}</p>
+        <button @click="debugInfo" style="padding: 5px 10px; background: #007bff; color: white; border: none; border-radius: 3px;">
+          Debug Info
+        </button>
+      </div> -->
+
       <div class="list-header">
         <div class="search-box">
           <input 
@@ -84,11 +92,11 @@
             @keyup.enter="handleSearch"
           />
           <button class="btn-search" @click="handleSearch">
-            🔍 Tìm
+            Tìm
           </button>
         </div>
         <button class="btn-refresh" @click="fetchRequests">
-          🔄 Tải lại
+           Tải lại
         </button>
       </div>
 
@@ -121,6 +129,10 @@
               <span class="label">Số lượng:</span>
               <span class="value quantity">{{ req.quantity }} xe</span>
             </div>
+            <div class="info-row">
+              <span class="label">ID:</span>
+              <span class="value">{{ req.id }}</span>
+            </div>
           </div>
           <div class="card-footer">
             <span :class="['status', getStatusClass(req.status)]">
@@ -135,13 +147,17 @@
 
 <script setup lang="ts">
 definePageMeta({
-    layout: "dealer-manager-layout",
+  layout: "dealer-manager-layout",
 });
-import { ref, reactive, computed } from 'vue'
+
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useDealerCoordination } from '~/composables/useDealerCoordination'
 
+
+// SỬA: Sử dụng composable mới với error handling
 const { 
   pending, 
+  error, // THÊM: error từ composable
   requests, 
   createVehicleRequest, 
   getAllRequests,
@@ -150,7 +166,6 @@ const {
 
 const activeTab = ref('create')
 const message = ref('')
-const error = ref('')
 const searchDealerName = ref('')
 
 const form = reactive({
@@ -178,64 +193,92 @@ const resetForm = () => {
   form.quantity = 1
 }
 
-// Submit form
+// Submit form - SỬA: Xử lý error tốt hơn
 const handleSubmit = async () => {
   message.value = ''
-  error.value = ''
   
   try {
-    await createVehicleRequest({
+    const result = await createVehicleRequest({
       dealer_name: form.dealer_name,
       email: form.email,
       address: form.address,
       quantity: form.quantity
     })
-    message.value = ' Tạo yêu cầu điều phối thành công!'
+    
+    console.log('Create request result:', result) // DEBUG
+    
+    message.value = 'Tạo yêu cầu điều phối thành công!'
     resetForm()
+    
+    // Tự động chuyển sang tab list sau khi tạo thành công
+    setTimeout(() => {
+      activeTab.value = 'list'
+      fetchRequests()
+    }, 1500)
+    
   } catch (err: any) {
-    error.value = err.message || 'Có lỗi xảy ra, vui lòng thử lại'
+    console.error('Create request error:', err)
+    // Error đã được set trong composable
   }
 }
 
-// Fetch all requests
+// Fetch all requests - SỬA: Thêm debug
 const fetchRequests = async () => {
   message.value = ''
-  error.value = ''
   searchDealerName.value = ''
   
+  console.log('=== FETCHING REQUESTS ===') // DEBUG
+  
   try {
-    await getAllRequests()
+    const result = await getAllRequests()
+    console.log('Fetch requests result:', result) // DEBUG
   } catch (err: any) {
-    error.value = err.message || 'Không thể tải danh sách'
+    console.error('Fetch requests error:', err)
+    // Error đã được set trong composable
   }
 }
 
-// Search by dealer name
+// Search by dealer name - SỬA: Thêm debug
 const handleSearch = async () => {
-  error.value = ''
+  console.log('=== SEARCHING ===', searchDealerName.value) // DEBUG
   
   try {
     if (searchDealerName.value.trim()) {
-      await getRequestsByDealerName(searchDealerName.value)
+      const result = await getRequestsByDealerName(searchDealerName.value)
+      console.log('Search result:', result) // DEBUG
     } else {
       await getAllRequests()
     }
   } catch (err: any) {
-    error.value = err.message || 'Không thể tìm kiếm'
+    console.error('Search error:', err)
+    // Error đã được set trong composable
   }
+}
+
+// Debug function
+const debugInfo = () => {
+  console.log('=== DEBUG INFO ===')
+  console.log('Requests:', requests.value)
+  console.log('Pending:', pending.value)
+  console.log('Error:', error.value)
+  console.log('Active Tab:', activeTab.value)
 }
 
 // Format date
 const formatDate = (dateString: string) => {
   if (!dateString) return ''
-  const date = new Date(dateString)
-  return date.toLocaleDateString('vi-VN', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
+  try {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  } catch {
+    return dateString
+  }
 }
 
 // Status helpers
@@ -256,314 +299,280 @@ const getStatusText = (status?: string) => {
     default: return 'Chờ duyệt'
   }
 }
+
+// Auto fetch on mount
+onMounted(() => {
+  console.log('=== COMPONENT MOUNTED ===')
+})
 </script>
 
 <style scoped>
 .coordination-page {
-  padding: 20px;
-  max-width: 900px;
+  max-width: 1000px;
   margin: 0 auto;
+  padding: 20px;
+}
+
+.page-header {
+  text-align: center;
+  margin-bottom: 30px;
 }
 
 .page-header h1 {
-  font-size: 24px;
-  color: #1a56db;
-  margin-bottom: 20px;
+  color: #333;
+  font-size: 2rem;
 }
 
-/* Tabs */
 .tabs {
   display: flex;
-  border-bottom: 2px solid #e5e7eb;
-  margin-bottom: 20px;
+  border-bottom: 2px solid #e0e0e0;
+  margin-bottom: 30px;
 }
 
 .tab {
   padding: 12px 24px;
-  border: none;
   background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
   cursor: pointer;
-  font-size: 14px;
-  color: #6b7280;
-  transition: all 0.2s;
-}
-
-.tab:hover {
-  color: #1a56db;
+  font-size: 1rem;
+  transition: all 0.3s;
 }
 
 .tab.active {
-  color: #1a56db;
-  border-bottom: 2px solid #1a56db;
-  margin-bottom: -2px;
+  border-bottom-color: #007bff;
+  color: #007bff;
+  font-weight: 600;
 }
 
-/* Form */
+.tab-content {
+  min-height: 400px;
+}
+
 .form-card {
   background: white;
-  padding: 24px;
+  padding: 30px;
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  max-width: 600px;
+  margin: 0 auto;
 }
 
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  gap: 20px;
+  margin-bottom: 20px;
 }
 
 .form-group {
-  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
 }
 
 .form-group label {
-  display: block;
-  font-size: 14px;
+  margin-bottom: 8px;
   font-weight: 500;
-  margin-bottom: 6px;
-  color: #374151;
+  color: #333;
 }
 
 .required {
-  color: #ef4444;
+  color: #e74c3c;
 }
 
-.form-group input,
-.form-group select {
-  width: 100%;
+.form-group input {
   padding: 10px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 14px;
-  transition: border-color 0.2s;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
 }
 
-.form-group input:focus,
-.form-group select:focus {
-  outline: none;
-  border-color: #1a56db;
-  box-shadow: 0 0 0 3px rgba(26, 86, 219, 0.1);
-}
-
-/* Buttons */
 .btn-primary {
   width: 100%;
   padding: 12px;
-  background: #1a56db;
+  background: #007bff;
   color: white;
   border: none;
-  border-radius: 6px;
-  font-size: 16px;
-  font-weight: 500;
+  border-radius: 4px;
+  font-size: 1rem;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 0.3s;
 }
 
-.btn-primary:hover:not(:disabled) { 
-  background: #1e40af; 
+.btn-primary:hover:not(:disabled) {
+  background: #0056b3;
 }
 
-.btn-primary:disabled { 
-  background: #9ca3af; 
+.btn-primary:disabled {
+  background: #ccc;
   cursor: not-allowed;
 }
 
-/* Messages */
 .message {
-  margin-top: 16px;
-  padding: 12px 16px;
-  border-radius: 6px;
-  font-size: 14px;
+  padding: 10px;
+  border-radius: 4px;
+  margin-top: 15px;
+  text-align: center;
 }
 
-.message.success { 
-  background: #d1fae5; 
-  color: #065f46; 
-  border: 1px solid #a7f3d0;
+.message.success {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
 }
 
-.message.error { 
-  background: #fee2e2; 
-  color: #991b1b; 
-  border: 1px solid #fecaca;
+.message.error {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
 }
 
-/* List Header */
 .list-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
-  gap: 12px;
+  margin-bottom: 20px;
+  gap: 15px;
 }
 
 .search-box {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   flex: 1;
 }
 
 .search-box input {
   flex: 1;
-  padding: 10px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 14px;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
 }
 
-.btn-search {
-  padding: 10px 16px;
-  background: #1a56db;
-  color: white;
-  border: none;
-  border-radius: 6px;
+.btn-search, .btn-refresh {
+  padding: 8px 16px;
+  background: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
   cursor: pointer;
-  font-size: 14px;
+  transition: background 0.3s;
 }
 
-.btn-search:hover {
-  background: #1e40af;
+.btn-search:hover, .btn-refresh:hover {
+  background: #e9ecef;
 }
 
-.btn-refresh {
-  padding: 10px 16px;
-  background: #f3f4f6;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background 0.2s;
-}
-
-.btn-refresh:hover {
-  background: #e5e7eb;
-}
-
-/* Loading & Empty */
 .loading, .empty {
   text-align: center;
-  color: #6b7280;
   padding: 40px;
-  background: white;
-  border-radius: 8px;
+  color: #666;
 }
 
-/* Request List */
 .request-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  display: grid;
+  gap: 15px;
 }
 
 .request-card {
   background: white;
-  border: 1px solid #e5e7eb;
   border-radius: 8px;
-  padding: 16px;
-  transition: box-shadow 0.2s;
-}
-
-.request-card:hover {
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  overflow: hidden;
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #f3f4f6;
+  padding: 15px 20px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
 }
 
-.dealer-name { 
-  font-weight: 600; 
-  font-size: 16px;
-  color: #1f2937;
+.dealer-name {
+  font-weight: 600;
+  color: #333;
 }
 
-.request-date { 
-  color: #6b7280; 
-  font-size: 13px;
+.request-date {
+  color: #666;
+  font-size: 0.9rem;
 }
 
 .card-body {
-  font-size: 14px;
-  color: #4b5563;
+  padding: 20px;
 }
 
 .info-row {
   display: flex;
+  justify-content: space-between;
   margin-bottom: 8px;
 }
 
-.info-row .label {
+.info-row:last-child {
+  margin-bottom: 0;
+}
+
+.label {
+  color: #666;
   font-weight: 500;
-  width: 80px;
-  color: #6b7280;
 }
 
-.info-row .value {
-  flex: 1;
-  color: #1f2937;
+.value {
+  color: #333;
 }
 
-.info-row .quantity {
+.value.quantity {
+  color: #007bff;
   font-weight: 600;
-  color: #1a56db;
 }
 
 .card-footer {
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid #f3f4f6;
+  padding: 12px 20px;
+  background: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+  text-align: right;
 }
 
-/* Status */
 .status {
-  display: inline-block;
   padding: 4px 12px;
   border-radius: 20px;
-  font-size: 12px;
+  font-size: 0.85rem;
   font-weight: 500;
 }
 
 .status-pending {
-  background: #fef3c7;
-  color: #92400e;
-}
-
-.status-processing {
-  background: #dbeafe;
-  color: #1e40af;
+  background: #fff3cd;
+  color: #856404;
 }
 
 .status-approved {
-  background: #d1fae5;
-  color: #065f46;
+  background: #d1edff;
+  color: #0c5460;
 }
 
 .status-rejected {
-  background: #fee2e2;
-  color: #991b1b;
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.status-processing {
+  background: #d4edda;
+  color: #155724;
 }
 
 /* Responsive */
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .form-row {
     grid-template-columns: 1fr;
   }
   
   .list-header {
     flex-direction: column;
+    align-items: stretch;
   }
   
   .search-box {
-    width: 100%;
-  }
-  
-  .btn-refresh {
-    width: 100%;
+    margin-bottom: 10px;
   }
 }
 </style>
