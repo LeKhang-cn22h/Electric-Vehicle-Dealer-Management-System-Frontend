@@ -59,6 +59,14 @@
         </button>
       </section>
 
+      <!--  Thông báo thành công/lỗi -->
+      <div v-if="successMsg" class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
+        {{ successMsg }}
+      </div>
+      <div v-if="error" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+        {{ error }}
+      </div>
+
       <!-- Table -->
       <section class="bg-white rounded-xl shadow-sm overflow-hidden">
         <table class="min-w-full text-sm">
@@ -93,30 +101,43 @@
               <td class="px-4 py-2">{{ unit.warehouse_name }}</td>
               <td class="px-4 py-2 text-xs">{{ unit.dealer_id }}</td>
               <td class="px-4 py-2 text-right space-x-2">
+                <!-- Nút Giữ xe -->
                 <button
-                  v-if="unit.status !== 'reserved'"
-                  class="px-2 py-1 text-xs rounded border hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  v-if="unit.status !== 'reserved' && unit.status !== 'sold'"
+                  class="px-2 py-1 text-xs rounded border border-yellow-500 text-yellow-600 hover:bg-yellow-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   :disabled="updatingId === unit.id"
                   @click="changeStatus(unit.id, 'reserved')"
                 >
                   {{ updatingId === unit.id ? "..." : "Giữ xe" }}
                 </button>
+
+                <!-- Nút Bỏ giữ -->
                 <button
                   v-if="unit.status === 'reserved'"
-                  class="px-2 py-1 text-xs rounded border hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  class="px-2 py-1 text-xs rounded border border-blue-500 text-blue-600 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   :disabled="updatingId === unit.id"
                   @click="changeStatus(unit.id, 'deployed')"
                 >
                   {{ updatingId === unit.id ? "..." : "Bỏ giữ" }}
                 </button>
+
+                <!--  Nút Bán xe - Sử dụng payVehicle -->
                 <button
                   v-if="unit.status !== 'sold'"
-                  class="px-2 py-1 text-xs rounded border hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  class="px-2 py-1 text-xs rounded border border-green-600 text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   :disabled="updatingId === unit.id"
-                  @click="changeStatus(unit.id, 'sold')"
+                  @click="handleSellVehicle(unit.vin)"
                 >
-                  {{ updatingId === unit.id ? "..." : "Đánh dấu bán" }}
+                  {{ updatingId === unit.id ? "..." : "🛒 Bán xe" }}
                 </button>
+
+                <!-- Badge đã bán -->
+                <span
+                  v-if="unit.status === 'sold'"
+                  class="px-2 py-1 text-xs rounded bg-gray-200 text-gray-600"
+                >
+                  ✓ Đã bán
+                </span>
               </td>
             </tr>
 
@@ -131,10 +152,41 @@
         <div v-if="loading" class="p-4 text-center text-gray-500 text-sm">
           Đang tải dữ liệu...
         </div>
-        <div v-if="error" class="p-4 text-center text-red-500 text-sm">
-          {{ error }}
-        </div>
       </section>
+
+      <!--  Modal xác nhận bán xe -->
+      <div
+        v-if="showConfirmModal"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+        @click.self="showConfirmModal = false"
+      >
+        <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+          <h3 class="text-lg font-semibold mb-4">Xác nhận bán xe</h3>
+          <p class="text-gray-600 mb-6">
+            Bạn có chắc chắn muốn bán xe có VIN: <strong>{{ selectedVin }}</strong>?
+            <br />
+            <span class="text-sm text-red-600 mt-2 block">
+              ⚠️ Hành động này sẽ tạo hóa đơn và đánh dấu xe là đã bán.
+            </span>
+          </p>
+          <div class="flex justify-end gap-3">
+            <button
+              @click="showConfirmModal = false"
+              class="px-4 py-2 border rounded-md hover:bg-gray-50"
+              :disabled="processingPayment"
+            >
+              Hủy
+            </button>
+            <button
+              @click="confirmSellVehicle"
+              class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-green-300 disabled:cursor-not-allowed"
+              :disabled="processingPayment"
+            >
+              {{ processingPayment ? "Đang xử lý..." : "Xác nhận bán" }}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -142,10 +194,14 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { useRuntimeConfig, useRequestFetch } from "#imports";
+import { useVehicleUnit } from "~/composables/useVehicleUnit"; //  Import composable
 
 definePageMeta({
   layout: "dealer-manager-layout",
 });
+
+//  Sử dụng composable
+const { payVehicle, loading: vehicleLoading } = useVehicleUnit();
 
 type VehicleStatus = "deployed" | "available" | "reserved" | "sold";
 
@@ -173,8 +229,13 @@ const warehouses = ref<Warehouse[]>([]);
 const loading = ref(false);
 const updatingId = ref<number | null>(null);
 const error = ref<string | null>(null);
+const successMsg = ref<string | null>(null); //  Thêm success message
 
-// Lấy dealerId từ localStorage (client-side only)
+//  State cho modal xác nhận
+const showConfirmModal = ref(false);
+const selectedVin = ref<string>("");
+const processingPayment = ref(false);
+
 const dealerId = ref<string | null>(null);
 
 const filters = ref<{
@@ -209,6 +270,14 @@ const statusBadgeClass = (status: string): string => {
   return classes[status] || "bg-gray-100 text-gray-700";
 };
 
+//  Helper để clear messages sau vài giây
+const clearMessages = () => {
+  setTimeout(() => {
+    error.value = null;
+    successMsg.value = null;
+  }, 5000);
+};
+
 const fetchWarehouses = async (): Promise<void> => {
   try {
     const params: Record<string, any> = {};
@@ -226,6 +295,7 @@ const fetchWarehouses = async (): Promise<void> => {
   } catch (e: any) {
     console.error("[inventory] Lỗi tải danh sách kho:", e);
     error.value = e?.message || "Lỗi tải danh sách kho";
+    clearMessages();
   }
 };
 
@@ -262,6 +332,7 @@ const fetchStock = async (): Promise<void> => {
     console.error("[inventory] Lỗi tải dữ liệu kho:", e);
     error.value = e?.message || "Lỗi tải dữ liệu kho";
     stock.value = [];
+    clearMessages();
   } finally {
     loading.value = false;
   }
@@ -273,6 +344,7 @@ const changeStatus = async (
 ): Promise<void> => {
   updatingId.value = id;
   error.value = null;
+  successMsg.value = null;
 
   try {
     await apiFetch(`${apiBase}/inventory/vehicle-units/${id}/status`, {
@@ -281,18 +353,58 @@ const changeStatus = async (
       body: { status },
     });
 
-    // Refresh danh sách sau khi cập nhật thành công
+    successMsg.value = "Cập nhật trạng thái thành công!";
+    clearMessages();
     await fetchStock();
   } catch (e: any) {
     console.error("[inventory] Lỗi cập nhật trạng thái xe:", e);
     error.value = e?.message || "Lỗi cập nhật trạng thái xe";
+    clearMessages();
   } finally {
     updatingId.value = null;
   }
 };
 
+//  Handler mở modal xác nhận
+const handleSellVehicle = (vin: string) => {
+  selectedVin.value = vin;
+  showConfirmModal.value = true;
+};
+
+//  Handler xác nhận bán xe
+const confirmSellVehicle = async () => {
+  if (!selectedVin.value) return;
+
+  processingPayment.value = true;
+  error.value = null;
+  successMsg.value = null;
+
+  try {
+    console.log(" Đang bán xe VIN:", selectedVin.value);
+
+    //  Gọi payVehicle từ composable
+    const result = await payVehicle(selectedVin.value);
+
+    console.log(" Kết quả bán xe:", result);
+
+    successMsg.value = `Đã bán xe ${selectedVin.value} thành công!`;
+    showConfirmModal.value = false;
+    selectedVin.value = "";
+
+    // Refresh danh sách
+    await fetchStock();
+
+    clearMessages();
+  } catch (e: any) {
+    console.error("❌ Lỗi khi bán xe:", e);
+    error.value = e?.message || "Lỗi khi bán xe. Vui lòng thử lại.";
+    clearMessages();
+  } finally {
+    processingPayment.value = false;
+  }
+};
+
 onMounted(async () => {
-  // Chỉ chạy trên client mới có localStorage
   if (process.client) {
     dealerId.value = localStorage.getItem("dealer_id");
   }

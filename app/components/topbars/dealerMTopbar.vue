@@ -30,14 +30,10 @@
         </template>
 
         <template v-if="isDealerManager">
-          <NuxtLink to="/dealer_manager/promotions" class="nav-item">
-            Khuyến mãi
-          </NuxtLink>
+      
           <NuxtLink to="/user/contracts" class="nav-item"> Hợp đồng </NuxtLink>
 
-          <NuxtLink to="/dealer_manager/receivables" class="nav-item">
-            Công nợ
-          </NuxtLink>
+        
 
           <NuxtLink to="/manage_testDriver" class="nav-item">
             Lịch lái
@@ -46,7 +42,7 @@
           <NuxtLink to="/manage_profile_customer" class="nav-item">
             Hồ sơ
           </NuxtLink>
-          <NuxtLink to="/inventory" class="btn btn-secondary">
+          <NuxtLink to="/inventory" class="nav-item">
             Quản lý kho
           </NuxtLink>
 

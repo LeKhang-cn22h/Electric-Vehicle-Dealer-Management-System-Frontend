@@ -255,17 +255,7 @@
       title="Xem chi tiết"
     >
       <i class="fas fa-eye">Chi tiết</i>
-    </button>
-    
-    <!-- ✅ Button Điều phối - CHỈ HIỆN KHI AVAILABLE VÀ CHƯA ĐIỀU PHỐI -->
-    <button
-      v-if="!unit.warehouse_id && unit.status === 'available'"
-      @click="quickDeploy(unit.id)"
-      class="px-3 py-1 text-sm bg-green-100 text-green-700 rounded hover:bg-green-200"
-      title="Điều phối nhanh"
-    >
-      <i class="fas fa-warehouse"></i>
-    </button>
+    </button>    
   </div>
 </td>
             </tr>
@@ -428,7 +418,12 @@ const multipleQuantity = ref<number | null>(null)
 const multipleWarehouseId = ref<number | null>(null)
 const multipleDeploying = ref(false)
 const multipleDeployError = ref<string | null>(null)
+definePageMeta({
+  layout: false,
+});
 
+const { layoutName, applyLayout } = useRoleBasedLayout();
+applyLayout();
 // ===============================
 // COMPUTED
 // ===============================
