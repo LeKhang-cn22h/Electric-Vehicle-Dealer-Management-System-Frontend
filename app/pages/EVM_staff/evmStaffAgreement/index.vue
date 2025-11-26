@@ -168,12 +168,12 @@
             <p><strong>Email:</strong> {{ selectedRequest.email }}</p>
             <p><strong>Phone:</strong> {{ selectedRequest.phone }}</p>
             <p><strong>Address:</strong> {{ selectedRequest.address }}</p>
-            <p><strong>UserID:</strong>{{ selectedRequest.user_id }}</p>
-            <p><strong>FCM Token:</strong>{{ selectedRequest.fcm_token }}</p>
+            <!-- <p><strong>UserID:</strong>{{ selectedRequest.user_id }}</p>
+            <p><strong>FCM Token:</strong>{{ selectedRequest.fcm_token }}</p> -->
           </div>
           
           <form @submit.prevent="handleApproveRequest" class="approve-form">
-            <div class="form-group">
+            <!-- <div class="form-group">
               <label for="sales_target">Sales Target *</label>
               <input
                 id="sales_target"
@@ -183,8 +183,8 @@
                 min="1"
                 required
               >
-            </div>
-            <div class="form-group">
+            </div> -->
+            <!-- <div class="form-group">
               <label for="order_limit">Order Limit *</label>
               <input
                 id="order_limit"
@@ -194,7 +194,7 @@
                 min="1"
                 required
               >
-            </div>
+            </div> -->
             <div class="modal-actions">
               <button
                 type="submit"
