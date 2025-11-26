@@ -94,7 +94,7 @@ const emit = defineEmits<{
     (e: "print", item: BaseItem): void;
 }>();
 
-const pending = ref(false);
+const pending = ref(true);
 const currentPage = ref(1);
 const pageSize = 10;
 const items = computed(() => props.data || []);
@@ -124,8 +124,10 @@ const changePage = (page: number) => (currentPage.value = page);
 
 const onPrint = (item: BaseItem) => emit("print", item);
 
-onMounted(() => {
-    pending.value = true;
-    setTimeout(() => (pending.value = false), 300);
-});
+watch(
+    () => props.data,
+    () => {
+        if (props.data) pending.value = false;
+    }
+);
 </script>

@@ -7,7 +7,7 @@
                     <th
                         v-for="(field, i) in fieldsName"
                         :key="i"
-                        class="px-4 py-4 text-left text-base font-semibold text-white truncate w-[120px] max-w-[150px]"
+                        class="px-4 py-4 text-center text-base font-semibold text-white truncate w-[120px] max-w-[150px]"
                     >
                         {{ field.label }}
                     </th>
@@ -22,9 +22,9 @@
                     :class="rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-200'"
                     class="transition-colors"
                 >
-                    <td v-for="field in fieldsName" :key="field.key" class="px-4 py-3 text-sm">
+                    <td v-for="field in fieldsName" :key="field.key" class="px-4 py-3 text-sm text-center">
                         <!-- Nếu là cột thao tác thì dùng phần riêng -->
-                        <div v-if="field.key === 'actions'" class="flex gap-2">
+                        <div v-if="field.key === 'actions'" class="flex gap-2 justify-center">
                             <NuxtLink
                                 :to="`/${basePath}/${row[rowKey]}`"
                                 class="text-gray-400 hover:text-black transition-colors"

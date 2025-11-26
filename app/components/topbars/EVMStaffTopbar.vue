@@ -8,25 +8,21 @@
       </div>
 
       <div class="nav-section">
-        <router-link to="/dealer_staff/EVM_staff" class="nav-item">Trang chủ</router-link>
-        <router-link to="/EVM_staff/vehicle-coordination" class="nav-item">Điều phối</router-link>
-        <router-link to="/EVM_staff/evmStaffAgreement/" class="nav-item">Hợp đồng</router-link>
-        <router-link to="/dealer_staff/EVM_staff/pricing" class="nav-item">Khuyến mãi</router-link>
-        <router-link to="/" class="nav-item">Công nợ</router-link>
-        <router-link to="/manage_Feedback/" class="nav-item">Phản hồi</router-link>
-      </div>
-
-      <nav class="nav-section" aria-label="Main navigation">
-        <NuxtLink
-          v-for="item in navItems"
-          :key="item.path"
-          :to="item.path"
-          class="nav-item"
-          :aria-label="item.label"
+        <router-link to="/EVM_staff" class="nav-item">Trang chủ</router-link>
+        <router-link to="/EVM_staff/vehicle-coordination" class="nav-item"
+          >Điều phối</router-link
         >
-          {{ item.label }}
-        </NuxtLink>
-      </nav>
+        <router-link to="/EVM_staff/evmStaffAgreement/" class="nav-item"
+          >Hợp đồng</router-link
+        >
+        <router-link to="/dealer_staff/EVM_staff/pricing" class="nav-item"
+          >Khuyến mãi</router-link
+        >
+        <router-link to="/" class="nav-item">Công nợ</router-link>
+        <router-link to="/manage_Feedback/" class="nav-item"
+          >Phản hồi</router-link
+        >
+      </div>
       <div class="user-section">
         <div class="user-info">
           <div class="user-details">
@@ -84,11 +80,6 @@ const userName = computed(() => {
     user.email?.split("@")[0] ||
     "User"
   );
-});
-
-const avatarLetter = computed(() => {
-  const name = userName.value;
-  return name ? name.charAt(0).toUpperCase() : "U";
 });
 </script>
 

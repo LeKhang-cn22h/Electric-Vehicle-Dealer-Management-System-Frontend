@@ -104,7 +104,6 @@ import OrderProductSelect from "@/components/orders/OrderProductSelect.vue";
 import OrderPromotionSelect from "@/components/orders/OrderPromotionSelect.vue";
 import OrderSummary from "@/components/orders/OrderSummary.vue";
 import type { Promotion } from "@/schemas";
-import type { ApiResponse, CreateQuotationDto, CreateQuoteResponse } from "@/types/";
 import { notiFail, notiSuccess } from "@/utils/format";
 import ConfirmModal from "~/components/shared/ConfirmModal.vue";
 import StatusModal from "~/components/shared/StatusModal.vue";
@@ -184,6 +183,7 @@ const goToSummary = () => {
 const createQuote = async () => {
     isSubmitting.value = true;
     const createBy = localStorage.getItem("user_id");
+    console.log("createBy", createBy);
     const promotionsCode = quoteData.promotions.map((promo) => {
         return promo.id;
     });

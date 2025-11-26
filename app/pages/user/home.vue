@@ -11,8 +11,6 @@ const {
   pending,
   error,
 } = await useFetch<User[]>("http://localhost:4000/users");
-
-// luôn trả về mảng (không null) để template không bị never
 const users = computed<User[]>(() => usersRes.value ?? []);
 const stats = [
   { number: "2+", label: "Năm Kinh Nghiệm" },
@@ -20,8 +18,6 @@ const stats = [
   { number: "10+", label: "Mẫu Xe Đa Dạng" },
   { number: "24/7", label: "Hỗ Trợ Khách Hàng" },
 ];
-
-const { me, pending: meLoading, error: meError } = useMe();
 
 const features = [
   {
@@ -46,7 +42,6 @@ const features = [
   },
 ];
 
-// Services
 const services = [
   {
     title: "Tư Vấn Chuyên Nghiệp",
@@ -102,11 +97,6 @@ onMounted(async () => {
         <div class="hero-buttons">
           <a href="#cars" class="btn btn-primary">Xem Bộ Sưu Tập</a>
           <a href="#contact" class="btn btn-secondary">Liên Hệ Ngay</a>
-          <a href="/EVM_staff" class="btn btn-primary">Trang EVM_staff</a>
-          <a href="/dealer_manager" class="btn btn-secondary"
-            >Trang Dealer Manager</a
-          >
-          <a href="/admin/dashboard" class="btn btn-secondary">ADMIN</a>
         </div>
       </div>
 

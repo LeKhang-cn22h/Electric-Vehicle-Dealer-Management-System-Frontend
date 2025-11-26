@@ -1,42 +1,43 @@
 <template>
-  <BaseListPage
-    title="Danh sách báo giá"
-    :icon="ScrollText"
-    create-link="/user/quotations/create"
-    create-label="Tạo báo giá mới"
-    :fields-name="fieldsName"
-    :table-component="OrderTable"
-    :data="quotationsByCreator"
-    :show-toolbar="true"
-    :filter-function="filterQuotes"
-    @print="handlePrint"
-  >
-    <template #toolbar>
-      <OrderToolbar
-        :search-query="filters.searchQuery"
-        :status-filter="filters.status"
-        @update:search-query="filters.searchQuery = $event"
-        @update:status-filter="filters.status = $event"
-      />
-    </template>
+    <BaseListPage
+        title="Danh sách báo giá"
+        :icon="ScrollText"
+        create-link="/user/quotations/create"
+        create-label="Tạo báo giá mới"
+        :fields-name="fieldsName"
+        :table-component="OrderTable"
+        :data="quotationsByCreator"
+        :show-toolbar="true"
+        :filter-function="filterQuotes"
+        @print="handlePrint"
+    >
+        <template #toolbar>
+            <OrderToolbar
+                :search-query="filters.searchQuery"
+                :status-filter="filters.status"
+                @update:search-query="filters.searchQuery = $event"
+                @update:status-filter="filters.status = $event"
+                :status-options="fieldStatus"
+            />
+        </template>
 
-    <!-- custom cột trong bảng -->
-    <template #createdAt="{ row }">
-      {{ formatDate(row.createdAt) }}
-    </template>
+        <!-- custom cột trong bảng -->
+        <template #createdAt="{ row }">
+            {{ formatDate(row.createdAt) }}
+        </template>
 
-    <template #totalAmount="{ row }">
-      {{ formatCurrency(row.totalAmount) }}
-    </template>
+        <template #totalAmount="{ row }">
+            {{ formatCurrency(row.totalAmount) }}
+        </template>
 
-    <template #customerName="{ row }">
-      {{ row.customer.name }}
-    </template>
+        <template #customerName="{ row }">
+            {{ row.customer.name }}
+        </template>
 
-    <template #status="{ row }">
-      <OrderStatusBadge :status="row.status" />
-    </template>
-  </BaseListPage>
+        <template #status="{ row }">
+            <OrderStatusBadge :status="row.status" />
+        </template>
+    </BaseListPage>
 </template>
 
 <script setup lang="ts">
@@ -52,7 +53,7 @@ import { formatCurrency, formatDate } from "@/utils/format";
 import { useRoleBasedLayout } from "@/composables/useRoleBasedLayout";
 
 definePageMeta({
-  layout: "dealer-manager-layout",
+    layout: false,
 });
 
 // Layout theo role
@@ -66,52 +67,55 @@ const { quotationsByCreator, fetchAllByCreator } = useQuotations();
 const userId = ref<string | null>(null);
 
 watch(
-  () => quotationsByCreator.value,
-  (val) => {
-    console.log("quotationsByCreator", val);
-  }
+    () => quotationsByCreator.value,
+    (val) => {
+        console.log("quotationsByCreator", val);
+    }
 );
 
 const filters = reactive({
-  searchQuery: "",
-  status: "",
+    searchQuery: "",
+    status: "",
 });
 
 const fieldsName = [
-  { label: "Mã báo giá", key: "id" },
-  { label: "Khách hàng", key: "customerName" },
-  { label: "Người tạo", key: "createdBy" },
-  { label: "Ngày tạo", key: "createdAt" },
-  { label: "Tổng tiền", key: "totalAmount" },
-  { label: "Trạng thái", key: "status" },
-  { label: "Thao tác", key: "actions" },
+    { label: "Mã báo giá", key: "id" },
+    { label: "Khách hàng", key: "customerName" },
+    { label: "Người tạo", key: "createdBy" },
+    { label: "Ngày tạo", key: "createdAt" },
+    { label: "Tổng tiền", key: "totalAmount" },
+    { label: "Trạng thái", key: "status" },
+    { label: "Thao tác", key: "actions" },
+];
+
+const fieldStatus = [
+    { label: "Nháp", value: "draft" },
+    { label: "Đã chuyển", value: "converted" },
 ];
 
 const filterQuotes = (order: any) => {
-  const query = filters.searchQuery.toLowerCase();
+    const query = filters.searchQuery.toLowerCase();
 
-  const matchesSearch =
-    !query ||
-    order.customerName.toLowerCase().includes(query) ||
-    order.orderCode.toLowerCase().includes(query);
+    const matchesSearch =
+        !query || order.customerName.toLowerCase().includes(query) || order.orderCode.toLowerCase().includes(query);
 
-  const matchesStatus = !filters.status || order.status === filters.status;
+    const matchesStatus = !filters.status || order.status === filters.status;
 
-  return matchesSearch && matchesStatus;
+    return matchesSearch && matchesStatus;
 };
 
 const handlePrint = (order: any) => {
-  console.log("In đơn hàng:", order);
+    console.log("In đơn hàng:", order);
 };
 
 onMounted(async () => {
-  if (process.client) {
-    userId.value = localStorage.getItem("user_id");
-    console.log("user id:", userId.value);
+    if (process.client) {
+        userId.value = localStorage.getItem("user_id");
+        console.log("user id:", userId.value);
 
-    if (userId.value) {
-      await fetchAllByCreator(userId.value);
+        if (userId.value) {
+            await fetchAllByCreator(userId.value);
+        }
     }
-  }
 });
 </script>
