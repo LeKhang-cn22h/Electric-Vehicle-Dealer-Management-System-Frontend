@@ -172,30 +172,36 @@
           <h3>Tạo Yêu Cầu Điều Phối Xe</h3>
           <button @click="showCreateModal = false" class="btn-close">×</button>
         </div>
-      </div>
-
-      <!-- Quick Actions -->
-      <div class="quick-actions">
-        <h2>Quick Actions</h2>
-        <div class="actions-grid">
-          <button class="action-btn" @click="navigateTo('vehicles')">
-            <span class="action-icon">🚙</span>
-            <span>Manage Vehicles</span>
-          </button>
-          <button class="action-btn" @click="navigateTo('orders')">
-            <span class="action-icon">📦</span>
-            <span>Process Orders</span>
-          </button>
-          <button class="action-btn" @click="navigateTo('pricing')">
-            <span class="action-icon">💰</span>
-            <span>Update Pricing</span>
-          </button>
-          <button class="action-btn" @click="navigateTo('test-drive')">
-            <span class="action-icon">🧪</span>
-            <span>Schedule Test Drives</span>
-          </button>
+        <div class="modal-body">
+          <form @submit.prevent="submitCreateRequest">
+            <div class="form-group">
+              <label>Tên Dealer *</label>
+              <input v-model="newRequest.dealer_name" type="text" required />
+            </div>
+            <div class="form-group">
+              <label>Email *</label>
+              <input v-model="newRequest.email" type="email" required />
+            </div>
+            <div class="form-group">
+              <label>Địa Chỉ *</label>
+              <textarea v-model="newRequest.address" required></textarea>
+            </div>
+            <div class="form-group">
+              <label>Số Lượng Xe *</label>
+              <input v-model.number="newRequest.quantity" type="number" min="1" required />
+            </div>
+            <div class="form-actions">
+              <button type="button" @click="showCreateModal = false" class="btn btn-outline">
+                Hủy
+              </button>
+              <button type="submit" :disabled="loading" class="btn btn-primary">
+                {{ loading ? 'Đang tạo...' : 'Tạo Yêu Cầu' }}
+              </button>
+            </div>
+          </form>
         </div>
       </div>
+    </div>
 
     <!-- Process Request Modal -->
     <div v-if="showProcessModal && selectedRequest" class="modal-overlay">
@@ -247,10 +253,190 @@ definePageMeta({
 })
 import { ref, onMounted, reactive } from 'vue'
 import { useRouter } from 'vue-router'
-const router = useRouter()
+import { useEvmCoordination } from '~/composables/userEvmCoordination'
 
-const navigateTo = (route) => {
-  router.push(`/EVM_staff/${route}`)
+// Composables
+const { 
+  loading, 
+  error, 
+  createVehicleRequest, 
+  getVehicleRequests,
+  getRequestStats,
+  processVehicleRequest,
+  deleteVehicleRequest,
+  searchVehicleRequestsByEmail
+} = useEvmCoordination()
+
+// Data
+const vehicleRequests = ref<any[]>([])
+const stats = ref<any>({})
+const emailSearch = ref('')
+
+// Filters and pagination
+const filters = reactive({
+  status: '',
+  dealer_name: '',
+  page: 1,
+  limit: 10
+})
+
+const pagination = reactive({
+  page: 1,
+  limit: 10,
+  total: 0,
+  totalPages: 0
+})
+
+// Modals
+const showCreateModal = ref(false)
+const showProcessModal = ref(false)
+const selectedRequest = ref<any>(null)
+
+// Form data
+const newRequest = reactive({
+  dealer_name: '',
+  email: '',
+  address: '',
+  quantity: 1
+})
+
+const processData = reactive({
+  status: 'approved' as 'approved' | 'rejected' | 'processing',
+  notes: '',
+  assigned_staff_id: '',
+  estimated_delivery_date: ''
+})
+
+// Tạo debounce function đơn giản
+// Thay thế function createDebounceFn bằng:
+const createDebounceFn = (fn: Function, delay: number) => {
+  let timeoutId: NodeJS.Timeout | null = null
+  return (...args: any[]) => {
+    if (timeoutId) {
+      clearTimeout(timeoutId)
+    }
+    timeoutId = setTimeout(() => fn(...args), delay)
+  }
+}
+
+// Methods
+const loadVehicleRequests = async () => {
+  try {
+    const response = await getVehicleRequests(filters)
+    vehicleRequests.value = response.data
+    pagination.page = response.pagination.page
+    pagination.limit = response.pagination.limit
+    pagination.total = response.pagination.total
+    pagination.totalPages = response.pagination.totalPages
+  } catch (err) {
+    console.error('Failed to load vehicle requests:', err)
+  }
+}
+
+const loadStats = async () => {
+  try {
+    const response = await getRequestStats()
+    stats.value = response
+  } catch (err) {
+    console.error('Failed to load stats:', err)
+  }
+}
+
+const refreshData = () => {
+  loadVehicleRequests()
+  loadStats()
+}
+
+const searchByEmail = async () => {
+  if (!emailSearch.value.trim()) return
+  
+  try {
+    const results = await searchVehicleRequestsByEmail(emailSearch.value)
+    vehicleRequests.value = results
+    // Reset pagination for search results
+    pagination.page = 1
+    pagination.total = results.length
+    pagination.totalPages = 1
+  } catch (err) {
+    console.error('Failed to search by email:', err)
+  }
+}
+
+const onDealerNameSearch = createDebounceFn(() => {
+  loadVehicleRequests()
+}, 500)
+
+const changePage = (page: number) => {
+  if (page >= 1 && page <= pagination.totalPages) {
+    filters.page = page
+    loadVehicleRequests()
+  }
+}
+
+const submitCreateRequest = async () => {
+  try {
+    await createVehicleRequest({ ...newRequest })
+    showCreateModal.value = false
+    resetNewRequest()
+    refreshData()
+  } catch (err) {
+    console.error('Failed to create request:', err)
+  }
+}
+
+const openProcessModal = (request: any) => {
+  selectedRequest.value = request
+  showProcessModal.value = true
+  // Reset process data
+  Object.assign(processData, {
+    status: 'approved',
+    notes: '',
+    assigned_staff_id: '',
+    estimated_delivery_date: ''
+  })
+}
+
+const submitProcessRequest = async () => {
+  if (!selectedRequest.value) return
+  
+  try {
+    await processVehicleRequest(selectedRequest.value.id, { ...processData })
+    showProcessModal.value = false
+    selectedRequest.value = null
+    refreshData()
+  } catch (err) {
+    console.error('Failed to process request:', err)
+  }
+}
+
+const deleteRequest = async (id: number) => {
+  if (!confirm('Bạn có chắc muốn xóa yêu cầu này?')) return
+  
+  try {
+    await deleteVehicleRequest(id)
+    refreshData()
+  } catch (err) {
+    console.error('Failed to delete request:', err)
+  }
+}
+
+const viewRequestDetails = (id: number) => {
+  // Navigate to detail page or show details in modal
+  console.log('View request details:', id)
+}
+
+const editRequest = (request: any) => {
+  // Implement edit functionality
+  console.log('Edit request:', request)
+}
+
+const resetNewRequest = () => {
+  Object.assign(newRequest, {
+    dealer_name: '',
+    email: '',
+    address: '',
+    quantity: 1
+  })
 }
 
 const getStatusText = (status: string) => {
