@@ -15,10 +15,14 @@
                 <span v-if="sidebarOpen" class="nav-text">Tổng quan</span>
             </NuxtLink>
 
-            <NuxtLink to="/manage_product" class="nav-item" active-class="active">
-                <Car :size="20" class="nav-icon" />
-                <span v-if="sidebarOpen" class="nav-text">Sản phẩm</span>
-            </NuxtLink>
+      <NuxtLink to="/manage_product" class="nav-item" active-class="active">
+        <Car :size="20" class="nav-icon" />
+        <span v-if="sidebarOpen" class="nav-text">Sản phẩm</span>
+      </NuxtLink>
+      <NuxtLink to="/vehicle_unit" class="nav-item" active-class="active">
+        <Car :size="20" class="nav-icon" />
+        <span v-if="sidebarOpen" class="nav-text">Điều phối</span>
+      </NuxtLink>
             <NuxtLink to="/admin/pricing" class="nav-item" active-class="active">
                 <Banknote :size="20" class="nav-icon" />
                 <span v-if="sidebarOpen" class="nav-text">Giá</span>

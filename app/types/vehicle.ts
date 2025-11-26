@@ -42,6 +42,7 @@ export interface Vehicle {
     created_at?: string;
     updated_at?: string;
     price?:number;
+    
 }
 
 export interface VehicleListResponse {
@@ -60,4 +61,9 @@ export interface CompareCar {
   model?: string;
   price?: number;
   year?: number;
+}
+
+export interface Appointment{
+    id: number;
+    
 }

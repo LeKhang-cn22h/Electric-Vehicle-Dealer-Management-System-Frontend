@@ -17,7 +17,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
 import { Search } from 'lucide-vue-next'
 
 const props = defineProps<{
@@ -26,11 +26,11 @@ const props = defineProps<{
 
 const searchText = ref('')
 
-// Gọi callback khi input thay đổi hoặc nhấn nút
+// Gửi cả name và email để search theo cả 2 trường
 const applyFilter = () => {
-  props.onFilter({ search: searchText.value })
+  props.onFilter({ 
+    name: searchText.value,
+    email: searchText.value 
+  })
 }
 </script>
-
-<style scoped>
-</style>

@@ -163,7 +163,8 @@ export const VehicleService = {
     async getListVehicleWithPrice(vehicleIds: number[]) {
         if (!vehicleIds || vehicleIds.length === 0) return [];
 
-        const res = await api.post("/vehicle/list", { vehicleIds });
-        return res.data.data;
-    },
+    const res = await api.post('/vehicle/list', { vehicleIds });
+    return res.data.data; 
+}
+    
 };

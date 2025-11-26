@@ -1,92 +1,102 @@
 <template>
-  <div class="bg-white p-4 rounded-lg border">
-    <div class="flex justify-between items-center mb-4">
-      <h3 class="font-medium text-gray-700">Khoảng giá</h3>
-      <span class="text-sm text-gray-600 bg-gray-100 px-2 py-1 rounded">
-        {{ formatPrice(minPrice) }} - {{ formatPrice(maxPrice) }}
-      </span>
+  <div class="bg-white p-2 rounded-lg border">
+    <div class="grid grid-cols-4 gap-2 mb-4">
+      <button
+        v-for="preset in pricePresets"
+        :key="preset.label"
+        @click="selectPreset(preset)"
+        :class="[
+          'px-2 py-2 rounded-lg text-xs font-medium transition whitespace-nowrap',
+          isPresetActive(preset)
+            ? 'bg-blue-600 text-white'
+            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+        ]"
+      >
+        {{ preset.label }}
+      </button>
     </div>
 
-    <!-- Double Slider -->
-    <div class="relative py-4">
-      <!-- Track -->
-      <div class="absolute w-full h-2 bg-gray-200 rounded-full"></div>
-      
-      <!-- Active Range -->
-      <div 
-        class="absolute h-2 bg-blue-500 rounded-full"
-        :style="{
-          left: `${((minPrice - defaultMinPrice) / (defaultMaxPrice - defaultMinPrice)) * 100}%`,
-          right: `${100 - ((maxPrice - defaultMinPrice) / (defaultMaxPrice - defaultMinPrice)) * 100}%`
-        }"
-      ></div>
+    <!-- Custom Range Inputs - HÀNG NGANG -->
+    <div class="flex gap-3 mb-3">
+      <div class="flex-1">
+        <label class="block text-xs text-gray-600 mb-1">Giá tối thiểu</label>
+        <div class="relative">
+          <input
+            type="text"
+            v-model="minPriceDisplay"
+            @blur="updateMinPrice"
+            @keyup.enter="updateMinPrice"
+            placeholder="0"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+          />
+          <span class="absolute right-3 top-2 text-gray-500 text-xs">₫</span>
+        </div>
+      </div>
 
-      <!-- Min Price Thumb -->
-      <input
-        type="range"
-        :min="defaultMinPrice"
-        :max="defaultMaxPrice"
-        :step="priceStep"
-        v-model.number="minPrice"
-        @input="onPriceChange"
-        class="absolute w-full h-2 appearance-none pointer-events-none opacity-0 z-20"
-      />
-      <div
-        class="absolute w-4 h-4 bg-blue-600 border-2 border-white rounded-full shadow-lg transform -translate-y-1 -translate-x-2 cursor-pointer z-10"
-        :style="{ left: `${((minPrice - defaultMinPrice) / (defaultMaxPrice - defaultMinPrice)) * 100}%` }"
-        @mousedown="startDragging('min')"
-      ></div>
-
-      <!-- Max Price Thumb -->
-      <input
-        type="range"
-        :min="defaultMinPrice"
-        :max="defaultMaxPrice"
-        :step="priceStep"
-        v-model.number="maxPrice"
-        @input="onPriceChange"
-        class="absolute w-full h-2 appearance-none pointer-events-none opacity-0 z-20"
-      />
-      <div
-        class="absolute w-4 h-4 bg-blue-600 border-2 border-white rounded-full shadow-lg transform -translate-y-1 -translate-x-2 cursor-pointer z-10"
-        :style="{ left: `${((maxPrice - defaultMinPrice) / (defaultMaxPrice - defaultMinPrice)) * 100}%` }"
-        @mousedown="startDragging('max')"
-      ></div>
+      <div class="flex-1">
+        <label class="block text-xs text-gray-600 mb-1">Giá tối đa</label>
+        <div class="relative">
+          <input
+            type="text"
+            v-model="maxPriceDisplay"
+            @blur="updateMaxPrice"
+            @keyup.enter="updateMaxPrice"
+            placeholder="2,000,000,000"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+          />
+          <span class="absolute right-3 top-2 text-gray-500 text-xs">₫</span>
+        </div>
+      </div>
     </div>
 
-    <!-- Price Labels -->
-    <div class="flex justify-between text-sm text-gray-500 mt-2">
-      <span>{{ formatPrice(defaultMinPrice) }}</span>
-      <span>{{ formatPrice(defaultMaxPrice) }}</span>
+    <!-- Active Filter Display -->
+    <div v-if="hasActiveFilters" class="mb-3 p-2 bg-blue-50 rounded-lg">
+      <div class="flex items-center justify-between text-sm">
+        <span class="text-blue-700 text-xs">
+          {{ formatPrice(minPrice) }} - {{ formatPrice(maxPrice) }}
+        </span>
+        <button
+          @click="resetFilters"
+          class="text-blue-600 hover:text-blue-800 font-medium text-sm"
+        >
+          ✕
+        </button>
+      </div>
     </div>
 
+    <!-- Reset Button -->
     <button
       v-if="hasActiveFilters"
       @click="resetFilters"
-      class="w-full mt-4 px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-gray-700 font-medium transition"
+      class="w-full px-3 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-gray-700 font-medium text-sm transition"
     >
-      ✕ Xóa lọc giá
+      Xóa lọc giá
     </button>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 
-const emits = defineEmits(['filter-change']);
+const emits = defineEmits(['price-change']);
 
 // Price range configuration
 const defaultMinPrice = 0;
 const defaultMaxPrice = 2000000000; // 2 tỷ
-const priceStep = 1000000; // 1 triệu
 
 const minPrice = ref(defaultMinPrice);
 const maxPrice = ref(defaultMaxPrice);
-const dragging = ref(null);
+const minPriceDisplay = ref('');
+const maxPriceDisplay = ref('');
+
 
 const hasActiveFilters = computed(() => {
   return minPrice.value !== defaultMinPrice || maxPrice.value !== defaultMaxPrice;
 });
+
+const isPresetActive = (preset) => {
+  return minPrice.value === preset.min && maxPrice.value === preset.max;
+};
 
 const formatPrice = (price) => {
   return new Intl.NumberFormat('vi-VN', {
@@ -96,83 +106,62 @@ const formatPrice = (price) => {
   }).format(price);
 };
 
-const onPriceChange = () => {
-  if (minPrice.value > maxPrice.value) {
-    if (dragging.value === 'min') {
-      minPrice.value = maxPrice.value;
-    } else {
-      maxPrice.value = minPrice.value;
-    }
-  }
+const formatPriceInput = (price) => {
+  if (!price) return '';
+  return new Intl.NumberFormat('vi-VN').format(price);
+};
+
+const parsePriceInput = (input) => {
+  if (!input) return 0;
+  // Remove all non-numeric characters
+  const numeric = input.replace(/[^\d]/g, '');
+  return parseInt(numeric) || 0;
+};
+
+// Watch giá để update display
+watch([minPrice, maxPrice], ([newMin, newMax]) => {
+  minPriceDisplay.value = formatPriceInput(newMin);
+  maxPriceDisplay.value = formatPriceInput(newMax);
+}, { immediate: true });
+
+const selectPreset = (preset) => {
+  minPrice.value = preset.min;
+  maxPrice.value = preset.max;
   emitFilters();
 };
 
-const startDragging = (type) => {
-  dragging.value = type;
-  
-  const handleMouseMove = (e) => {
-    if (!dragging.value) return;
-    
-    const slider = e.target.closest('.relative');
-    const rect = slider.getBoundingClientRect();
-    const percentage = Math.min(Math.max((e.clientX - rect.left) / rect.width, 0), 1);
-    const price = Math.round(defaultMinPrice + percentage * (defaultMaxPrice - defaultMinPrice));
-    
-    const roundedPrice = Math.round(price / priceStep) * priceStep;
-    
-    if (dragging.value === 'min') {
-      minPrice.value = Math.min(roundedPrice, maxPrice.value);
-    } else {
-      maxPrice.value = Math.max(roundedPrice, minPrice.value);
-    }
-    
-    emitFilters();
-  };
-  
-  const handleMouseUp = () => {
-    dragging.value = null;
-    document.removeEventListener('mousemove', handleMouseMove);
-    document.removeEventListener('mouseup', handleMouseUp);
-  };
-  
-  document.addEventListener('mousemove', handleMouseMove);
-  document.addEventListener('mouseup', handleMouseUp);
+const updateMinPrice = () => {
+  const parsed = parsePriceInput(minPriceDisplay.value);
+  minPrice.value = Math.min(parsed, maxPrice.value);
+  minPriceDisplay.value = formatPriceInput(minPrice.value);
+  emitFilters();
+};
+
+const updateMaxPrice = () => {
+  const parsed = parsePriceInput(maxPriceDisplay.value);
+  maxPrice.value = Math.max(parsed, minPrice.value);
+  maxPriceDisplay.value = formatPriceInput(maxPrice.value);
+  emitFilters();
 };
 
 const emitFilters = () => {
-  emits('filter-change', {
-    minPrice: minPrice.value !== defaultMinPrice ? minPrice.value : undefined,
-    maxPrice: maxPrice.value !== defaultMaxPrice ? maxPrice.value : undefined,
+  emits('price-change', {
+    min: minPrice.value !== defaultMinPrice ? minPrice.value : undefined,
+    max: maxPrice.value !== defaultMaxPrice ? maxPrice.value : undefined,
   });
 };
 
 const resetFilters = () => {
   minPrice.value = defaultMinPrice;
   maxPrice.value = defaultMaxPrice;
-  emits('filter-change', {});
+  minPriceDisplay.value = '';
+  maxPriceDisplay.value = '';
+  emits('price-change', {});
 };
 </script>
 
 <style scoped>
-input[type="range"]::-webkit-slider-thumb {
-  appearance: none;
-  height: 18px;
-  width: 18px;
-  border-radius: 50%;
-  background: #2563eb;
-  cursor: pointer;
-  border: 2px solid #ffffff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-input[type="range"]::-moz-range-thumb {
-  height: 18px;
-  width: 18px;
-  border-radius: 50%;
-  background: #2563eb;
-  cursor: pointer;
-  border: 2px solid #ffffff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  border: none;
+input[type="text"]:focus {
+  outline: none;
 }
 </style>

@@ -1,57 +1,101 @@
+<!-- FILE: pages/manage_testDriver/detail/[id].vue -->
 <template>
   <div class="max-w-3xl mx-auto p-5">
     <h2 class="text-3xl font-bold text-blue-800 mb-5">Chi Tiết Lịch Hẹn Lái Thử</h2>
 
-    <div v-if="booking" class="bg-white rounded-lg shadow p-5 space-y-4">
-      <!-- Thông tin khách hàng -->
+    <!-- Loading -->
+    <div v-if="loading" class="flex justify-center items-center min-h-[400px]">
+      <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-800"></div>
+    </div>
+
+    <!-- Error -->
+    <div v-else-if="error" class="p-4 bg-red-100 text-red-700 rounded mb-5">
+      {{ error }}
+    </div>
+
+    <!-- Content -->
+    <div v-else-if="appointment" class="bg-white rounded-lg shadow p-5 space-y-4">
+      <!-- Thông tin appointment -->
       <div class="grid grid-cols-2 gap-4">
-        <div><strong>Mã đặt lịch:</strong> {{ booking.bookingCode }}</div>
-        <div><strong>Khách hàng:</strong> {{ booking.customerName }}</div>
-        <div><strong>Xe:</strong> {{ booking.vehicleName }}</div>
-        <div><strong>Màu:</strong> 
-          <span class="inline-block w-5 h-5 rounded-full border" :style="{ backgroundColor: booking.color }"></span>
+        <div><strong>Mã đặt lịch:</strong> #{{ appointment.id }}</div>
+        <div><strong>Khách hàng UID:</strong> {{ appointment.customer_uid }}</div>
+        
+        <!-- Vehicle info -->
+        <div><strong>Xe:</strong> {{ appointment.test_drive_slot?.vehicle?.name || 'N/A' }}</div>
+        <div>
+          <strong>Model:</strong> {{ appointment.test_drive_slot?.vehicle?.model || 'N/A' }}
         </div>
-        <div><strong>Ngày & giờ:</strong> {{ booking.date }} {{ booking.time }}</div>
-        <div><strong>Trạng thái:</strong> 
+        <div>
+          <strong>Năm:</strong> {{ appointment.test_drive_slot?.vehicle?.year || 'N/A' }}
         </div>
-        <div v-if="booking.phone"><strong>Điện thoại:</strong> {{ booking.phone }}</div>
-        <div v-if="booking.email"><strong>Email:</strong> {{ booking.email }}</div>
-        <div v-if="booking.location"><strong>Địa điểm:</strong> {{ booking.location }}</div>
-        <div v-if="booking.notes"><strong>Ghi chú:</strong> {{ booking.notes }}</div>
+        <div>
+          <strong>Màu:</strong>
+          <span 
+            v-for="color in appointment.test_drive_slot?.vehicle?.color" 
+            :key="color"
+            class="inline-block w-5 h-5 rounded-full border ml-1"
+            :style="{ backgroundColor: color }"
+          ></span>
+        </div>
+
+        <!-- Slot info -->
+        <div>
+          <strong>Ngày & giờ:</strong> 
+          {{ formatDate(appointment.test_drive_slot?.slot_start) }}
+          {{ formatTime(appointment.test_drive_slot?.slot_start) }} - 
+          {{ formatTime(appointment.test_drive_slot?.slot_end) }}
+        </div>
+        
+        <!-- Status -->
+        <div>
+          <strong>Trạng thái:</strong>
+          <span :class="statusClass(appointment.status)">
+            {{ getStatusLabel(appointment.status) }}
+          </span>
+        </div>
+
+        <!-- Slot capacity -->
+        <div>
+          <strong>Slot:</strong>
+          {{ appointment.test_drive_slot?.booked_customers || 0 }} / 
+          {{ appointment.test_drive_slot?.max_customers || 0 }} người
+        </div>
+
+        <!-- Timestamps -->
+        <div><strong>Đặt lúc:</strong> {{ formatDateTime(appointment.created_at) }}</div>
+        <div><strong>Cập nhật:</strong> {{ formatDateTime(appointment.updated_at) }}</div>
       </div>
 
-      <!-- Hành động duyệt / hủy -->
+      <!-- Action buttons -->
       <div class="flex gap-3 mt-5">
         <button
-          @click="updateStatus('confirmed')"
-          :disabled="booking.status === 'confirmed'"
+          v-if="appointment.status === 'confirm'"
+          @click="updateStatus('completed')"
+          :disabled="updating"
           class="px-4 py-2 rounded bg-green-600 text-white hover:bg-green-700 disabled:bg-gray-300"
         >
-          Xác nhận
+          {{ updating ? 'Đang xử lý...' : 'Đánh dấu hoàn thành' }}
         </button>
 
         <button
-          @click="updateStatus('completed')"
-          :disabled="booking.status !== 'confirmed'"
-          class="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-300"
-        >
-          Hoàn thành
-        </button>
-
-        <button
+          v-if="appointment.status !== 'cancelled'"
           @click="updateStatus('cancelled')"
-          :disabled="booking.status === 'cancelled'"
+          :disabled="updating"
           class="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700 disabled:bg-gray-300"
         >
-          Hủy
+          {{ updating ? 'Đang xử lý...' : 'Hủy lịch' }}
         </button>
 
-        <router-link to="/manage_testDriver" class="px-4 py-2 rounded border border-gray-300 hover:bg-gray-100">
-          Quay lại danh sách
-        </router-link>
+        <button
+          @click="router.back()"
+          class="px-4 py-2 rounded border border-gray-300 hover:bg-gray-100"
+        >
+          Quay lại
+        </button>
       </div>
     </div>
 
+    <!-- Not found -->
     <div v-else class="text-center text-gray-500 mt-20">
       Không tìm thấy lịch hẹn.
     </div>
@@ -61,48 +105,108 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import type { Booking } from '../../../data/bookings'
-import { bookings as mockBookings } from '../../../data/bookings'
+import { useAppointment } from '~/composables/useAppointments'
+import type { UpdateAppointmentDto } from '~/types/appointment'
 
-// Lấy ID lịch từ route
 const route = useRoute()
 const router = useRouter()
-const bookingId = route.params.id as string
+definePageMeta({
+  layout: false,
+});
 
-// Dữ liệu
-const booking = ref<Booking | null>(null)
+const { layoutName, applyLayout } = useRoleBasedLayout();
+applyLayout();
+const appointmentId = parseInt(route.params.id as string)
 
-onMounted(() => {
-  // Thay bằng call API thực tế nếu cần
-  booking.value = mockBookings.find(b => b.bookingCode === bookingId) || null
-})
+// ===============================
+// COMPOSABLE
+// ===============================
+const {
+  loading,
+  error,
+  appointment,
+  fetchAppointment,
+  updateAppointment
+} = useAppointment()
 
-// Hàm cập nhật trạng thái
-const updateStatus = (status: 'pending' | 'confirmed' | 'completed' | 'cancelled') => {
-  if (!booking.value) return
-  booking.value.status = status
-  // TODO: Gọi API update trạng thái ở đây nếu backend
+// ===============================
+// STATE
+// ===============================
+const updating = ref(false)
+
+// ===============================
+// METHODS
+// ===============================
+
+const formatDate = (dateString?: string) => {
+  if (!dateString) return 'N/A'
+  return new Date(dateString).toLocaleDateString('vi-VN', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
 }
 
-// Map status thành nhãn đẹp
+const formatTime = (dateString?: string) => {
+  if (!dateString) return 'N/A'
+  return new Date(dateString).toLocaleTimeString('vi-VN', {
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
+const formatDateTime = (dateString?: string) => {
+  if (!dateString) return 'N/A'
+  const date = new Date(dateString)
+  return `${date.toLocaleDateString('vi-VN')} ${date.toLocaleTimeString('vi-VN')}`
+}
+
 const getStatusLabel = (status: string) => {
-  switch (status) {
-    case 'pending': return 'Chưa xác nhận'
-    case 'confirmed': return 'Đã xác nhận'
-    case 'completed': return 'Hoàn thành'
-    case 'cancelled': return 'Hủy'
-    default: return status
+  const labels: Record<string, string> = {
+    'confirm': 'Đã xác nhận',
+    'completed': 'Hoàn thành',
+    'cancelled': 'Đã hủy'
+  }
+  return labels[status] || status
+}
+
+const statusClass = (status: string) => {
+  const classes: Record<string, string> = {
+    'confirm': 'px-2 py-1 rounded bg-blue-200 text-blue-800',
+    'completed': 'px-2 py-1 rounded bg-green-200 text-green-800',
+    'cancelled': 'px-2 py-1 rounded bg-red-200 text-red-800'
+  }
+  return classes[status] || 'px-2 py-1 rounded bg-gray-200 text-gray-800'
+}
+
+const updateStatus = async (status: 'completed' | 'cancelled') => {
+  if (!appointment.value) return
+
+  const confirmed = confirm(`Bạn có chắc muốn ${status === 'cancelled' ? 'hủy' : 'hoàn thành'} lịch hẹn này?`)
+  if (!confirmed) return
+
+  updating.value = true
+
+  try {
+    const payload: UpdateAppointmentDto = { status }
+    await updateAppointment(appointmentId, payload)
+    
+    // Reload data
+    await fetchAppointment(appointmentId)
+    
+    alert('Cập nhật thành công!')
+  } catch (err: any) {
+    alert('Lỗi: ' + (err.message || 'Không thể cập nhật'))
+  } finally {
+    updating.value = false
   }
 }
 
-// Class màu theo trạng thái
-const statusClass = (status: string) => {
-  switch (status) {
-    case 'pending': return 'px-2 py-1 rounded bg-yellow-200 text-yellow-800'
-    case 'confirmed': return 'px-2 py-1 rounded bg-blue-200 text-blue-800'
-    case 'completed': return 'px-2 py-1 rounded bg-green-200 text-green-800'
-    case 'cancelled': return 'px-2 py-1 rounded bg-red-200 text-red-800'
-    default: return ''
-  }
-}
+// ===============================
+// LIFECYCLE
+// ===============================
+onMounted(async () => {
+  await fetchAppointment(appointmentId)
+})
 </script>

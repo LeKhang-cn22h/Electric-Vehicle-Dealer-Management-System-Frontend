@@ -9,9 +9,11 @@
 
       <div class="nav-section">
         <router-link to="/EVM_staff" class="nav-item">Trang chủ</router-link>
-        <router-link to="/EVM_staff/vehicle-coordination" class="nav-item"
+        <router-link to="/vehicle_unit" class="nav-item"
           >Điều phối</router-link
         >
+        <router-link to="/manage_product" class="nav-item">Sản phẩm</router-link>
+
         <router-link to="/EVM_staff/evmStaffAgreement/" class="nav-item"
           >Hợp đồng</router-link
         >
@@ -60,7 +62,7 @@ import { useMe } from "@/composables/useMe";
 
 const navItems = [
   { path: "/EVM_staff", label: "Trang chủ" },
-  { path: "/EVM_staff/vehicle-coordination", label: "Điều phối xe" },
+  { path: "/Vehicle_unit", label: "phối xe" },
   { path: "/EVM_staff/wholesale-pricing", label: "Giá sỉ" },
   { path: "/EVM_staff/promotions", label: "Khuyến mãi" },
   { path: "/EVM_staff/receivables", label: "Công nợ" },

@@ -20,8 +20,7 @@
         <label class="block text-gray-700 mb-1">Trạng thái:</label>
         <select v-model="filterStatus" class="px-3 py-2 border rounded focus:outline-none focus:border-blue-800">
           <option value="">Tất cả</option>
-          <option value="pending">Chưa xác nhận</option>
-          <option value="confirmed">Đã xác nhận</option>
+          <option value="confirm">Đã xác nhận</option>
           <option value="completed">Hoàn thành</option>
           <option value="cancelled">Hủy</option>
         </select>
@@ -34,7 +33,7 @@
       <table class="min-w-full bg-white border border-gray-200 rounded">
         <thead class="bg-blue-800 text-white">
           <tr>
-            <th class="px-4 py-2 text-left">Mã đặt lịch</th>
+            <th class="px-4 py-2 text-left">STT</th>
             <th class="px-4 py-2 text-left">Xe</th>
             <th class="px-4 py-2 text-left">Ngày & giờ</th>
             <th class="px-4 py-2 text-left">Trạng thái</th>
@@ -42,19 +41,24 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="b in filteredBookings" :key="b.bookingCode" class="border-b hover:bg-gray-50">
-            <td class="px-4 py-2">{{ b.bookingCode }}</td>
+          <tr v-for="(b, index) in filteredBookings" :key="b.bookingCode" class="border-b hover:bg-gray-50">
+            <td class="px-4 py-2">{{ index + 1 }}</td>
             <td class="px-4 py-2">{{ b.vehicleName }}</td>
             <td class="px-4 py-2">{{ b.date }} {{ b.time }}</td>
             <td class="px-4 py-2">
               <span :class="statusClass(b.status)">{{ getStatusLabel(b.status) }}</span>
             </td>
             <td class="px-4 py-2">
-              <router-link :to="`/customer/bookings/${b.bookingCode}`" class="px-2 py-1 bg-blue-800 text-white rounded hover:bg-blue-700">
+              <!-- ✅ SỬA DÒNG NÀY -->
+              <router-link 
+                :to="`/testDriver/${b.bookingCode}`" 
+                class="px-2 py-1 bg-blue-800 text-white rounded hover:bg-blue-700"
+              >
                 Xem chi tiết
               </router-link>
             </td>
           </tr>
+
           <tr v-if="filteredBookings.length === 0">
             <td colspan="5" class="text-center py-4 text-gray-500">Không có lịch hẹn nào.</td>
           </tr>
@@ -65,61 +69,95 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import type { Booking } from '~/data/bookings'
-import { bookings as mockBookings } from '~/data/bookings'
+import { ref, computed, onMounted } from 'vue';
+import { useAppointment } from '~/composables/useAppointments';
+import type { TestDriveSlot, Appointment } from '~/types/appointment';
 
-const vehicles = [
-  { id: '1', name: 'VinFast VF e34' },
-  { id: '2', name: 'VinFast VF 8' },
-  { id: '3', name: 'VinFast VF 9' }
-]
+// Composable
+const {
+  loading,
+  error,
+  appointments,
+  slots,
+  fetchHistoryCustomer,
+  fetchSlotsCustomer
+} = useAppointment();
 
-const filterDate = ref('')
-const filterVehicle = ref('')
-const filterStatus = ref('')
+// Filter state
+const filterDate = ref('');
+const filterVehicle = ref('');
+const filterStatus = ref('');
 
-// Giả sử user hiện tại
-const currentUser = 'Nguyen Van A'
+// Danh sách vehicle
+const vehicles = computed(() => {
+  const vehicleMap = new Map();
+  
+  appointments.value.forEach(app => {
+    const vehicle = app.test_drive_slot?.vehicle;
+    if (vehicle && vehicle.id && vehicle.name) {
+      vehicleMap.set(vehicle.id, vehicle.name);
+    }
+  });
 
-// Lọc booking của user hiện tại
-const customerBookings = computed(() => 
-  mockBookings.filter(b => b.customerName === currentUser)
-)
+  return Array.from(vehicleMap, ([id, name]) => ({ id, name }));
+});
 
+// Fetch dữ liệu khi component mount
+onMounted(async () => {
+  await fetchHistoryCustomer();
+  await fetchSlotsCustomer();
+});
+
+// Filtered bookings
 const filteredBookings = computed(() =>
-  customerBookings.value.filter(b => {
-    return (!filterDate.value || b.date === filterDate.value)
-      && (!filterVehicle.value || b.vehicleName === filterVehicle.value)
-      && (!filterStatus.value || b.status === filterStatus.value)
-  })
-)
+  appointments.value
+    .map(app => {
+      const vehicleName = app.test_drive_slot?.vehicle?.name || `Xe ${app.test_drive_slot_id}`;
+      const slotDate = app.test_drive_slot?.slot_start ? new Date(app.test_drive_slot.slot_start) : null;
+      const date = slotDate ? slotDate.toISOString().split('T')[0] : '-';
+      const time = slotDate ? slotDate.toLocaleTimeString('vi-VN', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      }) : '-';
+
+      return {
+        bookingCode: app.id,
+        vehicleName: vehicleName,
+        date: date,
+        time: time,
+        status: app.status,
+        rawAppointment: app
+      };
+    })
+    .filter(b => {
+      return (!filterDate.value || b.date === filterDate.value)
+        && (!filterVehicle.value || b.vehicleName === filterVehicle.value)
+        && (!filterStatus.value || b.status === filterStatus.value)
+    })
+);
 
 const resetFilters = () => {
-  filterDate.value = ''
-  filterVehicle.value = ''
-  filterStatus.value = ''
+  filterDate.value = '';
+  filterVehicle.value = '';
+  filterStatus.value = '';
 }
 
-// Label trạng thái
+// Status label & class
 const getStatusLabel = (status: string) => {
   switch (status) {
-    case 'pending': return 'Chưa xác nhận'
-    case 'confirmed': return 'Đã xác nhận'
-    case 'completed': return 'Hoàn thành'
-    case 'cancelled': return 'Hủy'
-    default: return status
+    case 'confirm': return 'Đã xác nhận';
+    case 'completed': return 'Hoàn thành';
+    case 'cancelled': return 'Hủy';
+    default: return status;
   }
 }
 
-// Class màu trạng thái
 const statusClass = (status: string) => {
   switch (status) {
-    case 'pending': return 'px-2 py-1 rounded bg-yellow-200 text-yellow-800'
-    case 'confirmed': return 'px-2 py-1 rounded bg-blue-200 text-blue-800'
-    case 'completed': return 'px-2 py-1 rounded bg-green-200 text-green-800'
-    case 'cancelled': return 'px-2 py-1 rounded bg-red-200 text-red-800'
-    default: return ''
+    case 'confirm': return 'px-2 py-1 rounded bg-blue-200 text-blue-800';
+    case 'completed': return 'px-2 py-1 rounded bg-green-200 text-green-800';
+    case 'cancelled': return 'px-2 py-1 rounded bg-red-200 text-red-800';
+    default: return '';
   }
 }
 </script>
