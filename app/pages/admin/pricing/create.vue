@@ -72,7 +72,7 @@
         @update:visible="(val: boolean) => (visible = val)"
         @update:loading="(val: boolean) => (loadingPrice = val)"
         @update:error="(val: string | null) => (errorPrice = val)"
-        @close="goToListQuote"
+        @close="goToListPrice"
     />
 </template>
 
@@ -122,8 +122,8 @@ const resetForm = () => {
         router.back();
     }
 };
-const goToListQuote = () => {
-    router.push("/user/quotations");
+const goToListPrice = () => {
+    router.push("/admin/pricing");
 };
 const showModal = ref(false);
 

@@ -98,6 +98,7 @@
         @update:visible="(val) => (visible.value = val)"
         @update:loading="(val) => (loading.value = val)"
         @update:error="(val) => (error.value = val)"
+        @close="goToListPromotion"
     />
 </template>
 
@@ -171,7 +172,9 @@ const handleConfirm = () => {
     showModal.value = false; // đóng modal sau khi xác nhận
     savePromotion();
 };
-
+const goToListPromotion = () => {
+    router.push("/admin/promotions");
+};
 // State của modal
 const visible = ref(false);
 

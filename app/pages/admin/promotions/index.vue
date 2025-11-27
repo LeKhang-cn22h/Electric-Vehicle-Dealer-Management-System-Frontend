@@ -83,8 +83,6 @@ const filters = reactive({
 const fieldsName = [
     { label: "Mã KM", key: "code" },
     { label: "Loại giảm", key: "discountType" },
-    { label: "Mô tả", key: "description" },
-    { label: "Điều kiện tối thiểu", key: "minOrderValue" },
     { label: "Khoảng thời gian", key: "dateRange" },
     { label: "Trạng thái", key: "isActive" },
     { label: "Thao tác", key: "actions" },
