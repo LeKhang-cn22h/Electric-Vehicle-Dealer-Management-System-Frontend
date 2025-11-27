@@ -79,7 +79,6 @@ const fieldsName = [
     { label: "Giá sỉ", key: "wholesalePrice" },
     { label: "Giá bán đề xuất", key: "discountedPrice" },
     { label: "Số lượng tối thiểu", key: "quantity" },
-    { label: "Thao tác", key: "actions" },
 ];
 
 onMounted(async () => {
